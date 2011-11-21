@@ -1,0 +1,86 @@
+{
+ '_id': 'c063d45413da11e194ca0026c7d605c8',
+ 'physical': { #index ctime, atime
+  'ctime': 1321836553, #Path decomposed by mktime() #/2011/11/21/12/30/<uid>[.ext][.compression-ext] #Minutes are sub-divided by fives
+  'atime': 1321836554, #Time at which the file was last accessed
+  'format': {
+   'mime': 'audio/x-wav',
+   'compression': 'gz'/'bz2'/'lzma'/null, #Omitted or null -> no compression
+   'ext': null/'wav', #Omitted or null -> no extension
+  }
+ }
+ 'policy': {
+  'delete': { #index fixed, stale
+   'fixed': 1321836555, #Time after which file should be deleted; this field may be omitted or null to disable
+   'stale': 3600, #The number of seconds that must lapse after the file's atime to qualify it for deletion; may be omitted or null
+  }, #This entire section can be omitted
+  'compress': { #index fixed, stale
+   'fixed': 1321836555, #Time after which file should be compressed; this field may be omitted or null to disable
+   'stale': 3600, #The number of seconds that must lapse after the file's atime to qualify it for compression; may be omitted or null
+   'compression': 'gz'/'bz2'/'lzma', #The compression format to use (client must list its capabilities in the request)
+  }, #This entire section can be omitted; it is removed after compression occurs
+ },
+ 'stats': {
+  'accesses': 1, #Number of times the file has been accessed
+ },
+ 'meta': {
+  'key': 'value'/5/42.7, #Typical key-value store; when querying, the client must specify the type of each field
+  ...
+ },
+}
+
+Queries against the following non-meta fields are supported through explicit constructs:
+- ctime (range)
+- mime (super-type or both)
+- accesses (gte, lte, eq)
+
+Query syntax (against meta):
+- For matching queries, no special syntax exists or is needed (the library will use proper JSON encoding)
+- Range queries are supported only over numeric types: ':range:<min>:<max>', inclusive on both ends
+- Regular expressions are supported over strings, as a search: ':re:<pcre>'
+- For operators used to SQL, a subset of regular expressions is provided, offering case-insensitive searching with wildcards: ':like:<pattern>'
+- If you actually want to start a string with one of the special operators, start it with '::'; the first colon will be ignored
+
+Architecture:
+- Server (python, tornado, mongo, PyLZMA, and a filesystem)
+ - Runs periodic delete/compression sweeps
+ - Occasionally validates on-disk content against data-store, purging broken records
+  - This runs both ways, as two different actions
+- Proxy (python, BaseHTTPServer, local filesystem)
+ - Issues UIDs on behalf of central servers (one proxy can serve many), allowing applications to hand off responsibility
+  - Internally ensures that the file is delivered in a timely fashion, protecting against network or remote failures
+ - Transfers file-content via the filesystem, making a copy of the original file in a local cache, along with metadata, for deferred delivery
+- Client (all languages)
+ - Offers two implementations of the storage interface:
+  - Proxy:
+   - Allows for files to be submitted as streams or as filesystem entities, transparently dumping the stream to disk if necessary
+   - Notifies the local proxy of the file's location and metadata
+   - Returns a UID
+   - Cleans up the tempfile, if one was created
+  - Server:
+   - Accepts files as streams or filesystem entities, serialising the content as a half-JSON, half-binary package
+   - Returns a UID if one was not supplied (proxies use this; applications should not)
+  - Both:
+   - Have an option for removing the on-disk file, in file-mode
+   - Do NOT do mime/extension introspection (the application is responsible)
+ - Offers a query interface:
+  - Returns a list of file descriptors (identical to the data-structure above)
+ - Offers a download interface:
+  - Grab file as stream
+  - Store file to disk
+ - Offers a management interface:
+  - Delete file
+  - Compress file
+  - Set policy options
+  - Set/unset meta attributes
+ - Is fully subclassable, allowing for specialised variants (like caching clients that use meta attributes)
+
+Filesystem support:
+- Local:
+ - POSIX
+ - Win32
+- Remote
+ - SFTP (paramiko)
+ - NFS
+ - SMB
+
