@@ -37,9 +37,9 @@ Queries against the following non-meta fields are supported through explicit con
 Query syntax (against meta):
 - For matching queries, no special syntax exists or is needed (the library will use proper JSON encoding)
 - Range queries are supported only over numeric types: ':range:<min>:<max>', inclusive on both ends
-- Regular expressions are supported over strings, as a search: ':re:<pcre>'
+- Regular expressions are supported over strings, as a search: ':re:<pcre>' and ':re.i:<pcre>' (insensitive)
 - For operators used to SQL, a subset of regular expressions is provided, offering case-insensitive searching with wildcards: ':like:<pattern>'
-- If you actually want to start a string with one of the special operators, start it with '::'; the first colon will be ignored
+- If you actually want to start a string with one of the special operators (everything between two colons is reserved), start it with '::'; the first colon will be ignored
 
 Architecture:
 - Server (python, tornado, mongo, PyLZMA, and a filesystem)
