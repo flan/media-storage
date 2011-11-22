@@ -81,6 +81,4 @@ Filesystem support:
  - Win32
 - Remote
  - SFTP (paramiko)
- - NFS
- - SMB
 
