@@ -1,6 +1,7 @@
 {
  '_id': 'c063d45413da11e194ca0026c7d605c8',
  'physical': { #index ctime, atime
+  'family': 'voice'/null, #The family to which the data belongs; if omitted, null, or unmapped, the generic backend is used; otherwise, allows for partitioning if the family is mapped in system.ini
   'ctime': 1321836553, #Path decomposed by mktime() #/2011/11/21/12/30/<uid>[.ext][.compression-ext] #Minutes are sub-divided by fives
   'atime': 1321836554, #Time at which the file was last accessed
   'format': {
