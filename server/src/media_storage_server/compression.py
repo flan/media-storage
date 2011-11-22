@@ -13,98 +13,43 @@ _BUFFER_SIZE = 1024 * 32 #Work with 32k chunks
 
 #Names are reflectable
 
-def compress_bz2(data):
-    compressor = bz2.BZ2Compressor()
+def _process(data, handler, flush_handler):
     temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
     while True:
         chunk = data.read(_BUFFER_SIZE)
         if chunk:
-            chunk = compressor.compress(chunk)
+            chunk = handler(chunk)
             if chunk:
                 temp.write(chunk)
         else:
-            temp.write(compressor.flush())
+            if flush_handler:
+                temp.write(flush_handler())
             break
     temp.flush()
     temp.seek(0)
     return temp
+    
+def compress_bz2(data):
+    compressor = bz2.BZ2Compressor()
+    return _process(data, compressor.compress, compressor.flush)
 
 def decompress_bz2(data):
     decompressor = bz2.BZ2Decompressor()
-    temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
-    while True:
-        chunk = data.read(_BUFFER_SIZE)
-        if chunk:
-            chunk = decompressor.decompress(chunk)
-            if chunk:
-                temp.write(chunk)
-        else:
-            break
-    temp.flush()
-    temp.seek(0)
-    return temp
+    return _process(data, decompressor.decompress, None)
     
 def compress_gzip(data):
     compressor = zlib.compressobj()
-    temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
-    while True:
-        chunk = data.read(_BUFFER_SIZE)
-        if chunk:
-            chunk = compressor.compress(chunk)
-            if chunk:
-                temp.write(chunk)
-        else:
-            temp.write(compressor.flush())
-            break
-    temp.flush()
-    temp.seek(0)
-    return temp
-
+    return _process(data, compressor.compress, compressor.flush)
+    
 def decompress_gzip(data):
     decompressor = zlib.decompressobj()
-    temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
-    while True:
-        chunk = data.read(_BUFFER_SIZE)
-        if chunk:
-            chunk = decompressor.decompress(chunk)
-            if chunk:
-                temp.write(chunk)
-        else:
-            temp.write(decompressor.flush())
-            break
-    temp.flush()
-    temp.seek(0)
-    return temp
+    return _process(data, decompressor.decompress, decompressor.flush)
     
 def compress_lzma(data):
     compressor = lzma.LZMACompressor()
-    temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
-    while True:
-        chunk = data.read(_BUFFER_SIZE)
-        if chunk:
-            chunk = compressor.compress(chunk)
-            if chunk:
-                temp.write(chunk)
-        else:
-            temp.write(compressor.flush())
-            break
-    temp.flush()
-    temp.seek(0)
-    return temp
+    return _process(data, compressor.compress, compressor.flush)
     
 def decompress_lzma(data):
     decompressor = lzma.LZMADecompressor()
-    temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
-    while True:
-        chunk = data.read(_BUFFER_SIZE)
-        if chunk:
-            chunk = decompressor.decompress(chunk)
-            if chunk:
-                temp.write(chunk)
-        else:
-            temp.write(decompressor.flush())
-            break
-    temp.flush()
-    temp.seek(0)
-    return temp
+    return _process(data, decompressor.decompress, decompressor.flush)
     
