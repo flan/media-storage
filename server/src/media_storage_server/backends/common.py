@@ -55,6 +55,12 @@ class BaseBackend(object):
     def _rmdir(self, path):
         raise NotImplementedError("'_rmdir()' needs to be overridden in a subclass")
         
+    def file_exists(self, path):
+        return self._file_exists(path)
+        
+    def _file_exists(self, path):
+        raise NotImplementedError("'_file_exists()' needs to be overridden in a subclass")
+        
 class Error(Exception):
     """
     The base exception common to this package.

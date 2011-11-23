@@ -14,10 +14,10 @@ class Filesystem(object):
         self._backend = backends.get_backend(uri)
         
     def get(self, record):
-        return backend.get(self._resolve_path(record))
+        return self._backend.get(self._resolve_path(record))
         
     def put(self, record, data):
-        backend.put(self._resolve_path(record), data)
+        self._backend.put(self._resolve_path(record), data)
         
     def unlink(self, record):
         """
@@ -27,10 +27,13 @@ class Filesystem(object):
         be placed inside (2 * resolution in minutes), then directories may be removed to free
         allocation resources.
         """
-        backend.unlink(
+        self._backend.unlink(
          self._resolve_path(record),
          rmdir=(time.time() - record['physical']['ctime'] > CONFIG.filesystem_directory_resolution * 120)
         )
+        
+    def file_exists(self, path):
+        return self._backend.file_exists(path)
         
     def _resolve_path(self, record):
         ts = time.gmtime(record['physical']['ctime'])
