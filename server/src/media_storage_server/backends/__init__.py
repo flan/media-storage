@@ -3,6 +3,10 @@ Provides an array of backend implementations.
 """
 import re
 
+from common import (
+ Error,
+ FileNotFoundError,
+)
 from local import LocalBackend
 from sftp import SFTPBackend
 
