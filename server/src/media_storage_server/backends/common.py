@@ -30,7 +30,11 @@ class BaseBackend(object):
                     break
                     
                 if not self.lsdir(path): #Directory empty; remove
-                    self.rmdir(path)
+                    try:
+                        self.rmdir(path)
+                    except NotEmptyError as e:
+                        #Log e
+                        break
                 else: #Directory not empty; bail
                     break
                     
@@ -46,7 +50,7 @@ class BaseBackend(object):
     def mkdir(self, path):
         self._mkdir(path)
         
-    def mkdir(self, path):
+    def _mkdir(self, path):
         raise NotImplementedError("'_mkdir()' needs to be overridden in a subclass")
         
     def rmdir(self, path):
@@ -69,5 +73,20 @@ class Error(Exception):
 class FileNotFoundError(Error):
     """
     The identified file was not found.
+    """
+    
+class PermissionsError(Error):
+    """
+    Insufficient permissions to perform the requested action.
+    """
+    
+class CollisionError(Error):
+    """
+    A resource already exists with the target name.
+    """
+    
+class NotEmptyError(Error):
+    """
+    Unable to unlink directory because it is not empty.
     """
     
