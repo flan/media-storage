@@ -11,7 +11,7 @@
   'atime': 1321836554, #Time at which the file was last accessed
   'format': {
    'mime': 'audio/x-wav',
-   'compression': 'gz'/'bz2'/'lzma'/null, #Omitted or null -> no compression
+   'comp': 'gz'/'bz2'/'lzma'/null, #Omitted or null -> no compression
    'ext': null/'wav', #Omitted or null -> no extension
   },
   'checksum': {
@@ -31,7 +31,7 @@
                         #may be omitted or null to disable
    'stale': 3600, #The number of seconds that must lapse after the file's atime
                   #to qualify it for compression; may be omitted or null
-   'compression': 'gz'/'bz2'/'lzma', #The compression format to use;
+   'comp': 'gz'/'bz2'/'lzma', #The compression format to use;
                                      #decompression occurs if necessary
   }, #This entire section can be omitted; it is removed after compression occurs
  },
@@ -182,9 +182,10 @@ is desired, but not so large that it makes I/O choke)
 
 Since the query mechanism is shared between operators and extending maintenance
 scripts, any scripts that do not modify or destroy records to make them invalid
-candidates for successive queries must supply a 'start_ctime' property to bypass
-the first chunk of matching records. (This property is used to allow a
-range-based query over the ctime index, which is pretty efficient)
+candidates for successive queries must supply a 'ctime_max' or 'ctime_min'
+property to bypass the first chunk of matching records; either is compared as a
+greater/lesser-than, not a greater/lesser-than-equal. (This property is used to
+allow a range-based query over the ctime index, which is pretty efficient)
 
 Backups:
 Copy the config file, dump the database, and incrementally copy the datastores.
