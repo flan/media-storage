@@ -5,7 +5,7 @@ import re
 
 from common import (
  Error,
- FileNotFoundError,
+ FileNotFoundError, PermissionsError, CollisionError, NotEmptyError,
 )
 from local import LocalBackend
 from sftp import SFTPBackend
