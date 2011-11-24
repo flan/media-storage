@@ -32,29 +32,26 @@ class Filesystem(object):
          rmdir=(time.time() - record['physical']['ctime'] > CONFIG.filesystem_directory_resolution * 120)
         )
         
+    def file_exists(self, record):
+        return self._backend.file_exists(self._resolve_path(record))
+        
     def lsdir(self, path):
         return self._backend.lsdir(path)
-        
-    def file_exists(self, path):
-        return self._backend.file_exists(path)
         
     def is_dir(self, path):
         return self._backend.is_dir(path)
         
+    def _assemble_filename(self, record):
+        filename_parts = (record['_id'], record['physical']['format']['ext'], record['physical']['format']['comp'])
+        return '.'.join((part for part in filename_parts if part))
+        
     def _resolve_path(self, record):
         ts = time.gmtime(record['physical']['ctime'])
-        directory = '%(year)i/%(month)i/%(day)i/%(hour)i/%(min)i/' % {
+        return '%(year)i/%(month)i/%(day)i/%(hour)i/%(min)i/' % {
          'year': ts.tm_year,
          'month': ts.tm_mon,
          'day': ts.tm_mday,
          'hour': ts.tm_hour,
          'min': ts.tm_min - ts.tm_min % CONFIG.filesystem_directory_resolution,
-        }
-        
-        filename_parts = (record['_id'], record['format'].get('ext'), record['format'].get('comp'))
-        
-        return '%(directory)s%(filename)s' % {
-         'directory': directory,
-         'filename': '.'.join((part for part in filename_parts if part))
-        }
+        } + self._assemble_filename(record)
         

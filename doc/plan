@@ -18,7 +18,7 @@
    'type': 'adler32'/'crc32'/'md5', #Whatever checksum the client supplied
    'value': '12345678',
   },
- }
+ },
  'policy': {
   'delete': { #index fixed, stale
    'fixed': 1321836555, #Time after which file should be deleted; this field
@@ -123,8 +123,8 @@ Expansion:
 Families can be used to permit multiple local partitions or remote resources to
 be used in tandem, which should be enough for most users; a new family may be
 defined at any time and a partition may be added afterwards or before (if
-added afterwards, files will still be resolvable because the generic family
-will be queried as a fallback).
+added afterwards, the new particion will require that all content be transferred
+before it can be used).
 
 When a family's partition aproaches capacity, if content cannot be deleted,
 increasing size is a fairly straightforward matter of copying all on-disk
