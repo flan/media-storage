@@ -14,10 +14,6 @@
    'comp': 'gz'/'bz2'/'lzma'/null, #Omitted or null -> no compression
    'ext': null/'wav', #Omitted or null -> no extension
   },
-  'checksum': {
-   'type': 'adler32'/'crc32'/'md5', #Whatever checksum the client supplied
-   'value': '12345678',
-  },
  },
  'policy': {
   'delete': { #index fixed, stale
