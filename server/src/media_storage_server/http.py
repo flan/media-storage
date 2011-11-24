@@ -10,10 +10,11 @@ import state
 
 _CHUNK_SIZE = 16 * 1024 #Write 16k at a time.
 
+#uid = self.request.path[request.path.rfind('/') + 1:]
+
 #/get/<uid>
-class GetHandler(BaseHandler):
-    def _get(self):
-        uid = self.request.path[request.path.rfind('/') + 1:]
+class GetHandler(GetHandler):
+    def _get(self, uid):
         record = database.get_record(uid)
         if not record:
             #404
@@ -45,9 +46,8 @@ class GetHandler(BaseHandler):
             self.finish()
             
 #/describe/<uid>
-def DescribeHandler(BaseHandler):
-    def _get(self):
-        uid = self.request.path[request.path.rfind('/') + 1:]
+def DescribeHandler(GetHandler):
+    def _get(self, uid):
         record = database.get_record(uid)
         if not record:
             #404
@@ -55,8 +55,24 @@ def DescribeHandler(BaseHandler):
         self.write(record)
         self.finish()
         
+#/query
 def QueryHandler(JSONHandler):
     def _post(self, request):
         pass
         
+#/store
+def StoreHandler(HybridHandler):
+    def _post(self, request):
+        pass
+        
+#/unlink
+def UnlinkHandler(GetHandler):
+    def _get(self, uid):
+        record = database.get_record(uid)
+        if not record:
+            #404
+            
+        filesystem = state.get_filesystem(record['physical']['family'])
+        filesystem.unlink(record)
+        database.drop_record(record['_uid'])
         
