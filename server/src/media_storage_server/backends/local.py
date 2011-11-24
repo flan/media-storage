@@ -92,6 +92,9 @@ class LocalBackend(BaseBackend):
     def _file_exists(self, path):
         return os.path.exists(path)
         
+    def _file_size(self, path):
+        return self._action(path, os.stat).st_size
+        
     def _is_dir(self, path):
         return os.path.isdir(path)
         

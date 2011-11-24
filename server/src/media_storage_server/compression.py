@@ -9,7 +9,7 @@ import zlib
 import lzma
 
 _MAX_SPOOLED_FILESIZE = 1024 * 128 #Allow up to 128k in memory
-_BUFFER_SIZE = 1024 * 32 #Work with 32k chunks
+_BUFFER_SIZE = 1024 * 16 #Work with 16k chunks
 
 #Names are reflectable
 

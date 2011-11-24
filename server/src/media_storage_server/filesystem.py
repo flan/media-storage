@@ -5,6 +5,10 @@ backend.
 import time
 
 import backends
+from backends import (
+ Error,
+ FileNotFoundError, PermissionsError, CollisionError, NotEmptyError,
+)
 from config import CONFIG
 
 class Filesystem(object):
@@ -34,6 +38,9 @@ class Filesystem(object):
         
     def file_exists(self, record):
         return self._backend.file_exists(self._resolve_path(record))
+        
+    def file_size(self, record):
+        return self._backend.file_size(self._resolve_path(record))
         
     def lsdir(self, path):
         return self._backend.lsdir(path)

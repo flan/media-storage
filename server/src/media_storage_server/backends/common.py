@@ -65,6 +65,12 @@ class BaseBackend(object):
     def _file_exists(self, path):
         raise NotImplementedError("'_file_exists()' needs to be overridden in a subclass")
         
+    def file_size(self, path):
+        return self._file_length(path)
+        
+    def _file_size(self, path):
+        raise NotImplementedError("'_file_size()' needs to be overridden in a subclass")
+        
     def is_dir(self, path):
         return self._is_dir()
         
