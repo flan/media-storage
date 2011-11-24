@@ -32,8 +32,14 @@ class Filesystem(object):
          rmdir=(time.time() - record['physical']['ctime'] > CONFIG.filesystem_directory_resolution * 120)
         )
         
+    def lsdir(self, path):
+        return self._backend.lsdir(path)
+        
     def file_exists(self, path):
         return self._backend.file_exists(path)
+        
+    def is_dir(self, path):
+        return self._backend.is_dir(path)
         
     def _resolve_path(self, record):
         ts = time.gmtime(record['physical']['ctime'])
