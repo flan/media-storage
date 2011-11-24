@@ -73,6 +73,10 @@ def UnlinkHandler(GetHandler):
             #404
             
         filesystem = state.get_filesystem(record['physical']['family'])
-        filesystem.unlink(record)
-        database.drop_record(record['_uid'])
-        
+        try:
+            filesystem.unlink(record)
+        except filesystem.FileNotFoundError as e:
+            #404
+        else:
+            database.drop_record(record['_uid'])
+            
