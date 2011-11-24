@@ -40,7 +40,7 @@ class BaseBackend(object):
                     
     def _unlink(self, path):
         raise NotImplementedError("'_unlink()' needs to be overridden in a subclass")
-                    
+        
     def lsdir(self, path):
         return self._lsdir()
         
@@ -64,6 +64,12 @@ class BaseBackend(object):
         
     def _file_exists(self, path):
         raise NotImplementedError("'_file_exists()' needs to be overridden in a subclass")
+        
+    def is_dir(self, path):
+        return self._is_dir()
+        
+    def _is_dir(self, path):
+        raise NotImplementedError("'is_dir()' needs to be overridden in a subclass")
         
 class Error(Exception):
     """
