@@ -1,8 +1,11 @@
 """
 Provides all resources needed for the HTTP interface.
 """
+import json
+
 import compression
 import database
+import filesystem
 import state
 
 _CHUNK_SIZE = 16 * 1024 #Write 16k at a time.
@@ -39,6 +42,21 @@ class GetHandler(BaseHandler):
                     self.flush()
                 else:
                     break
-            self.close()
             self.finish()
             
+#/describe/<uid>
+def DescribeHandler(BaseHandler):
+    def _get(self):
+        uid = self.request.path[request.path.rfind('/') + 1:]
+        record = database.get_record(uid)
+        if not record:
+            #404
+            
+        self.write(record)
+        self.finish()
+        
+def QueryHandler(JSONHandler):
+    def _post(self, request):
+        pass
+        
+        
