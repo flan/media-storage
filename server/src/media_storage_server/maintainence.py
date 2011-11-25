@@ -30,9 +30,11 @@ def _parse_windows(definition):
             times = []
             for timerange in match.group('times').split(','):
                 (start, end) = timerange.split('..', 1)
+                start = tuple((int(v) for v in start.split(':', 1)))
+                end = tuple((int(v) for v in end.split(':', 1)))
                 times.append((
-                 tuple((int(v) for v in start.split(':', 1))),
-                 tuple((int(v) for v in end.split(':', 1))),
+                 start[0] * 60 + start[1],
+                 end[0] * 60 + end[1],
                 ))
             windows[_DAY_MAP[match.group('day')]] = tuple(times)
     return windows
@@ -43,8 +45,19 @@ COMPRESSION_WINDOWS = _parse_windows(CONFIG.maintainer_compression_windows)
 DATABASE_WINDOWS = _parse_windows(CONFIG.maintainer_database_windows)
 FILESYSTEM_WINDOWS = _parse_windows(CONFIG.maintainer_filesystem_windows)
 del _parse_windows
+
+def _within_window(windows):
+    ts = time.localtime()
+    ts = ts.tm_hour * 60 + ts.tm_min
+    ranges = windows.get(ts.tm_wday)
+    if not ranges:
+        return False
         
-        
+    for (start, end) in ranges:
+        if start <= ts < end:
+            return True
+    return False
+    
 class _Maintainer(threading.Thread):
     def __init__(self)
         threding.Thread.__init__(self)
@@ -53,7 +66,7 @@ class _Maintainer(threading.Thread):
 class _PolicyMaintainer(_Maintainer):
     def run(self):
         while True:
-            while False:
+            while not _within_window(self._windows):
                 time.sleep(60)
                 
             while True: #Process stale records
@@ -84,7 +97,8 @@ class DeletionMaintainer(_PolicyMaintainer):
     _stale_query = 'this.physical.atime + this.policy.delete.stale < %(time)i'
     _fixed_field = 'policy.delete.fixed'
     _sleep_period = CONFIG.maintainer_deletion_sleep
-        
+    _windows = DELETION_WINDOWS
+    
     def _process_record(self, record):
         filesystem = state.get_filesystem(record['physical']['family'])
         try:
@@ -101,7 +115,8 @@ class CompressionMaintainer(_PolicyMaintainer):
     _stale_query = 'this.physical.atime + this.policy.compress.stale < %(time)i'
     _fixed_field = 'policy.compress.fixed'
     _sleep_period = CONFIG.maintainer_compression_sleep
-        
+    _windows = COMPRESSION_WINDOWS
+    
     def _process_record(self, record):
         current_compression = record['physical']['format'].get('comp')
         target_compression = record['policy']['compress'].get('comp')
@@ -147,7 +162,7 @@ class DatabaseMaintainer(_Maintainer):
         """
         ctime = -1.0
         while True:
-            while False:
+            while not _within_window(DATABASE_WINDOWS):
                 time.sleep(60)
                 
             records_retrieved = False
@@ -201,7 +216,7 @@ class FilesystemMaintainer(_Maintainer):
             pass
             
     def _keep_file(self, filename):
-        while False: #Only proceed within allowed window
+        while not _within_window(FILESYSTEM_WINDOWS):
             time.sleep(60)
             
         sep_pos = filename.find('.')
