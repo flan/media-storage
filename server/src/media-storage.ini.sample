@@ -1,0 +1,4 @@
+[general]
+;If false, this server will only handle requests from test applications
+production = no
+
