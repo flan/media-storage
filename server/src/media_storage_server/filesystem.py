@@ -59,6 +59,6 @@ class Filesystem(object):
          'month': ts.tm_mon,
          'day': ts.tm_mday,
          'hour': ts.tm_hour,
-         'min': ts.tm_min - ts.tm_min % CONFIG.filesystem_directory_resolution,
+         'min': ts.tm_min - ts.tm_min % record['physical']['minRes'],
         } + self._assemble_filename(record)
         
