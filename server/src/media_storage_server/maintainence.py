@@ -2,13 +2,49 @@
 Runs an asynchronous maintenance thread that handles deletions, compressions,
 and bidirectional orphan-purging.
 """
+import re
 import threading
 import time
 
+from config import CONFIG
 import compression
 import database
 import state
 
+def _parse_windows(definition):
+    _DAY_MAP = {
+     'mo': 0,
+     'tu': 1,
+     'we': 2,
+     'th': 3,
+     'fr': 4,
+     'sa': 5,
+     'su': 6,
+    }
+    _WINDOW_DAY_RE = re.compile(r'(?P<day>(?:' + '|'.join(_DAY_MAP) +  r'))\[(?P<times>\d{1,2}:\d{2}\.\.\d{1,2}:\d{2}(?:,\d{1,2}:\d{2}\.\.\d{1,2}:\d{2})*?)\]')
+    
+    windows = {}
+    for day in definition.lower().split():
+        match = _WINDOW_DAY_RE.match(day)
+        if match:
+            times = []
+            for timerange in match.group('times').split(','):
+                (start, end) = timerange.split('..', 1)
+                times.append((
+                 tuple((int(v) for v in start.split(':', 1))),
+                 tuple((int(v) for v in end.split(':', 1))),
+                ))
+            windows[_DAY_MAP[match.group('day')]] = tuple(times)
+    return windows
+    
+#Window structures to determine when threads may run
+DELETION_WINDOWS = _parse_windows(CONFIG.maintainer_deletion_windows)
+COMPRESSION_WINDOWS = _parse_windows(CONFIG.maintainer_compression_windows)
+DATABASE_WINDOWS = _parse_windows(CONFIG.maintainer_database_windows)
+FILESYSTEM_WINDOWS = _parse_windows(CONFIG.maintainer_filesystem_windows)
+del _parse_windows
+        
+        
 class _Maintainer(threading.Thread):
     def __init__(self)
         threding.Thread.__init__(self)
@@ -44,13 +80,10 @@ class _PolicyMaintainer(_Maintainer):
             
 class DeletionMaintainer(_PolicyMaintainer):
     """
-    Scheduling format:
-    maintainence.deletion = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
-    maintainence.deletion_sleep = 300
     """
     _stale_query = 'this.physical.atime + this.policy.delete.stale < %(time)i'
     _fixed_field = 'policy.delete.fixed'
-    _sleep_period = CONFIG.maintainence__deletion_sleep
+    _sleep_period = CONFIG.maintainer_deletion_sleep
         
     def _process_record(self, record):
         filesystem = state.get_filesystem(record['physical']['family'])
@@ -64,13 +97,10 @@ class DeletionMaintainer(_PolicyMaintainer):
             
 class CompressionMaintainer(_PolicyMaintainer):
     """
-    Scheduling format:
-    maintainence.compression = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
-    maintainence.compression_sleep = 1800
     """
     _stale_query = 'this.physical.atime + this.policy.compress.stale < %(time)i'
     _fixed_field = 'policy.compress.fixed'
-    _sleep_period = CONFIG.maintainence__deletion_sleep
+    _sleep_period = CONFIG.maintainer_compression_sleep
         
     def _process_record(self, record):
         current_compression = record['physical']['format'].get('comp')
@@ -109,9 +139,6 @@ class CompressionMaintainer(_PolicyMaintainer):
                     
 class DatabaseMaintainer(_Maintainer):
     """
-    Scheduling format:
-    maintainence.database = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
-    maintainence.database_sleep = 43200
     """
     def run(self):
         """
@@ -134,7 +161,7 @@ class DatabaseMaintainer(_Maintainer):
                     #TODO: log
                     
             if not records_retrieved: #Cycle complete
-                time.sleep(CONFIG.maintainence__database_sleep)
+                time.sleep(CONFIG.maintainer_database_sleep)
                 ctime = -1.0
                 
 class FilesystemMaintainer(_Maintainer):
@@ -142,12 +169,6 @@ class FilesystemMaintainer(_Maintainer):
     This thread should be disabled by default, since it would allow for the deletion of
     all data if the Mongo database is dropped for any reason, and, in smaller
     data-centres, a full filesystem backup may not exist.
-    
-    Scheduling format:
-    maintainence.filesystem =
-    maintainence.filesystem_sleep = 43200
-    
-    If no parameters are given, the thread isn't even instantiated.
     """
     def run(self):
         """
@@ -160,7 +181,7 @@ class FilesystemMaintainer(_Maintainer):
                 filesystem = state.get_filesystem(family)
                 self._walk(filesystem, './')
             #Cycle complete
-            time.sleep(CONFIG.maintainence__filesystem_sleep)
+            time.sleep(CONFIG.maintainer_filesystem_sleep)
             
     def _walk(self, filesystem, path):
         try:

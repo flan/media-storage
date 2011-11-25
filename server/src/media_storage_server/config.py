@@ -105,6 +105,39 @@ class _Settings(_Config):
     def production(self):
         return self.getboolean('general', 'production', False)
         
+    
+    @property
+    def maintainer_deletion_windows(self):
+        return self.get('maintainers', 'deletion_windows', '')
+        
+    @property
+    def maintainer_deletion_sleep(self):
+        return self.getint('maintainers', 'deletion_sleep', 300)
+        
+    @property
+    def maintainer_compression_windows(self):
+        return self.get('maintainers', 'compression_windows', '')
+        
+    @property
+    def maintainer_compression_sleep(self):
+        return self.getint('maintainers', 'compression_sleep', 1800)
+        
+    @property
+    def maintainer_database_windows(self):
+        return self.get('maintainers', 'database_windows', '')
+        
+    @property
+    def maintainer_database_sleep(self):
+        return self.getint('maintainers', 'database_sleep', 43200)
+        
+    @property
+    def maintainer_filesystem_windows(self):
+        return self.get('maintainers', 'filesystem_windows', '')
+        
+    @property
+    def maintainer_filesystem_sleep(self):
+        return self.getint('maintainers', 'filesystem_sleep', 43200)
+        
         
 #Initialisation
 ####################################################################################################
