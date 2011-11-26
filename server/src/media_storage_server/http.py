@@ -132,7 +132,6 @@ class BaseHandler(tornado.web.RequestHandler):
          'note': "This timestamp is in UTC; thanks for POSTing",
         }
         
-#/get
 class GetHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
@@ -174,7 +173,6 @@ class GetHandler(BaseHandler):
                     break
             self.finish()
             
-#/describe
 class DescribeHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
@@ -193,7 +191,6 @@ class DescribeHandler(BaseHandler):
         self.write(record)
         self.finish()
         
-#/query
 class QueryHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
@@ -202,7 +199,6 @@ class QueryHandler(BaseHandler):
         #Issue the query; if not trust.read, only return matching records with key.read=None
         pass
         
-#/put
 class PutHandler(BaseHandler):
     def _post(self):
         (header, data) = _get_payload(self.request.body)
@@ -286,7 +282,6 @@ class PutHandler(BaseHandler):
          'key': record['key'],
         }
         
-#/unlink/<uid>
 class UnlinkHandler(BaseHandler):
     def _get(self):
         request = _get_json(self.request.body)
@@ -309,39 +304,7 @@ class UnlinkHandler(BaseHandler):
         else:
             database.drop_record(uid)
             
-
-
             
-            
-            
-            
-"""
-Provides a general-purpose JSON-aware HTTP server that receives data using POST.
-
-The server does nothing useful by default, but may be extended with custom handlers, on a per-path
-basis, as in the following example::
-
- class Handler(rest_json.reception.BaseHandler):
-    def _get(self):
-        return {
-         'hello': 'I am a JSON-serialisable object',
-        }
-        
-    def _post(self, request):
-        return {
-         'hi': 'I am also a JSON-serialisable object, but I have the deserialised JSON object passed with the POST request to play with',
-        }
-        
- server = HTTPService(port=1234, [
-  (r'/', Handler)
- ], daemon=False)
- server.start()
-"""
-
-
-
-
-        
 class HTTPService(threading.Thread):
     """
     A threaded handler for HTTP requests, so that client interaction can happen in parallel with
