@@ -105,7 +105,11 @@ class _Settings(_Config):
     def production(self):
         return self.getboolean('general', 'production', False)
         
-    
+    @property
+    def minute_resolution(self):
+        return self.getint('general', 'minute_resolution', 5)
+        
+        
     @property
     def maintainer_deletion_windows(self):
         return self.get('maintainers', 'deletion_windows', '')
