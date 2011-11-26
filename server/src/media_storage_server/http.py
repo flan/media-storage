@@ -205,62 +205,17 @@ class PutHandler(BaseHandler):
         
         current_time = time.time()
         try:
-            format = {
-             'mime': header['physical']['format']['mime'],
-            }
-            target_compression = header['physical']['format'].get('comp')
-            if target_compression:
-                if self.request.headers.get('Media-Storage-Compress-On-Server') == 'yes':
-                    compressor = getattr(compression, 'compress_' + target_compression)
-                    data = compressor(data)
-                format['comp'] = target_compression
-            extension = header['physical']['format'].get('ext')
-            if extension:
-                format['ext'] = extension
-                
-            policy = {
-             'delete': {},
-             'compress': {},
-            }
-            header_policy = header.get('policy')
-            if header_policy:
-                delete_policy = header_policy.get('delete')
-                if delete_policy:
-                    delete_expiration = delete_policy.get('fixed')
-                    if delete_expiration:
-                        policy['delete']['fixed'] = int(current_time + delete_expiration)
-                    delete_stale = delete_policy.get('stale')
-                    if delete_stale:
-                        policy['delete']['stale'] = int(delete_stale)
-                        
-                compress_policy = header_policy.get('compress')
-                if compress_policy:
-                    compress_format = compress_policy.get('comp')
-                    if compress_format in ('gz', 'bz2', 'lzma'): #TODO: make this dynamic
-                        policy['compress']['comp'] = compress_format
-                        compress_expiration = compress_policy.get('fixed')
-                        if compress_expiration:
-                            policy['compress']['fixed'] = int(current_time + compress_expiration)
-                        compress_stale = compress_policy.get('stale')
-                        if compress_stale:
-                            policy['compress']['stale'] = int(compress_stale)
-                    else:
-                        #log
-                        
             record = {
              '_id': header.get('uid') or uuid.uuid1().hex,
-             'key': header.get('key') or {
-              'read': base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
-              'write': base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
-             },
+             'key': self._build_key(header),
              'physical': {
               'family': header['physical'].get('family'),
               'ctime': current_time,
               'minRes': CONFIG.storage_minute_resolution,
               'atime': int(current_time),
-              'format': format,
+              'format': self._build_format(header),
              },
-             'policy': policy,
+             'policy': self._build_policy(header),
              'stats': {
               'accesses': 0,
              },
@@ -271,9 +226,16 @@ class PutHandler(BaseHandler):
             self.send_error(409)
             return
             
+        target_compression = record['physical']['format'].get('comp')
+        if target_compression and self.request.headers.get('Media-Storage-Compress-On-Server') == 'yes':
+            compressor = getattr(compression, 'compress_' + target_compression)
+            data = compressor(data)
+            
         print record
         print repr(data.read())
-        database.put_record(record)
+        data.seek(0)
+        
+        database.add_record(record)
         fs = state.get_filesystem(record['physical']['family'])
         fs.put(record, data)
         
@@ -281,6 +243,65 @@ class PutHandler(BaseHandler):
          'uid': record['_id'],
          'key': record['key'],
         }
+        
+    def _build_key(self, header):
+        header_key = header.get('key')
+        return {
+         'read': header_key and header_key.get('read') or base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
+         'write': header_key and header_key.get('write') or base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
+        }
+        
+    def _build_format(self, header):
+        format = {
+         'mime': header['physical']['format']['mime'],
+        }
+        
+        target_compression = header['physical']['format'].get('comp')
+        if target_compression:
+            format['comp'] = target_compression
+            
+        extension = header['physical']['format'].get('ext')
+        if extension:
+            format['ext'] = extension
+            
+        return format
+        
+    def _build_policy(self, header):
+        policy = {
+         'delete': {},
+         'compress': {},
+        }
+        
+        header_policy = header.get('policy')
+        if header_policy:
+            delete_policy = header_policy.get('delete')
+            if delete_policy:
+                policy['delete'].update(self._unpack_policy(delete_policy))
+                
+            compress_policy = header_policy.get('compress')
+            if compress_policy:
+                compress_format = compress_policy.get('comp')
+                if compress_format in compression.SUPPORTED_FORMATS:
+                    policy['compress']['comp'] = compress_format
+                    policy['compress'].update(self._unpack_policy(compress_policy))
+                else:
+                    #log
+                    pass
+                    
+        return policy
+        
+    def _unpack_policy(self, policy):
+        new_policy = {}
+        
+        expiration = policy.get('fixed')
+        if expiration:
+            new_policy['fixed'] = int(time.time() + expiration)
+            
+        stale = policy.get('stale')
+        if stale:
+            new_policy['stale'] = int(stale)
+            
+        return new_policy
         
 class UnlinkHandler(BaseHandler):
     def _get(self):
