@@ -126,7 +126,7 @@ class GetHandler(BaseHandler):
             self.send_error(404)
         else:
             applied_compression = record['physical']['format'].get('comp')
-            supported_compressions = (c.strip() for c in (self.request.headers.get('Ivr-Supported-Compression') or '').split(';'))
+            supported_compressions = (c.strip() for c in (self.request.headers.get('Media-Storage-Supported-Compression') or '').split(';'))
             if applied_compression and not applied_compression in supported_compressions: #Must be decompressed first
                 #log
                 decompressor = getattr(compression, 'decompress_' + applied_compression)
@@ -169,15 +169,15 @@ class StoreHandler(BaseHandler):
         current_time = time.time()
         try:
             format = {
-             'mime': header['mime'],
+             'mime': header['physical']['format']['mime'],
             }
-            target_compression = header.get('comp')
+            target_compression = header['physical']['format'].get('comp')
             if target_compression:
-                if header.get('compressOnServer'):
+                if self.request.headers.get('Media-Storage-Compress-On-Server') == 'yes':
                     compressor = getattr(compression, 'compress_' + target_compression)
                     data = compressor(data)
                 format['comp'] = target_compression
-            extension = header.get('ext')
+            extension = header['physical']['format'].get('ext')
             if extension:
                 format['ext'] = extension
                 
@@ -185,7 +185,7 @@ class StoreHandler(BaseHandler):
              '_id': header.get('uid') or uuid.uuid1().hex,
              'key': header.get('key') or base64.urlsafe_b64encode(os.urandom(random.randint(15, 25)))[:-2],
              'physical': {
-              'family': header.get('family'),
+              'family': header['physical'].get('family'),
               'ctime': current_time,
               'minRes': CONFIG.minute_resolution,
               'atime': int(current_time),
