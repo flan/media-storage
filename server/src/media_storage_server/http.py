@@ -94,7 +94,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(self._post() or '')
         self.finish()
         
-    def _post(self, request):
+    def _post(self):
         """
         Returns the received JSON-dict; override this to do useful things.
         """
@@ -139,7 +139,7 @@ class GetHandler(BaseHandler):
             self.finish()
             
 #/describe/<uid>
-def DescribeHandler(BaseHandler):
+class DescribeHandler(BaseHandler):
     def _get(self):
         record = database.get_record(_get_uid(self.request.path))
         if not record:
@@ -149,12 +149,12 @@ def DescribeHandler(BaseHandler):
         self.finish()
         
 #/query
-def QueryHandler(BaseHandler):
+class QueryHandler(BaseHandler):
     def _post(self):
         pass
         
 #/store
-def StoreHandler(BaseHandler):
+class StoreHandler(BaseHandler):
     def _post(self):
         (header, data) = _get_payload(self.request.body)
         
@@ -192,12 +192,13 @@ def StoreHandler(BaseHandler):
             #log
             self.write_error(409)
         else:
+            print(record)
             database.put_record(record)
             fs = state.get_filesystem(record['physical']['family'])
             fs.put(record, data)
             
 #/unlink/<uid>
-def UnlinkHandler(BaseHandler):
+class UnlinkHandler(BaseHandler):
     def _get(self):
         uid = _get_uid(self.request.path)
         record = database.get_record(uid)
