@@ -44,7 +44,10 @@ def _get_trust(record, keys, host):
     for trusted in CONFIG.security_trusted_hosts.split():
         if host == trusted:
             return _TrustLevel(True, True)
-    return _TrustLevel(False, False)
+    return _TrustLevel(
+     record['key']['read'] is None,
+     record['key']['write'] is None,
+    )
     
 def _get_json(body):
     try:
