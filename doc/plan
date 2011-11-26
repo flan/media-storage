@@ -1,5 +1,7 @@
 {
  '_id': 'c063d45413da11e194ca0026c7d605c8',
+ 'key': 'WiyzwKI_3PBO9VSL0cr', #A random-length string that must be provided
+                               #to access the file from an untrusted context
  'physical': { #index ctime, atime, family
   'family': 'voice'/null, #The family to which the data belongs; if omitted,
                           #null, or unmapped, the generic backend is used;
@@ -33,6 +35,8 @@
  },
  'stats': {
   'accesses': 1, #Number of times the file has been accessed
+  'checksum': '12345678', #The Adler32 checksum of the file, if supplied by the
+                          #client; may be omitted; validated only by clients
  },
  'meta': {
   'key': 'value'/5/42.7, #Typical key-value store; when querying, the interface
