@@ -28,6 +28,10 @@ def enumerate_meta():
     The client query interface.
     """
     
+    
+    #Apply the following to the web request
+    #del record['physical']['minRes']
+    
 def get_record(uid):
     return db.collection.find_one(uid)
     

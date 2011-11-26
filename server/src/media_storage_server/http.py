@@ -2,6 +2,14 @@
 Provides all resources needed for the HTTP interface.
 """
 import json
+import logging
+import tempfile
+import threading
+import time
+import traceback
+
+import tornado.ioloop
+import tornado.web
 
 import compression
 import database
@@ -9,13 +17,95 @@ import filesystem
 import state
 
 _CHUNK_SIZE = 16 * 1024 #Write 16k at a time.
+_TEMPFILE_THRESHOLD = 128 * 1024 #Buffer up to 128k in memory
 
-#uid = self.request.path[request.path.rfind('/') + 1:]
+_logger = logging.getLogger("media_storage.http")
 
+def _get_uid(path):
+    return path[path.rfind('/') + 1:]
+    
+def _get_json(body):
+    try:
+        return json.loads(body or 'null')
+    except ValueError as e:
+        _logger.warn(str(e))
+        raise
+        
+def _get_payload(body):
+    """
+    Depending on whether the request came through an nginx proxy, this will determine the right
+    way to expose the received data. Regardless of path, the values returned will be a JSON
+    object descriptor and a file-like object containing the submitted bytes.
+    """
+    if False: #nginx proxy
+        return ({}, None)
+    else:
+        divider = body.find('\0')
+        
+        header = _get_json(body[:divider])
+        
+        content = tempfile.SpooledTemporaryFile(_TEMPFILE_THRESHOLD)
+        content.write(body[divider + 1:])
+        content.flush()
+        content.seek(0)
+        
+        return (header, content)
+        
+        
+class BaseHandler(tornado.web.RequestHandler):
+    """
+    A generalised request-handler for inbound communication.
+    
+    Responds with one of the following codes::
+    
+    - 200 if everything went well
+    - 404 if the requested resource was unavailable
+    - 409 if the request made no sense
+    - 500 if an internal exception happened
+    - 503 if a short-term problem occurred
+    """
+    def get(self):
+        """
+        Handles an HTTP GET request.
+        """
+        _logger.debug("Received an HTTP GET request for '%(path)s'" % {
+         'path': self.request.path,
+        })
+        self.write(self._get())
+        self.finish()
+        
+    def _get(self):
+        """
+        Returns the current time; override this to do useful things.
+        """
+        return {
+         'timestamp': int(time.time()),
+         'note': "This timestamp is in UTC",
+        }
+        
+    def post(self):
+        """
+        Handles an HTTP POST request.
+        """
+        _logger.debug("Received an HTTP POST request for '%(path)s'" % {
+         'path': self.request.path,
+        })
+        self.write(self._post())
+        self.finish()
+        
+    def _post(self, request):
+        """
+        Returns the received JSON-dict; override this to do useful things.
+        """
+        return {
+         'timestamp': int(time.time()),
+         'note': "This timestamp is in UTC; thanks for POSTing",
+        }
+        
 #/get/<uid>
-class GetHandler(GetHandler):
-    def _get(self, uid):
-        record = database.get_record(uid)
+class GetHandler(BaseHandler):
+    def _get(self):
+        record = database.get_record(_get_uid(self.request.path))
         if not record:
             #404
             
@@ -46,9 +136,9 @@ class GetHandler(GetHandler):
             self.finish()
             
 #/describe/<uid>
-def DescribeHandler(GetHandler):
-    def _get(self, uid):
-        record = database.get_record(uid)
+def DescribeHandler(BaseHandler):
+    def _get(self):
+        record = database.get_record(_get_uid(self.request.path))
         if not record:
             #404
             
@@ -56,18 +146,19 @@ def DescribeHandler(GetHandler):
         self.finish()
         
 #/query
-def QueryHandler(JSONHandler):
+def QueryHandler(BaseHandler):
     def _post(self, request):
         pass
         
 #/store
-def StoreHandler(HybridHandler):
+def StoreHandler(BaseHandler):
     def _post(self, request):
         pass
         
-#/unlink
-def UnlinkHandler(GetHandler):
-    def _get(self, uid):
+#/unlink/<uid>
+def UnlinkHandler(BaseHandler):
+    def _get(self):
+        uid = _get_uid(self.request.path)
         record = database.get_record(uid)
         if not record:
             #404
@@ -78,7 +169,7 @@ def UnlinkHandler(GetHandler):
         except filesystem.FileNotFoundError as e:
             #404
         else:
-            database.drop_record(record['_uid'])
+            database.drop_record(uid)
             
             
             
@@ -108,133 +199,10 @@ basis, as in the following example::
  ], daemon=False)
  server.start()
 """
-__author__ = 'Neil Tallim'
 
-import json
-import logging
-import threading
-import time
-import traceback
-import zlib
 
-import tornado.ioloop
-import tornado.web
 
-_COMPRESSION_LIMIT = 32 * 1024 #Anything larger than 32k gets compressed transparently
 
-_logger = logging.getLogger("rest_json.reception")
-
-class BaseHandler(tornado.web.RequestHandler):
-    """
-    A generalised request-handler for inbound communication; it abstracts away most of the
-    complexity of REST-JSON, allowing you to override the '_post(<json-request:dict>)' or '_get()'
-    methods in a subclass, then bind it to a request path.
-    
-    Responds with one of the following codes::
-    
-    - 200 if everything went well
-    - 409 if the request made no sense
-    - 500 if an internal exception happened
-    
-    The body for a 200 response depends on the API definition for the requested operation. For
-    everything else, the JSON response will always contain a 'message' value, which carries a
-    human-readable string, and possibly other values, with meanings varying depending on request.
-    """
-    def get(self):
-        """
-        Handles an HTTP GET request.
-        """
-        _logger.debug("Received an HTTP GET request for '%(path)s'" % {
-         'path': self.request.path,
-        })
-        
-        _logger.debug('Determining servicability and preparing response...')
-        body = None
-        try:
-            body = self._get()
-        except Exception as e:
-            body = {
-             'message': "An error occurred while processing the request; full details are available in the server's logs",
-            }
-            _logger.error("Unable to serve response to HTTP request; exception details follow\n" + traceback.format_exc())
-            self.write_error(500, body=body)
-        else:
-            self._write_body(body)
-            
-        self.finish()
-        
-    def post(self):
-        """
-        Extracts the payload and coerces it to JSON for an HTTP POST request.
-        """
-        _logger.debug("Received an HTTP POST request for '%(path)s'" % {
-         'path': self.request.path,
-        })
-        
-        _logger.debug('Determining servicability and preparing response...')
-        body = None
-        try:
-            request_body = self.request.body
-            if self.request.headers.get('Transfer-Encoding') == 'gzip':
-                request_body = json.loads(zlib.decompress(request_body))
-            else:
-                request_body = json.loads(request_body)
-        except Exception as e:
-            body = {
-             'message': "The request received contained no parsable JSON data or specified an invalid Content-Length",
-            }
-            _logger.warn(body['message'])
-            self.write_error(409, body=body)
-        else:
-            try:
-                body = self._post(request_body)
-            except Exception as e:
-                body = {
-                 'message': "An error occurred while processing the request; full details are available in the server's logs",
-                }
-                _logger.error("Unable to serve response to HTTP request; exception details follow\n" + traceback.format_exc())
-                self.write_error(500, body=body)
-            else:
-                self._write_body(body)
-                
-        self.finish()
-        
-    def write_error(self, code, **kwargs):
-        """
-        Passes through 'body' to the write function, to facilitate informative response messages.
-        """
-        self.set_status(code)
-        self._write_body(kwargs.get('body'))
-        
-    def _write_body(self, body):
-        """
-        Writes the JSON-dictionary body to the HTTP response and finishes the request.
-        """
-        _logger.debug("Sending response...")
-        body = json.dumps(body)
-        if 'gzip' in (self.request.headers.get('Accept-Encoding') or ''): #Serialise the data first to allow for compression
-            if len(body) >= _COMPRESSION_LIMIT: #Compress the data
-                body = zlib.compress(body)
-                self.set_header('Transfer-Encoding', 'gzip')
-        self.write(body)
-        self.set_header('Content-Type', 'application/json')
-        self.set_header('Connection', 'close')
-        _logger.debug("Response sent")
-        
-    def _get(self):
-        """
-        Returns the current time; override this to do useful things.
-        """
-        return {
-         'current-time': int(time.mktime(time.gmtime())),
-         'note': "This timestamp is in UTC",
-        }
-        
-    def _post(self, request):
-        """
-        Returns the received JSON-dict; override this to do useful things.
-        """
-        return request
         
 class HTTPService(threading.Thread):
     """
