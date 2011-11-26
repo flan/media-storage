@@ -26,7 +26,7 @@
                         #may be omitted or null to disable
    'stale': 3600, #The number of seconds that must lapse after the file's atime
                   #to qualify it for deletion; may be omitted or null
-  }, #This entire section can be omitted
+  },
   'compress': { #index fixed, stale
    'fixed': 1321836555, #Time after which file should be compressed; this field
                         #may be omitted or null to disable
@@ -34,7 +34,7 @@
                   #to qualify it for compression; may be omitted or null
    'comp': 'gz'/'bz2'/'lzma', #The compression format to use;
                                      #decompression occurs if necessary
-  }, #This entire section can be omitted; it is removed after compression occurs
+  }, #This section is emptied after compression occurs
  },
  'stats': {
   'accesses': 1, #Number of times the file has been accessed

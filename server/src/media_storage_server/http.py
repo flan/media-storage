@@ -221,6 +221,35 @@ class PutHandler(BaseHandler):
             if extension:
                 format['ext'] = extension
                 
+            policy = {
+             'delete': {},
+             'compress': {},
+            }
+            header_policy = header.get('policy')
+            if header_policy:
+                delete_policy = header_policy.get('delete')
+                if delete_policy:
+                    delete_expiration = delete_policy.get('fixed')
+                    if delete_expiration:
+                        policy['delete']['fixed'] = int(current_time + delete_expiration)
+                    delete_stale = delete_policy.get('stale')
+                    if delete_stale:
+                        policy['delete']['stale'] = int(delete_stale)
+                        
+                compress_policy = header_policy.get('compress')
+                if compress_policy:
+                    compress_format = compress_policy.get('comp')
+                    if compress_format in ('gz', 'bz2', 'lzma'): #TODO: make this dynamic
+                        policy['compress']['comp'] = compress_format
+                        compress_expiration = compress_policy.get('fixed')
+                        if compress_expiration:
+                            policy['compress']['fixed'] = int(current_time + compress_expiration)
+                        compress_stale = compress_policy.get('stale')
+                        if compress_stale:
+                            policy['compress']['stale'] = int(compress_stale)
+                    else:
+                        #log
+                        
             record = {
              '_id': header.get('uid') or uuid.uuid1().hex,
              'key': header.get('key') or {
@@ -234,7 +263,7 @@ class PutHandler(BaseHandler):
               'atime': int(current_time),
               'format': format,
              },
-             'policy': header.get('policy') or {},
+             'policy': policy,
              'stats': {
               'accesses': 0,
              },
@@ -243,14 +272,19 @@ class PutHandler(BaseHandler):
         except KeyError as e:
             #log
             self.send_error(409)
-            print e
-        else:
-            print record
-            print repr(data.read())
-            database.put_record(record)
-            fs = state.get_filesystem(record['physical']['family'])
-            fs.put(record, data)
+            return
             
+        print record
+        print repr(data.read())
+        database.put_record(record)
+        fs = state.get_filesystem(record['physical']['family'])
+        fs.put(record, data)
+        
+        return {
+         'uid': record['_id'],
+         'key': record['key'],
+        }
+        
 #/unlink/<uid>
 class UnlinkHandler(BaseHandler):
     def _get(self):
