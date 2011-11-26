@@ -35,15 +35,16 @@ def _get_trust(record, keys, host):
     Keys may be omitted by a requestor.
     Either key may be omitted, too.
     """
+    for trusted in CONFIG.security_trusted_hosts.split():
+        if host == trusted:
+            return _TrustLevel(True, True)
+            
     if keys:
         return _TrustLevel(
          record['key']['read'] in (keys.get('read'), None),
          record['key']['write'] in (keys.get('write'), None),
         )
         
-    for trusted in CONFIG.security_trusted_hosts.split():
-        if host == trusted:
-            return _TrustLevel(True, True)
     return _TrustLevel(
      record['key']['read'] is None,
      record['key']['write'] is None,
@@ -198,10 +199,7 @@ class QueryHandler(BaseHandler):
         request = _get_json(self.request.body)
         
         trust = _get_trust(None, None, self.request.remote_ip)
-        if not trust.write:
-            self.send_error(403)
-            return
-            
+        #Issue the query; if not trust.read, only return matching records with key.read=None
         pass
         
 #/put
