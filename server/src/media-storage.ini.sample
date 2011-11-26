@@ -2,6 +2,10 @@
 ;If false, this server will only handle requests from test applications
 production = no
 
+;The minute-scale on which directories will be sub-divided
+;This should be small enough to avoid filesystem limitations, but big enough to help operators
+minute_resolution = 5
+
 [maintainers]
 ;If no window values are specified, the thread won't be instantiated at all
 ;Sleep times cause the thread to wait for that many seconds, after completing a sweep, before

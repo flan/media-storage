@@ -7,6 +7,7 @@ import tempfile
 import threading
 import time
 import traceback
+import uuid
 
 import tornado.ioloop
 import tornado.web
@@ -71,7 +72,7 @@ class BaseHandler(tornado.web.RequestHandler):
         _logger.debug("Received an HTTP GET request for '%(path)s'" % {
          'path': self.request.path,
         })
-        self.write(self._get())
+        self.write(self._get() or '')
         self.finish()
         
     def _get(self):
@@ -90,7 +91,7 @@ class BaseHandler(tornado.web.RequestHandler):
         _logger.debug("Received an HTTP POST request for '%(path)s'" % {
          'path': self.request.path,
         })
-        self.write(self._post())
+        self.write(self._post() or '')
         self.finish()
         
     def _post(self, request):
@@ -107,14 +108,14 @@ class GetHandler(BaseHandler):
     def _get(self):
         record = database.get_record(_get_uid(self.request.path))
         if not record:
-            #404
+            self.write_error(404)
             
-        filesystem = state.get_filesystem(record['physical']['family'])
+        fs = state.get_filesystem(record['physical']['family'])
         try:
-            data = filesystem.get(record)
+            data = fs.get(record)
         except filesystem.FileNotFoundError as e:
             #log
-            #404
+            self.write_error(404)
         else:
             applied_compression = record['physical']['format'].get('comp')
             supported_compressions = (c.strip() for c in (self.request.headers.get('Ivr-Supported-Compression') or '').split(';'))
@@ -126,6 +127,8 @@ class GetHandler(BaseHandler):
                 
             self.headers['Content-Type'] = record['physical']['format']['mime']
             self.headers['Content-Length'] = str(filesystem.file_size(record))
+            if applied_compression:
+                self.headers['Ivr-Applied-Compression'] = applied_compression
             while True:
                 chunk = data.read(_CHUNK_SIZE)
                 if chunk:
@@ -140,34 +143,72 @@ def DescribeHandler(BaseHandler):
     def _get(self):
         record = database.get_record(_get_uid(self.request.path))
         if not record:
-            #404
+            self.write_error(404)
             
         self.write(record)
         self.finish()
         
 #/query
 def QueryHandler(BaseHandler):
-    def _post(self, request):
+    def _post(self):
         pass
         
 #/store
 def StoreHandler(BaseHandler):
-    def _post(self, request):
-        pass
+    def _post(self):
+        (header, data) = _get_payload(self.request.body)
         
+        current_time = time.time()
+        try:
+            format = {
+             'mime': header['mime'],
+            }
+            compression = header.get('comp')
+            if compression:
+                if header.get('compressOnServer'):
+                    decompressor = getattr(compression, 'compress_' + compression)
+                    data = decompressor(data)
+                format['comp'] = compression
+            extension = header.get('ext')
+            if extension:
+                format['ext'] = extension
+                
+            record = {
+             '_id': header['uid'] or uuid.uuid1(),
+             'physical': {
+              'family': header.get('family'),
+              'ctime': current_time,
+              'minRes': CONFIG.minute_resolution,
+              'atime': int(current_time),
+              'format': format,
+             },
+             'policy': header.get('policy') or {},
+             'stats': {
+              'accesses': 0,
+             },
+             'meta': header.get('meta') or {},
+            }
+        except KeyError as e:
+            #log
+            self.write_error(409)
+        else:
+            database.put_record(record)
+            fs = state.get_filesystem(record['physical']['family'])
+            fs.put(record, data)
+            
 #/unlink/<uid>
 def UnlinkHandler(BaseHandler):
     def _get(self):
         uid = _get_uid(self.request.path)
         record = database.get_record(uid)
         if not record:
-            #404
+            self.write_error(404)
             
-        filesystem = state.get_filesystem(record['physical']['family'])
+        fs = state.get_filesystem(record['physical']['family'])
         try:
-            filesystem.unlink(record)
+            fs.unlink(record)
         except filesystem.FileNotFoundError as e:
-            #404
+            self.write_error(404)
         else:
             database.drop_record(uid)
             
@@ -231,7 +272,7 @@ class HTTPService(threading.Thread):
         """
         threading.Thread.__init__(self)
         self.daemon = daemon
-        self.name = "rest_json-http"
+        self.name = "http"
         
         self._http_server = tornado.ioloop.IOLoop.instance()
         self._http_application = tornado.web.Application(handlers, log_function=(lambda x:''))

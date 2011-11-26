@@ -1,3 +1,19 @@
 #!/usr/bin/env python
 """
 """
+import time
+
+import media_storage_server.http as http
+
+server = http.HTTPService(port=1234, handlers=[
+ (r'/get/.+', http.GetHandler),
+ (r'/describe/.+', http.DescribeHandler),
+ (r'/unlink/.+', http.UnlinkHandler),
+ (r'/store', http.StoreHandler),
+ (r'/query', http.QueryHandler),
+], daemon=True)
+server.start()
+
+while True:
+    time.sleep(1)
+

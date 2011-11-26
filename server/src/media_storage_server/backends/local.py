@@ -70,7 +70,7 @@ class LocalBackend(BaseBackend):
                     #Log e
                     pass
                     
-    def _action, self, path, handler):
+    def _action(self, path, handler):
         try:
             return handler(path)
         except (IOError, OSError) as e:

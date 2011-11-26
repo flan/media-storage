@@ -6,7 +6,7 @@ def _register_family(family, filesystem):
     """
     _FAMILIES[family] = filesystem
     
-def get_filesystem(family)
+def get_filesystem(family):
     return _FAMILIES.get(family) or _FAMILIES.get(None)
     
 def get_families():
