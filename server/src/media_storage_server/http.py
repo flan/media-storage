@@ -37,8 +37,8 @@ def _get_trust(record, keys, host):
     """
     if keys:
         return _TrustLevel(
-         record['key']['read'] == keys.get('read'),
-         record['key']['write'] == keys.get('write'),
+         record['key']['read'] in (keys.get('read'), None),
+         record['key']['write'] in (keys.get('write'), None),
         )
         
     for trusted in CONFIG.security_trusted_hosts.split():
