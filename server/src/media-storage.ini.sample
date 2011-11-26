@@ -2,9 +2,16 @@
 ;If false, this server will only handle requests from test applications
 production = no
 
+[storage]
 ;The minute-scale on which directories will be sub-divided
 ;This should be small enough to avoid filesystem limitations, but big enough to help operators
 minute_resolution = 5
+
+[security]
+;All hosts that may access stored resources without supplying the associated keys
+;This should be limited to, at most, localhost and the operations console
+;Values are IPs (v4 or v6), separated by whitespace
+trusted_hosts = 127.0.0.1
 
 [maintainers]
 ;If no window values are specified, the thread won't be instantiated at all

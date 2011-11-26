@@ -2,6 +2,7 @@
 Provides all resources needed for the HTTP interface.
 """
 import base64
+import collections
 import json
 import logging
 import os
@@ -24,10 +25,26 @@ import state
 _CHUNK_SIZE = 16 * 1024 #Write 16k at a time.
 _TEMPFILE_THRESHOLD = 128 * 1024 #Buffer up to 128k in memory
 
+_TrustLevel = collections.namedtuple('TrustLevel', ('read', 'write',))
+
 _logger = logging.getLogger("media_storage.http")
 
-def _get_uid(path):
-    return path[path.rfind('/') + 1:]
+def _get_trust(record, keys, host):
+    """
+    Record and keys can be None to skip that check.
+    Keys may be omitted by a requestor.
+    Either key may be omitted, too.
+    """
+    if keys:
+        return _TrustLevel(
+         record['key']['read'] == keys.get('read'),
+         record['key']['write'] == keys.get('write'),
+        )
+        
+    for trusted in CONFIG.security_trusted_hosts.split():
+        if host == trusted:
+            return _TrustLevel(True, True)
+    return _TrustLevel(False, False)
     
 def _get_json(body):
     try:
@@ -104,19 +121,26 @@ class BaseHandler(tornado.web.RequestHandler):
             
     def _post(self):
         """
-        Returns the received JSON-dict; override this to do useful things.
+        Returns the current time; override this to do useful things.
         """
         return {
          'timestamp': int(time.time()),
          'note': "This timestamp is in UTC; thanks for POSTing",
         }
         
-#/get/<uid>
+#/get
 class GetHandler(BaseHandler):
-    def _get(self):
-        record = database.get_record(_get_uid(self.request.path))
+    def _post(self):
+        request = _get_json(self.request.body)
+        
+        record = database.get_record(request['uid'])
         if not record:
             self.send_error(404)
+            
+        trust = _get_trust(record, request.get('key'), self.request.remote_ip)
+        if not trust.read:
+            self.send_error(403)
+            return
             
         fs = state.get_filesystem(record['physical']['family'])
         try:
@@ -146,23 +170,39 @@ class GetHandler(BaseHandler):
                     break
             self.finish()
             
-#/describe/<uid>
+#/describe
 class DescribeHandler(BaseHandler):
-    def _get(self):
-        record = database.get_record(_get_uid(self.request.path))
+    def _post(self):
+        request = _get_json(self.request.body)
+        
+        record = database.get_record(request['uid'])
         if not record:
             self.send_error(404)
             
+        trust = _get_trust(record, request.get('key'), self.request.remote_ip)
+        if not trust.read:
+            self.send_error(403)
+            return
+            
+        del record['physical']['minRes']
+        del record['key']
         self.write(record)
         self.finish()
         
 #/query
 class QueryHandler(BaseHandler):
     def _post(self):
+        request = _get_json(self.request.body)
+        
+        trust = _get_trust(None, None, self.request.remote_ip)
+        if not trust.write:
+            self.send_error(403)
+            return
+            
         pass
         
-#/store
-class StoreHandler(BaseHandler):
+#/put
+class PutHandler(BaseHandler):
     def _post(self):
         (header, data) = _get_payload(self.request.body)
         
@@ -183,11 +223,14 @@ class StoreHandler(BaseHandler):
                 
             record = {
              '_id': header.get('uid') or uuid.uuid1().hex,
-             'key': header.get('key') or base64.urlsafe_b64encode(os.urandom(random.randint(15, 25)))[:-2],
+             'key': header.get('key') or {
+              'read': base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
+              'write': base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
+             },
              'physical': {
               'family': header['physical'].get('family'),
               'ctime': current_time,
-              'minRes': CONFIG.minute_resolution,
+              'minRes': CONFIG.storage_minute_resolution,
               'atime': int(current_time),
               'format': format,
              },
@@ -211,11 +254,18 @@ class StoreHandler(BaseHandler):
 #/unlink/<uid>
 class UnlinkHandler(BaseHandler):
     def _get(self):
-        uid = _get_uid(self.request.path)
+        request = _get_json(self.request.body)
+        uid = request['uid']
+        
         record = database.get_record(uid)
         if not record:
             self.send_error(404)
             
+        trust = _get_trust(record, request.get('key'), self.request.remote_ip)
+        if not trust.write:
+            self.send_error(403)
+            return
+        
         fs = state.get_filesystem(record['physical']['family'])
         try:
             fs.unlink(record)
@@ -224,8 +274,8 @@ class UnlinkHandler(BaseHandler):
         else:
             database.drop_record(uid)
             
-            
-            
+
+
             
             
             

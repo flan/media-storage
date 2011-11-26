@@ -6,10 +6,10 @@ import time
 import media_storage_server.http as http
 
 server = http.HTTPService(port=1234, handlers=[
- (r'/get/.+', http.GetHandler),
- (r'/describe/.+', http.DescribeHandler),
- (r'/unlink/.+', http.UnlinkHandler),
- (r'/store', http.StoreHandler),
+ (r'/get', http.GetHandler),
+ (r'/put', http.PutHandler),
+ (r'/describe', http.DescribeHandler),
+ (r'/unlink', http.UnlinkHandler),
  (r'/query', http.QueryHandler),
 ], daemon=True)
 server.start()
