@@ -12,6 +12,7 @@ import uuid
 import tornado.ioloop
 import tornado.web
 
+from config import CONFIG
 import compression
 import database
 import filesystem
@@ -72,9 +73,11 @@ class BaseHandler(tornado.web.RequestHandler):
         _logger.debug("Received an HTTP GET request for '%(path)s'" % {
          'path': self.request.path,
         })
-        self.write(self._get() or '')
-        self.finish()
-        
+        output = self._get()
+        if not output is None:
+            self.write(output)
+            self.finish()
+            
     def _get(self):
         """
         Returns the current time; override this to do useful things.
@@ -91,9 +94,11 @@ class BaseHandler(tornado.web.RequestHandler):
         _logger.debug("Received an HTTP POST request for '%(path)s'" % {
          'path': self.request.path,
         })
-        self.write(self._post() or '')
-        self.finish()
-        
+        output = self._post()
+        if not output is None:
+            self.write(output)
+            self.finish()
+            
     def _post(self):
         """
         Returns the received JSON-dict; override this to do useful things.
@@ -108,14 +113,14 @@ class GetHandler(BaseHandler):
     def _get(self):
         record = database.get_record(_get_uid(self.request.path))
         if not record:
-            self.write_error(404)
+            self.send_error(404)
             
         fs = state.get_filesystem(record['physical']['family'])
         try:
             data = fs.get(record)
         except filesystem.FileNotFoundError as e:
             #log
-            self.write_error(404)
+            self.send_error(404)
         else:
             applied_compression = record['physical']['format'].get('comp')
             supported_compressions = (c.strip() for c in (self.request.headers.get('Ivr-Supported-Compression') or '').split(';'))
@@ -143,7 +148,7 @@ class DescribeHandler(BaseHandler):
     def _get(self):
         record = database.get_record(_get_uid(self.request.path))
         if not record:
-            self.write_error(404)
+            self.send_error(404)
             
         self.write(record)
         self.finish()
@@ -163,18 +168,18 @@ class StoreHandler(BaseHandler):
             format = {
              'mime': header['mime'],
             }
-            compression = header.get('comp')
-            if compression:
+            target_compression = header.get('comp')
+            if target_compression:
                 if header.get('compressOnServer'):
-                    decompressor = getattr(compression, 'compress_' + compression)
-                    data = decompressor(data)
-                format['comp'] = compression
+                    compressor = getattr(compression, 'compress_' + target_compression)
+                    data = compressor(data)
+                format['comp'] = target_compression
             extension = header.get('ext')
             if extension:
                 format['ext'] = extension
                 
             record = {
-             '_id': header['uid'] or uuid.uuid1(),
+             '_id': header.get('uid') or uuid.uuid1().hex,
              'physical': {
               'family': header.get('family'),
               'ctime': current_time,
@@ -190,9 +195,11 @@ class StoreHandler(BaseHandler):
             }
         except KeyError as e:
             #log
-            self.write_error(409)
+            self.send_error(409)
+            print e
         else:
-            print(record)
+            print record
+            print repr(data.read())
             database.put_record(record)
             fs = state.get_filesystem(record['physical']['family'])
             fs.put(record, data)
@@ -203,13 +210,13 @@ class UnlinkHandler(BaseHandler):
         uid = _get_uid(self.request.path)
         record = database.get_record(uid)
         if not record:
-            self.write_error(404)
+            self.send_error(404)
             
         fs = state.get_filesystem(record['physical']['family'])
         try:
             fs.unlink(record)
         except filesystem.FileNotFoundError as e:
-            self.write_error(404)
+            self.send_error(404)
         else:
             database.drop_record(uid)
             
