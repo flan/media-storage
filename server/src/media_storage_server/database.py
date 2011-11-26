@@ -35,8 +35,8 @@ def enumerate_meta():
 def get_record(uid):
     return db.collection.find_one(uid)
     
-def put_record(record):
-    db.collection.save(record)
+def add_record(record):
+    db.collection.insert(record)
     
 def drop_record(uid):
     db.collection.remove(uid)
