@@ -139,7 +139,7 @@ class CompressionMaintainer(_PolicyMaintainer):
         except Exception as e: #Harmless backout point
             #TODO: log
         else:
-            del record['policy']['compress'] #Drop the compression policy
+            record['policy']['compress'].clear() #Drop the compression policy
             try:
                 database.update_record(record)
             except Exception as e: #Results in wasted space until the next attempt, but the old file will resolve
