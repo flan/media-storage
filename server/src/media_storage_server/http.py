@@ -1,8 +1,11 @@
 """
 Provides all resources needed for the HTTP interface.
 """
+import base64
 import json
 import logging
+import os
+import random
 import tempfile
 import threading
 import time
@@ -180,6 +183,7 @@ class StoreHandler(BaseHandler):
                 
             record = {
              '_id': header.get('uid') or uuid.uuid1().hex,
+             'key': header.get('key') or base64.urlsafe_b64encode(os.urandom(random.randint(15, 25)))[:-2],
              'physical': {
               'family': header.get('family'),
               'ctime': current_time,
