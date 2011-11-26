@@ -38,7 +38,6 @@ def _parse_windows(definition):
                 ))
             windows[_DAY_MAP[match.group('day')]] = tuple(times)
     return windows
-    
 #Window structures to determine when threads may run
 DELETION_WINDOWS = _parse_windows(CONFIG.maintainer_deletion_windows)
 COMPRESSION_WINDOWS = _parse_windows(CONFIG.maintainer_compression_windows)
