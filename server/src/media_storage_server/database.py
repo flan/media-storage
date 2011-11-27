@@ -24,7 +24,7 @@ for index in (
 ):
     _COLLECTION.ensure_index(index)
     
-_logger = logging.getLogger("media_storage.http")
+_logger = logging.getLogger("media_storage.database")
 
 def authenticate(f):
     def authenticated_f(*args, **kwargs):
