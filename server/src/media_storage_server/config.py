@@ -16,6 +16,7 @@ Legal
 """
 import ConfigParser
 import os
+import sys
 
 class _Config(ConfigParser.RawConfigParser):
     """
@@ -253,4 +254,6 @@ CONFIG.read([
  os.path.expanduser('~/.media-storage/media-storage.ini'),
  './media-storage.ini',
 ]) #Load config data in Linux-standard order
-
+if len(sys.argv) > 1:
+   CONFIG.read(sys.argv[1]) 
+   
