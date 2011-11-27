@@ -182,6 +182,64 @@ class _Settings(_Config):
         return self.getint('maintainers', 'filesystem_sleep', 43200)
         
         
+    @property
+    def log_file_path(self):
+        return self.get('log', 'file_path', None)
+        
+    @property
+    def log_file_history(self):
+        return self.getint('log', 'file_history', 7)
+
+    @property
+    def log_file_verbosity(self):
+        return self.get('log', 'file_verbosity', 'INFO')
+
+    @property    
+    def log_console_verbosity(self):
+        return self.get('log', 'console_verbosity', 'DEBUG')
+        
+        
+    @property    
+    def email_alert(self):
+        return self.getboolean('email', 'alert', False)
+        
+    @property    
+    def email_alert_subject(self):
+        return self.get('email', 'alert_subject', 'Critical failure')
+        
+    @property    
+    def email_alert_from(self):
+        return self.get('email', 'alert_from', 'media-storage@example.org')
+        
+    @property    
+    def email_alert_to(self):
+        return self.get('email', 'alert_to', 'media-storage@example.org')
+        
+    @property    
+    def email_alert_from(self):
+        return self.get('email', 'alert_from', 'media-storage@example.com')
+        
+    @property    
+    def email_alert_host(self):
+        return self.get('email', 'alert_host', 'localhost')
+        
+    @property    
+    def email_alert_port(self):
+        return self.getint('email', 'alert_port', 25)
+        
+    @property    
+    def email_alert_tls(self):
+        return self.get('email', 'alert_tls', False)
+        
+    @property    
+    def email_alert_username(self):
+        return self.get('email', 'alert_username', None)
+        
+    @property    
+    def email_alert_password(self):
+        return self.get('email', 'alert_password', None)
+        
+        
 #Initialisation
 ####################################################################################################
 CONFIG = _Settings()

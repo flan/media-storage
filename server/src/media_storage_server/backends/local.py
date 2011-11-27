@@ -2,7 +2,8 @@ import os
 
 from common import (
  BaseBackend,
- FileNotFoundError, PermissionsError, CollisionError, NotEmptyError,
+ FileNotFoundError, PermissionsError, CollisionError, NotEmptyError, NoSpaceError,
+ NoFilehandleError,
 )
 
 _CHUNK_SIZE = 32 * 1024 #Work with 32K chunks
@@ -14,6 +15,10 @@ def _handle_error(e):
         raise PermissionsError(str(e))
     elif e.errno == 17:
         raise CollisionError(str(e))
+    elif e.errno == 24:
+        raise NoFilehandleError(str(e))
+    elif e.errno == 28:
+        raise NoSpaceError(str(e))
         
 class LocalBackend(BaseBackend):
     _path = None #The path on which this backend operates

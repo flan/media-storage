@@ -101,3 +101,13 @@ class NotEmptyError(Error):
     Unable to unlink directory because it is not empty.
     """
     
+class NoSpaceError(Error):
+    """
+    No space remains on device.
+    """
+    
+class NoFilehandleError(Error):
+    """
+    No filehandle could be allocated.
+    """
+    

@@ -46,3 +46,21 @@ database_sleep = 43200
 filesystem_windows = 
 filesystem_sleep = 43200
 
+[log]
+file_path = ./log
+file_history = 7
+file_verbosity = INFO
+console_verbosity = DEBUG
+
+[email]
+;If enabled, critical failure notifications are sent to an e-mail address
+alert = no
+alert_subject = Critical failure in Media Storage system on some host
+alert_from = media-storage@example.org
+alert_to = media-storage@example.com
+alert_host = localhost
+alert_port = 25
+alert_tls = no
+alert_username = 
+alert_password = 
+

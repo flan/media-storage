@@ -19,6 +19,7 @@ import tornado.web
 from config import CONFIG
 import compression
 import database
+import mail
 import filesystem
 import state
 
@@ -90,27 +91,6 @@ class BaseHandler(tornado.web.RequestHandler):
     - 500 if an internal exception happened
     - 503 if a short-term problem occurred
     """
-    def get(self):
-        """
-        Handles an HTTP GET request.
-        """
-        _logger.debug("Received an HTTP GET request for '%(path)s'" % {
-         'path': self.request.path,
-        })
-        output = self._get()
-        if not output is None:
-            self.write(output)
-            self.finish()
-            
-    def _get(self):
-        """
-        Returns the current time; override this to do useful things.
-        """
-        return {
-         'timestamp': int(time.time()),
-         'note': "This timestamp is in UTC",
-        }
-        
     def post(self):
         """
         Handles an HTTP POST request.
@@ -118,11 +98,21 @@ class BaseHandler(tornado.web.RequestHandler):
         _logger.debug("Received an HTTP POST request for '%(path)s'" % {
          'path': self.request.path,
         })
-        output = self._post()
-        if not output is None:
-            self.write(output)
-            self.finish()
-            
+        try:
+            output = self._post()
+        except filesystem.Error as e:
+            summary = "Filesystem error; exception details follow:\n" + traceback.format_exc()
+            _logger.critical(summary)
+            mail.send_alert(summary)
+            raise
+        except Exception as e:
+            _logger.error(summary)
+            raise
+        else:
+            if not output is None:
+                self.write(output)
+                self.finish()
+                
     def _post(self):
         """
         Returns the current time; override this to do useful things.
