@@ -138,6 +138,25 @@ class BaseHandler(tornado.web.RequestHandler):
          'note': "This timestamp is in UTC; thanks for POSTing",
         }
         
+        
+class DescribeHandler(BaseHandler):
+    def _post(self):
+        request = _get_json(self.request.body)
+        
+        record = database.get_record(request['uid'])
+        if not record:
+            self.send_error(404)
+            
+        trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
+        if not trust.read:
+            self.send_error(403)
+            return
+            
+        del record['physical']['minRes']
+        del record['keys']
+        self.write(record)
+        self.finish()
+        
 class GetHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
@@ -180,32 +199,6 @@ class GetHandler(BaseHandler):
                     break
             self.finish()
             
-class DescribeHandler(BaseHandler):
-    def _post(self):
-        request = _get_json(self.request.body)
-        
-        record = database.get_record(request['uid'])
-        if not record:
-            self.send_error(404)
-            
-        trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
-        if not trust.read:
-            self.send_error(403)
-            return
-            
-        del record['physical']['minRes']
-        del record['keys']
-        self.write(record)
-        self.finish()
-        
-class QueryHandler(BaseHandler):
-    def _post(self):
-        request = _get_json(self.request.body)
-        
-        trust = _get_trust(None, None, self.request.remote_ip)
-        #Issue the query; if not trust.read, only return matching records with key.read=None
-        pass
-        
 class PutHandler(BaseHandler):
     def _post(self):
         (header, data) = _get_payload(self.request.body)
@@ -338,6 +331,14 @@ class UnlinkHandler(BaseHandler):
         else:
             database.drop_record(uid)
             
+class QueryHandler(BaseHandler):
+    def _post(self):
+        request = _get_json(self.request.body)
+        
+        trust = _get_trust(None, None, self.request.remote_ip)
+        #Issue the query; if not trust.read, only return matching records with key.read=None
+        pass
+        
             
 class HTTPService(threading.Thread):
     """

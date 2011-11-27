@@ -73,9 +73,9 @@ if __name__ == '__main__':
          'port': CONFIG.http_port,
         })
         server = http.HTTPService(port=CONFIG.http_port, handlers=[
+         (r'/describe', http.DescribeHandler),
          (r'/get', http.GetHandler),
          (r'/put', http.PutHandler),
-         (r'/describe', http.DescribeHandler),
          (r'/unlink', http.UnlinkHandler),
          (r'/query', http.QueryHandler),
         ], daemon=False)
