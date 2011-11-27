@@ -63,18 +63,33 @@ if __name__ == '__main__':
         
         #Family registration
         ################################################################################################
-        for (name, uri) in [(None, CONFIG.storage_generic_family)] + CONFIG.families:
+        _logger.info("Registering filesystem families...")
+        _logger.info("Registering generic family at %(uri)s" % {
+         'uri': CONFIG.storage_generic_family,
+        })
+        state.register_family(None, CONFIG.storage_generic_family)
+        for (name, uri) in CONFIG.families:
+            _logger.info("Registering family '%(family)s' at %(uri)s" % {
+             'family': name,
+             'uri': uri,
+            })
             state.register_family(name, filesystem.Filesystem(uri))
-            
-        server = http.HTTPService(port=1234, handlers=[
+        _logger.info("Filesystem families registered")
+        
+        _logger.info("Configuring webservice on port %(port)i..." % {
+         'port': CONFIG.http_port,
+        })
+        server = http.HTTPService(port=CONFIG.http_port, handlers=[
          (r'/get', http.GetHandler),
          (r'/put', http.PutHandler),
          (r'/describe', http.DescribeHandler),
          (r'/unlink', http.UnlinkHandler),
          (r'/query', http.QueryHandler),
-        ], daemon=True)
+        ], daemon=False)
         server.start()
+        _logger.info("Webservice online")
         
+        _logger.info("All subsystems online")
         while not _kill_flag:
             time.sleep(1)
     except KeyboardInterrupt:
