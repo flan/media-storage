@@ -212,6 +212,7 @@ class PutHandler(BaseHandler):
         
         current_time = time.time()
         try:
+            _logger.debug("Assembling database record...")
             record = {
              '_id': header.get('uid') or uuid.uuid1().hex,
              'keys': self._build_key(header),
@@ -233,11 +234,13 @@ class PutHandler(BaseHandler):
             self.send_error(409)
             return
             
+        _logger.debug("Evaluating compression requirements...")
         target_compression = record['physical']['format'].get('comp')
         if target_compression and self.request.headers.get('Media-Storage-Compress-On-Server') == 'yes':
             compressor = getattr(compression, 'compress_' + target_compression)
             data = compressor(data)
             
+        _logger.debug("Storing uploaded entity...")
         database.add_record(record)
         fs = state.get_filesystem(record['physical']['family'])
         fs.put(record, data)
