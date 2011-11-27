@@ -51,3 +51,13 @@ response = urllib2.urlopen(
 print response.headers
 print response.read()
 
+request = urllib2.Request(
+ 'http://localhost:1234/unlink',
+ headers={
+ },
+)
+response = urllib2.urlopen(
+ request,
+ data=(record_pointer),
+)
+

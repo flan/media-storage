@@ -142,11 +142,12 @@ class BaseHandler(tornado.web.RequestHandler):
 class DescribeHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
+        uid = request['uid']
         _logger.info("Proceeding with description request for '%(uid)s'..." % {
-         'uid': request['uid'],
+         'uid': uid,
         })
         
-        record = database.get_record(request['uid'])
+        record = database.get_record(uid)
         if not record:
             self.send_error(404)
             return
@@ -164,11 +165,12 @@ class DescribeHandler(BaseHandler):
 class GetHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
+        uid = request['uid']
         _logger.info("Proceeding with retrieval request for '%(uid)s'..." % {
-         'uid': request['uid'],
+         'uid': uid,
         })
         
-        record = database.get_record(request['uid'])
+        record = database.get_record(uid)
         if not record:
             self.send_error(404)
             return
@@ -183,7 +185,7 @@ class GetHandler(BaseHandler):
             data = fs.get(record)
         except filesystem.FileNotFoundError as e:
             _logger.error("Database record exists for '%(uid)s', but filesystem entry does not" % {
-             'uid': request['uid'],
+             'uid': uid,
             })
             self.send_error(404)
             return
@@ -319,9 +321,12 @@ class PutHandler(BaseHandler):
         return new_policy
         
 class UnlinkHandler(BaseHandler):
-    def _get(self):
+    def _post(self):
         request = _get_json(self.request.body)
         uid = request['uid']
+        _logger.info("Proceeding with unlink request for '%(uid)s'..." % {
+         'uid': uid,
+        })
         
         record = database.get_record(uid)
         if not record:
@@ -337,7 +342,11 @@ class UnlinkHandler(BaseHandler):
         try:
             fs.unlink(record)
         except filesystem.FileNotFoundError as e:
+            _logger.error("Database record exists for '%(uid)s', but filesystem entry does not" % {
+             'uid': uid,
+            })
             self.send_error(404)
+            return
         else:
             database.drop_record(uid)
             

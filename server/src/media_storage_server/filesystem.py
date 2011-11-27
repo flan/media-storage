@@ -34,7 +34,7 @@ class Filesystem(object):
         """
         self._backend.unlink(
          self._resolve_path(record),
-         rmdir=(time.time() - record['physical']['ctime'] > CONFIG.filesystem_directory_resolution * 120)
+         rmdir=(time.time() - record['physical']['ctime'] > CONFIG.storage_minute_resolution * 120)
         )
         
     def file_exists(self, record):
