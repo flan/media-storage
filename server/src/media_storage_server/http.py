@@ -229,8 +229,10 @@ class PutHandler(BaseHandler):
              },
              'meta': header.get('meta') or {},
             }
-        except KeyError as e:
-            #log
+        except (KeyError, TypeError, AttributeError) as e:
+            _logger.error("Request received did not adhere to expected structure: %(error)s" % {
+             'error': str(e),
+            })
             self.send_error(409)
             return
         else:
