@@ -124,7 +124,7 @@ class BaseHandler(tornado.web.RequestHandler):
             _logger.error("Unknown error; exception details follow:\n" + traceback.format_exc())
             raise
         else:
-            logger.debug("Responding to request...")
+            _logger.debug("Responding to request...")
             if not output is None:
                 self.write(output)
                 self.finish()
