@@ -103,7 +103,7 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         Handles an HTTP POST request.
         """
-        _logger.debug("Received an HTTP POST request for '%(path)s' from %(address)s" % {
+        _logger.info("Received an HTTP POST request for '%(path)s' from %(address)s" % {
          'path': self.request.path,
          'address': self.request.remote_ip,
         })
@@ -233,6 +233,10 @@ class PutHandler(BaseHandler):
             #log
             self.send_error(409)
             return
+        else:
+            _logger.info("Proceeding with storage request for '%(uid)s'..." % {
+             'uid': record['_id'],
+            })
             
         _logger.debug("Evaluating compression requirements...")
         target_compression = record['physical']['format'].get('comp')
@@ -253,8 +257,8 @@ class PutHandler(BaseHandler):
     def _build_key(self, header):
         header_key = header.get('keys')
         return {
-         'read': header_key and header_key.get('read') or base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
-         'write': header_key and header_key.get('write') or base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
+         'read': header_key and header_key.get('read') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
+         'write': header_key and header_key.get('write') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
         }
         
     def _build_format(self, header):
