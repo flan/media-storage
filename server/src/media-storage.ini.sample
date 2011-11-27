@@ -1,6 +1,13 @@
 [general]
-;If false, this server will only handle requests from test applications
-production = no
+
+
+[database]
+host = localhost
+;port = 
+;username = 
+;password = 
+database = 'media-storage'
+collection = 'entities'
 
 [storage]
 ;The minute-scale on which directories will be sub-divided

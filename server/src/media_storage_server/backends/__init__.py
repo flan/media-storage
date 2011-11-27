@@ -11,7 +11,7 @@ from local import LocalBackend
 from sftp import SFTPBackend
 
 _URI_RE = re.compile(
- r'(?P<schema>[a-z]+)://(?:(?P<username>.+?)(?::(?P<password>.+?))?@)?(?P<host>.+?)(?::(?P<port>\d+))?(?P<path>/.*)'
+ r'(?P<schema>[a-z]+)://(?:(?P<username>.+?)(?::(?P<password>.+?))?@)?(?P<host>.*?)(?::(?P<port>\d+))?(?P<path>/.*)'
 ) #Matches 'http://whee.whoo:desu@uguu.ca:82/cheese'
 
 def get_backend(uri):

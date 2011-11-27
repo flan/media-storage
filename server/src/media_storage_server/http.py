@@ -231,10 +231,6 @@ class PutHandler(BaseHandler):
             compressor = getattr(compression, 'compress_' + target_compression)
             data = compressor(data)
             
-        print record
-        print repr(data.read())
-        data.seek(0)
-        
         database.add_record(record)
         fs = state.get_filesystem(record['physical']['family'])
         fs.put(record, data)

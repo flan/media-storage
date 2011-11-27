@@ -102,8 +102,29 @@ class _Settings(_Config):
     For details on what these attributes mean, please see the sample config file.
     """
     @property
-    def production(self):
-        return self.getboolean('general', 'production', False)
+    def database_address(self):
+        return (
+         self.get('database', 'host', 'localhost'),
+         self.getint('database', 'port', 0)
+        )
+        
+    @property
+    def database_credentials(self):
+        credentials = (
+         self.get('database', 'username', None),
+         self.get('database', 'password', None)
+        )
+        if all(credentials):
+            return credentials
+        return None
+        
+    @property
+    def database_database(self):
+        return self.get('database', 'database', 'media-storage')
+        
+    @property
+    def database_collection(self):
+        return self.get('database', 'collection', 'entities')
         
         
     @property
