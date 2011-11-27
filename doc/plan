@@ -1,6 +1,6 @@
 {
  '_id': 'c063d45413da11e194ca0026c7d605c8',
- 'keys': {
+ 'keys': {#Either value may be omitted or null to allow for anonymous access
   'read': 'WiyzwKI_3PBO9VSL0cr', #A random-length string that must be provided
                                  #to access the file from an untrusted context
   'write': 'DekI-LoRfc!', #And another is used to make changes
