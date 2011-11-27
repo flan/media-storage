@@ -67,7 +67,7 @@ if __name__ == '__main__':
         _logger.info("Registering generic family at %(uri)s" % {
          'uri': CONFIG.storage_generic_family,
         })
-        state.register_family(None, CONFIG.storage_generic_family)
+        state.register_family(None, filesystem.Filesystem(CONFIG.storage_generic_family))
         for (name, uri) in CONFIG.families:
             _logger.info("Registering family '%(family)s' at %(uri)s" % {
              'family': name,
