@@ -143,7 +143,11 @@ While a single host could run multiple services on different ports, this is
 probably not a good idea, since ports and busses will be contested; the only
 viable use cases for this are lightly loaded hosts where discrete namespaces
 are a must and lightly loaded I/O-strong hosts that have multiple weak processor
-cores.
+cores. Of course, if running behind an nginx front-end, load-balancing one or
+two instances per processor core will likely provide higher performance; to do
+this, create a global config file and a separate one that only overrides the HTTP
+port for each server, then supply the path of the specialised file as an
+argument.
 
 Redundancy:
 Because every operation in this system is stateless and atomic, no update will
