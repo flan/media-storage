@@ -7,7 +7,7 @@ from config import CONFIG
 
 _COOLDOWN_TIME = 300 #The number of seconds to wait between sending e-mails of specific types
 
-_logger = logging.getLogger('media_server.email')
+_logger = logging.getLogger('media_server.mail')
 
 def _send_message(message, host, port, tls, username, password):
     try:
@@ -43,7 +43,7 @@ def send_alert(message):
     if not CONFIG.email_alert or time.time() < _ALERT_COOLDOWN:
         return
     _ALERT_COOLDOWN = time.time() + _COOLDOWN_TIME
-    _logger.info('Sending alert e-mail...')
+    _logger.warn('Sending alert e-mail...')
     
     msg = MIMEText(message)
     msg['Subject'] = CONFIG.email_alert_subject
