@@ -102,6 +102,11 @@ class _Settings(_Config):
     For details on what these attributes mean, please see the sample config file.
     """
     @property
+    def http_port(self):
+        return self.getint('http', 'port', 1234)
+        
+        
+    @property
     def database_address(self):
         return (
          self.get('database', 'host', 'localhost'),

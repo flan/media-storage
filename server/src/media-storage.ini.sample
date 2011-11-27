@@ -1,5 +1,7 @@
 [general]
 
+[http]
+port = 1234
 
 [database]
 host = localhost
