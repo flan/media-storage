@@ -1,6 +1,7 @@
 """
 Provides all necessary database-access routines and query-interpretation.
 """
+import logging
 import types
 
 import pymongo
@@ -23,10 +24,12 @@ for index in (
 ):
     _COLLECTION.ensure_index(index)
     
-    
+_logger = logging.getLogger("media_storage.http")
+
 def authenticate(f):
     def authenticated_f(*args, **kwargs):
         if _CREDENTIALS:
+            _logger.debug("Authenticating to database...")
             _DATABASE.authenticate(*_CREDENTIALS)
         f(*args, **kwargs)
     return authenticated_f
@@ -65,7 +68,15 @@ def enumerate_meta():
     
 @authenticate
 def get_record(uid):
-    return _COLLECTION.find_one(uid)
+    _logger.debug("Retrieving record for '%(uid)s'" % {
+     'uid': uid,
+    })
+    record = _COLLECTION.find_one(uid)
+    if record is None:
+        _logger.info("No record found for '%(uid)s'" % {
+         'uid': uid,
+        })
+    return record
     
 @authenticate
 def add_record(record):

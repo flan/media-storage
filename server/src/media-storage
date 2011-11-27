@@ -64,15 +64,8 @@ if __name__ == '__main__':
         #Family registration
         ################################################################################################
         _logger.info("Registering filesystem families...")
-        _logger.info("Registering generic family at %(uri)s" % {
-         'uri': CONFIG.storage_generic_family,
-        })
         state.register_family(None, filesystem.Filesystem(CONFIG.storage_generic_family))
         for (name, uri) in CONFIG.families:
-            _logger.info("Registering family '%(family)s' at %(uri)s" % {
-             'family': name,
-             'uri': uri,
-            })
             state.register_family(name, filesystem.Filesystem(uri))
         _logger.info("Filesystem families registered")
         
