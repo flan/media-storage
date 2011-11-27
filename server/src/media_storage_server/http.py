@@ -42,13 +42,13 @@ def _get_trust(record, keys, host):
             
     if keys:
         return _TrustLevel(
-         record['key']['read'] in (keys.get('read'), None),
-         record['key']['write'] in (keys.get('write'), None),
+         record['keys']['read'] in (keys.get('read'), None),
+         record['keys']['write'] in (keys.get('write'), None),
         )
         
     return _TrustLevel(
-     record['key']['read'] is None,
-     record['key']['write'] is None,
+     record['keys']['read'] is None,
+     record['keys']['write'] is None,
     )
     
 def _get_json(body):
@@ -130,7 +130,7 @@ class GetHandler(BaseHandler):
         if not record:
             self.send_error(404)
             
-        trust = _get_trust(record, request.get('key'), self.request.remote_ip)
+        trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
         if not trust.read:
             self.send_error(403)
             return
@@ -171,13 +171,13 @@ class DescribeHandler(BaseHandler):
         if not record:
             self.send_error(404)
             
-        trust = _get_trust(record, request.get('key'), self.request.remote_ip)
+        trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
         if not trust.read:
             self.send_error(403)
             return
             
         del record['physical']['minRes']
-        del record['key']
+        del record['keys']
         self.write(record)
         self.finish()
         
@@ -197,7 +197,7 @@ class PutHandler(BaseHandler):
         try:
             record = {
              '_id': header.get('uid') or uuid.uuid1().hex,
-             'key': self._build_key(header),
+             'keys': self._build_key(header),
              'physical': {
               'family': header['physical'].get('family'),
               'ctime': current_time,
@@ -227,11 +227,11 @@ class PutHandler(BaseHandler):
         
         return {
          'uid': record['_id'],
-         'key': record['key'],
+         'keys': record['keys'],
         }
         
     def _build_key(self, header):
-        header_key = header.get('key')
+        header_key = header.get('keys')
         return {
          'read': header_key and header_key.get('read') or base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
          'write': header_key and header_key.get('write') or base64.urlsafe_b64encode(os.urandom(random.randint(10, 20)))[:-2],
@@ -298,7 +298,7 @@ class UnlinkHandler(BaseHandler):
         if not record:
             self.send_error(404)
             
-        trust = _get_trust(record, request.get('key'), self.request.remote_ip)
+        trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
         if not trust.write:
             self.send_error(403)
             return
