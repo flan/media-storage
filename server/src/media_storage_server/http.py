@@ -156,6 +156,7 @@ class DescribeHandler(BaseHandler):
             self.send_error(403)
             return
             
+        _logger.debug("Describing entity...")
         del record['physical']['minRes']
         del record['keys']
         return record
@@ -163,6 +164,9 @@ class DescribeHandler(BaseHandler):
 class GetHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
+        _logger.info("Proceeding with retrieval request for '%(uid)s'..." % {
+         'uid': request['uid'],
+        })
         
         record = database.get_record(request['uid'])
         if not record:
@@ -178,21 +182,24 @@ class GetHandler(BaseHandler):
         try:
             data = fs.get(record)
         except filesystem.FileNotFoundError as e:
-            #log
+            _logger.error("Database record exists for '%(uid)s', but filesystem entry does not" % {
+             'uid': request['uid'],
+            })
             self.send_error(404)
+            return
         else:
+            _logger.debug("Evaluating decompression requirements...")
             applied_compression = record['physical']['format'].get('comp')
             supported_compressions = (c.strip() for c in (self.request.headers.get('Media-Storage-Supported-Compression') or '').split(';'))
             if applied_compression and not applied_compression in supported_compressions: #Must be decompressed first
-                #log
                 decompressor = getattr(compression, 'decompress_' + applied_compression)
                 data = decompressor(data)
                 applied_compression = None
                 
-            self.headers['Content-Type'] = record['physical']['format']['mime']
-            self.headers['Content-Length'] = str(filesystem.file_size(record))
+            _logger.debug("Returning entity...")
+            self.set_header('Content-Type', record['physical']['format']['mime'])
             if applied_compression:
-                self.headers['Ivr-Applied-Compression'] = applied_compression
+                self.set_header('Media-Storage-Applied-Compression', applied_compression)
             while True:
                 chunk = data.read(_CHUNK_SIZE)
                 if chunk:
@@ -242,7 +249,7 @@ class PutHandler(BaseHandler):
             compressor = getattr(compression, 'compress_' + target_compression)
             data = compressor(data)
             
-        _logger.debug("Storing uploaded entity...")
+        _logger.debug("Storing entity...")
         database.add_record(record)
         fs = state.get_filesystem(record['physical']['family'])
         fs.put(record, data)

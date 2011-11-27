@@ -5,8 +5,8 @@ js = {
  'physical': {
   'family': 'taco',
   'format': {
-   'mime': 'whee',
-   'ext': 'desu',
+   'mime': 'text/plain',
+   'ext': 'txt',
    'comp': 'bz2',
   },
  },
@@ -33,9 +33,21 @@ request = urllib2.Request(
  headers={
  },
 )
-record_full = urllib2.urlopen(
+print urllib2.urlopen(
  request,
  data=(record_pointer),
 ).read()
 
-print record_full
+request = urllib2.Request(
+ 'http://localhost:1234/get',
+ headers={
+  'Media-Storage-Supported-Compression': 'gzip;lzma',
+ },
+)
+response = urllib2.urlopen(
+ request,
+ data=(record_pointer),
+)
+print response.headers
+print response.read()
+
