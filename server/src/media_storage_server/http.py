@@ -13,6 +13,7 @@ import time
 import traceback
 import uuid
 
+import pymongo
 import tornado.ioloop
 import tornado.web
 
@@ -38,17 +39,16 @@ def _get_trust(record, keys, host):
     """
     for trusted in CONFIG.security_trusted_hosts.split():
         if host == trusted:
+            _logger.debug("Request received from trusted host %(host)s" % {
+             'host': host,
+            })
             return _TrustLevel(True, True)
-            
-    if keys:
-        return _TrustLevel(
-         record['keys']['read'] in (keys.get('read'), None),
-         record['keys']['write'] in (keys.get('write'), None),
-        )
+    if not record: #If `record` is omitted, the test is to see if the host is trusted globally
+        return _TrustLevel(False, False)
         
     return _TrustLevel(
-     record['keys']['read'] is None,
-     record['keys']['write'] is None,
+     record['keys']['read'] is None or keys and record['keys']['read'] == keys.get('read'),
+     record['keys']['write'] is None or keys and record['keys']['write'] == keys.get('write'),
     )
     
 def _get_json(body):
@@ -65,6 +65,7 @@ def _get_payload(body):
     object descriptor and a file-like object containing the submitted bytes.
     """
     if False: #nginx proxy
+        _logger.debug("Extracting payload from nginx proxy structure...")
         return ({}, None)
     else:
         divider = body.find('\0')
@@ -91,24 +92,39 @@ class BaseHandler(tornado.web.RequestHandler):
     - 500 if an internal exception happened
     - 503 if a short-term problem occurred
     """
+    def send_error(self, code, **kwargs):
+        _logger.info("Responding to request from %(address)s with failure code %(code)i..." % {
+         'address': self.request.remote_ip,
+         'code': code,
+        })
+        tornado.web.RequestHandler.send_error(self, code, **kwargs)
+        
     def post(self):
         """
         Handles an HTTP POST request.
         """
-        _logger.debug("Received an HTTP POST request for '%(path)s'" % {
+        _logger.debug("Received an HTTP POST request for '%(path)s' from %(address)s" % {
          'path': self.request.path,
+         'address': self.request.remote_ip,
         })
         try:
+            _logger.debug("Processing request...")
             output = self._post()
         except filesystem.Error as e:
             summary = "Filesystem error; exception details follow:\n" + traceback.format_exc()
             _logger.critical(summary)
             mail.send_alert(summary)
             raise
+        except pymongo.errors.AutoReconnect:
+            summary = "Database unavailable; exception details follow:\n" + traceback.format_exc()
+            _logger.error(summary)
+            mail.send_alert(summary)
+            self.send_error(503)
         except Exception as e:
             _logger.error("Unknown error; exception details follow:\n" + traceback.format_exc())
             raise
         else:
+            logger.debug("Responding to request...")
             if not output is None:
                 self.write(output)
                 self.finish()
@@ -129,6 +145,7 @@ class GetHandler(BaseHandler):
         record = database.get_record(request['uid'])
         if not record:
             self.send_error(404)
+            return
             
         trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
         if not trust.read:
@@ -297,6 +314,7 @@ class UnlinkHandler(BaseHandler):
         record = database.get_record(uid)
         if not record:
             self.send_error(404)
+            return
             
         trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
         if not trust.write:

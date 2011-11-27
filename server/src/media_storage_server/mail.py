@@ -5,6 +5,7 @@ import time
 
 from config import CONFIG
 
+_SMTP_TIMEOUT = 2 #Number of seconds to wait for SMTP operations to complete
 _COOLDOWN_TIME = 300 #The number of seconds to wait between sending e-mails of specific types
 
 _logger = logging.getLogger('media_server.mail')
@@ -15,7 +16,7 @@ def _send_message(message, host, port, tls, username, password):
          'host': CONFIG.email_alert_host,
          'port': CONFIG.email_alert_port,
         })
-        smtp = smtplib.SMTP(CONFIG.email_alert_host, CONFIG.email_alert_port)
+        smtp = smtplib.SMTP(CONFIG.email_alert_host, CONFIG.email_alert_port, timeout=_SMTP_TIMEOUT)
         smtp.ehlo()
         if CONFIG.email_alert_tls:
             _logger.info('Enabling TLS...')
