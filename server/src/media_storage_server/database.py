@@ -68,7 +68,7 @@ def enumerate_meta():
     
 @authenticate
 def get_record(uid):
-    _logger.debug("Retrieving record for '%(uid)s'" % {
+    _logger.debug("Retrieving record for '%(uid)s'..." % {
      'uid': uid,
     })
     record = _COLLECTION.find_one(uid)
@@ -87,10 +87,16 @@ def add_record(record):
     
 @authenticate
 def drop_record(uid):
+    _logger.info("Dropping record for '%(uid)s'..." % {
+     'uid': uid,
+    })
     _COLLECTION.remove(uid)
     
 @authenticate
 def record_exists(uid):
+    _logger.info("Testing existence of record for '%(uid)s'..." % {
+     'uid': uid,
+    })
     return bool(_COLLECTION.find_one(
      spec=uid,
      fields=[],
