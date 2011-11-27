@@ -45,26 +45,32 @@ def _process(data, handler, flush_handler):
         raise
         
 def compress_bz2(data):
+    _logger.info("Compressing data with bz2...")
     compressor = bz2.BZ2Compressor()
     return _process(data, compressor.compress, compressor.flush)
 
 def decompress_bz2(data):
+    _logger.info("Decompressing data with bz2...")
     decompressor = bz2.BZ2Decompressor()
     return _process(data, decompressor.decompress, None)
     
 def compress_gzip(data):
+    _logger.info("Compressing data with gzip...")
     compressor = zlib.compressobj()
     return _process(data, compressor.compress, compressor.flush)
     
 def decompress_gzip(data):
+    _logger.info("Decompressing data with gzip...")
     decompressor = zlib.decompressobj()
     return _process(data, decompressor.decompress, decompressor.flush)
     
 def compress_lzma(data):
+    _logger.info("Compressing data with lzma...")
     compressor = lzma.LZMACompressor()
     return _process(data, compressor.compress, compressor.flush)
     
 def decompress_lzma(data):
+    _logger.info("Decompressing data with lzma...")
     decompressor = lzma.LZMADecompressor()
     return _process(data, decompressor.decompress, decompressor.flush)
     

@@ -80,6 +80,9 @@ def get_record(uid):
     
 @authenticate
 def add_record(record):
+    _logger.info("Adding record for '%(uid)s'..." % {
+     'uid': record['_id'],
+    })
     _COLLECTION.insert(record)
     
 @authenticate
