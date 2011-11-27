@@ -25,7 +25,7 @@ class LocalBackend(BaseBackend):
     _path = None #The path on which this backend operates
     
     def __init__(self, path):
-        if not path.endswith('/', '\\'):
+        if not path.endswith(('/', '\\')):
             self._path = path + os.path.sep
         else:
             self._path = path
