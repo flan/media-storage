@@ -9,17 +9,11 @@ _CHUNK_SIZE = 32 * 1024 #Work with 32K chunks
 
 def _handle_error(e):
     if e.errno == 2:
-        raise FileNotFoundError('Unable to open %(path)s' % {
-         'path': path,
-        })
+        raise FileNotFoundError(str(e))
     elif e.errno == 13:
-        raise PermissionsError('Unable to access %(path)s' % {
-         'path': path,
-        })
+        raise PermissionsError(str(e))
     elif e.errno == 17:
-        raise CollisionError('Unable to create %(path)s' % {
-         'path': path,
-        })
+        raise CollisionError(str(e))
         
 class LocalBackend(BaseBackend):
     _path = None #The path on which this backend operates
@@ -32,14 +26,14 @@ class LocalBackend(BaseBackend):
             
     def _get(self, path):
         try:
-            return open(path, 'rb')
+            return open(self._path + path, 'rb')
         except IOError as e:
             _handle_error(e)
             raise
             
     def _put(self, path, data):
         try:
-            target = open(path, 'wb')
+            target = open(self._path + path, 'wb')
         except IOError as e:
             _handle_error(e)
             raise
@@ -58,7 +52,7 @@ class LocalBackend(BaseBackend):
                 except Exception:
                     pass
                 try:
-                    self._unlink(path)
+                    self._unlink(self._path + path)
                 except Exception as e:
                     #Log e
                     pass
@@ -72,7 +66,7 @@ class LocalBackend(BaseBackend):
                     
     def _action(self, path, handler):
         try:
-            return handler(path)
+            return handler(self._path + path)
         except (IOError, OSError) as e:
             _handle_error(e)
             raise
@@ -84,17 +78,27 @@ class LocalBackend(BaseBackend):
         self._action(path, os.listdir)
         
     def _mkdir(self, path):
-        self._action(path, os.mkdir)
-        
+        try:
+            os.makedirs(self._path + path, 0750)
+            """path_fragments = [f for f in path.split('/') if f]
+            for i in range(len(path_fragments)):
+                subpath = self._path + '/'.join(path_fragments[:i + 1])
+                print subpath
+                if not self._is_dir(subpath):
+                    os.mkdir(subpath, 0750)"""
+        except (IOError, OSError) as e:
+            _handle_error(e)
+            raise
+            
     def _rmdir(self, path):
         self._action(path, os.rmdir)
         
     def _file_exists(self, path):
-        return os.path.exists(path)
+        return os.path.exists(self._path + path)
         
     def _file_size(self, path):
         return self._action(path, os.stat).st_size
         
     def _is_dir(self, path):
-        return os.path.isdir(path)
+        return os.path.isdir(self._path + path)
         

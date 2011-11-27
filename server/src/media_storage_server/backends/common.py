@@ -1,5 +1,4 @@
 class BaseBackend(object):
-    _base_path = None #The path relative to the filesystem root at which data-storage begins
     _last_accessed_directory = None #A TLB-like placeholder
     
     def get(self, path):
