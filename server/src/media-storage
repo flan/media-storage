@@ -3,17 +3,27 @@
 """
 import time
 
+from media_storage_server.config import CONFIG
+import media_storage_server.filesystem as filesystem
 import media_storage_server.http as http
+import media_storage_server.state as state
 
-server = http.HTTPService(port=1234, handlers=[
- (r'/get', http.GetHandler),
- (r'/put', http.PutHandler),
- (r'/describe', http.DescribeHandler),
- (r'/unlink', http.UnlinkHandler),
- (r'/query', http.QueryHandler),
-], daemon=True)
-server.start()
-
-while True:
-    time.sleep(1)
-
+if __name__ == '__main__':
+    
+#Family registration
+####################################################################################################
+    for (name, uri) in [(None, CONFIG.storage_generic_family)] + CONFIG.families:
+        state.register_family(name, filesystem.Filesystem(uri))
+        
+    server = http.HTTPService(port=1234, handlers=[
+     (r'/get', http.GetHandler),
+     (r'/put', http.PutHandler),
+     (r'/describe', http.DescribeHandler),
+     (r'/unlink', http.UnlinkHandler),
+     (r'/query', http.QueryHandler),
+    ], daemon=True)
+    server.start()
+    
+    while True:
+        time.sleep(1)
+        

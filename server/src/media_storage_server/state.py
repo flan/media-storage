@@ -1,6 +1,6 @@
 _FAMILIES = {}
 
-def _register_family(family, filesystem):
+def register_family(family, filesystem):
     """
     A None family must be registered, which is used to resolve generic references.
     """

@@ -110,6 +110,18 @@ class _Settings(_Config):
     def storage_minute_resolution(self):
         return self.getint('storage', 'minute_resolution', 5)
         
+    @property
+    def storage_generic_family(self):
+        return self.get('storage', 'generic_family', None)
+        
+
+    @property
+    def families(self):
+        """
+        Returns all specialised families as a list of (name, uri) tuples.
+        """
+        return self.has_section('families') and self.items('families') or []
+        
         
     @property
     def security_trusted_hosts(self):

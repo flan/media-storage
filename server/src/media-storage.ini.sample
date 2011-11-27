@@ -7,6 +7,16 @@ production = no
 ;This should be small enough to avoid filesystem limitations, but big enough to help operators
 minute_resolution = 5
 
+;The filesystem that serves the generic family class
+;Any specialised families must be enumerated in the [families] section
+generic_family = file:///home/flan/media-storage/generic
+
+[families]
+;Any specialised families must be enumerated here, with the value on the left
+;being the literal family name
+;Families should not be nested, but they may reside on the same partition
+test = file:///home/flan/media-storage/test
+
 [security]
 ;All hosts that may access stored resources without supplying the associated keys
 ;This should be limited to, at most, localhost and the operations console
