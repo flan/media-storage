@@ -34,7 +34,7 @@ def _send_message(message, host, port, tls, username, password):
         })
     finally:
         try:
-            smtp.close()
+            smtp.quit()
         except Exception:
             pass
             
