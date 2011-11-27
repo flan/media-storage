@@ -10,8 +10,11 @@ class BaseBackend(object):
     def put(self, path, data):
         directory = path[:path.rfind('/') + 1]
         if not directory == self._last_accessed_directory:
-            self.mkdir(directory)
-            self._last_accessed_path = directory
+            try:
+                self.mkdir(directory)
+            except CollisionError: #Competition for directory ID
+                pass
+            self._last_accessed_directory = directory
         self._put(path, data)
         
     def _put(self, path, data):

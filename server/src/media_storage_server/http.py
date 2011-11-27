@@ -106,7 +106,7 @@ class BaseHandler(tornado.web.RequestHandler):
             mail.send_alert(summary)
             raise
         except Exception as e:
-            _logger.error(summary)
+            _logger.error("Unknown error; exception details follow:\n" + traceback.format_exc())
             raise
         else:
             if not output is None:
