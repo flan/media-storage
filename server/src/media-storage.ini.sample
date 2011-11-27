@@ -8,8 +8,8 @@ host = localhost
 ;port = 
 ;username = 
 ;password = 
-database = 'media-storage'
-collection = 'entities'
+database = media-storage
+collection = entities
 
 [storage]
 ;The minute-scale on which directories will be sub-divided

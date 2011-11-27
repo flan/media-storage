@@ -31,7 +31,7 @@ def authenticate(f):
         if _CREDENTIALS:
             _logger.debug("Authenticating to database...")
             _DATABASE.authenticate(*_CREDENTIALS)
-        f(*args, **kwargs)
+        return f(*args, **kwargs)
     return authenticated_f
     
 @authenticate

@@ -93,7 +93,7 @@ class BaseHandler(tornado.web.RequestHandler):
     - 503 if a short-term problem occurred
     """
     def send_error(self, code, **kwargs):
-        _logger.info("Responding to request from %(address)s with failure code %(code)i..." % {
+        _logger.info("Request from %(address)s served with failure code %(code)i" % {
          'address': self.request.remote_ip,
          'code': code,
         })
@@ -142,10 +142,14 @@ class BaseHandler(tornado.web.RequestHandler):
 class DescribeHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
+        _logger.info("Proceeding with description request for '%(uid)s'..." % {
+         'uid': request['uid'],
+        })
         
         record = database.get_record(request['uid'])
         if not record:
             self.send_error(404)
+            return
             
         trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
         if not trust.read:
@@ -154,8 +158,7 @@ class DescribeHandler(BaseHandler):
             
         del record['physical']['minRes']
         del record['keys']
-        self.write(record)
-        self.finish()
+        return record
         
 class GetHandler(BaseHandler):
     def _post(self):

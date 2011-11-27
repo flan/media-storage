@@ -23,8 +23,19 @@ request = urllib2.Request(
   'Media-Storage-Compress-On-Server': 'yes',
  },
 )
-print urllib2.urlopen(
+record_pointer = urllib2.urlopen(
  request,
  data=(json.dumps(js) + '\0' + data),
 ).read()
 
+request = urllib2.Request(
+ 'http://localhost:1234/describe',
+ headers={
+ },
+)
+record_full = urllib2.urlopen(
+ request,
+ data=(record_pointer),
+).read()
+
+print record_full
