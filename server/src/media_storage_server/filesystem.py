@@ -7,7 +7,8 @@ import time
 import backends
 from backends import (
  Error,
- FileNotFoundError, PermissionsError, CollisionError, NotEmptyError,
+ FileNotFoundError, PermissionsError, CollisionError, NotEmptyError, NoSpaceError,
+ NoFilehandleError,
 )
 from config import CONFIG
 
