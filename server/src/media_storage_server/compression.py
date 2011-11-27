@@ -1,36 +1,49 @@
 """
 Offers efficient handlers for compressing and decompressing data, working with
 file-like objects (often tempfiles).
+#Names are reflectable
 """
 import bz2
+import logging
 import tempfile
 import zlib
 
 import lzma
 
-SUPPORTED_FORMATS = ('gzip', 'bz2', 'lzma')
+SUPPORTED_FORMATS = ('gzip', 'bz2', 'lzma',)
 
-_MAX_SPOOLED_FILESIZE = 1024 * 128 #Allow up to 128k in memory
-_BUFFER_SIZE = 1024 * 16 #Work with 16k chunks
+_MAX_SPOOLED_FILESIZE = 1024 * 256 #Allow up to 256k in memory
+_BUFFER_SIZE = 1024 * 32 #Work with 32k chunks
 
-#Names are reflectable
+_logger = logging.getLogger('media_server.compression')
 
 def _process(data, handler, flush_handler):
-    temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
-    while True:
-        chunk = data.read(_BUFFER_SIZE)
-        if chunk:
-            chunk = handler(chunk)
+    """
+    Iterates over the given `data`, reading a reasonable number of bytes, passing them through the
+    given (de)compression `handler`, and writing the output to a temporary file, which is ultimately
+    returned.
+    """
+    try:
+        temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
+        while True:
+            chunk = data.read(_BUFFER_SIZE)
             if chunk:
-                temp.write(chunk)
-        else:
-            if flush_handler:
-                temp.write(flush_handler())
-            break
-    temp.flush()
-    temp.seek(0)
-    return temp
-    
+                chunk = handler(chunk)
+                if chunk:
+                    temp.write(chunk)
+            else:
+                if flush_handler:
+                    temp.write(flush_handler())
+                break
+        temp.flush()
+        temp.seek(0)
+        return temp
+    except Exception as e:
+        _logger.error("A problem occurred during (de)compression: %(error)s" % {
+         'error': str(e),
+        })
+        raise
+        
 def compress_bz2(data):
     compressor = bz2.BZ2Compressor()
     return _process(data, compressor.compress, compressor.flush)
