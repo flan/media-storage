@@ -79,7 +79,7 @@ if __name__ == '__main__':
         ):
             if windows:
                 maintainer().start()
-        _logger.info("Maintainence subsystems online...")
+        _logger.info("Maintainence subsystems online")
         
         http_server = http.HTTPService(port=CONFIG.http_port, handlers=[
          (r'/describe', http.DescribeHandler),
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         ], daemon=False)
         http_server.start()
         
-        _logger.info("All subsystems online")
+        _logger.info("All subsystems online; commencing normal operation")
         while not _kill_flag:
             time.sleep(1)
     except KeyboardInterrupt:
