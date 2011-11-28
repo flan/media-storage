@@ -17,6 +17,24 @@ _BUFFER_SIZE = 1024 * 32 #Work with 32k chunks
 
 _logger = logging.getLogger('media_server.compression')
 
+def get_compressor(format):
+    if format == 'gzip':
+        return compress_gzip
+    elif format == 'bz2':
+        return compress_bz2
+    elif format == 'lzma':
+        return compress_lzma
+    raise ValueError(format + " is unsupported")
+    
+def get_decompressor(format):
+    if format == 'gzip':
+        return decompress_gzip
+    elif format == 'bz2':
+        return decompress_bz2
+    elif format == 'lzma':
+        return decompress_lzma
+    raise ValueError(format + " is unsupported")
+    
 def _process(data, handler, flush_handler):
     """
     Iterates over the given `data`, reading a reasonable number of bytes, passing them through the
@@ -45,32 +63,32 @@ def _process(data, handler, flush_handler):
         raise
         
 def compress_bz2(data):
-    _logger.info("Compressing data with bz2...")
+    _logger.debug("Compressing data with bz2...")
     compressor = bz2.BZ2Compressor()
     return _process(data, compressor.compress, compressor.flush)
 
 def decompress_bz2(data):
-    _logger.info("Decompressing data with bz2...")
+    _logger.debug("Decompressing data with bz2...")
     decompressor = bz2.BZ2Decompressor()
     return _process(data, decompressor.decompress, None)
     
 def compress_gzip(data):
-    _logger.info("Compressing data with gzip...")
+    _logger.debug("Compressing data with gzip...")
     compressor = zlib.compressobj()
     return _process(data, compressor.compress, compressor.flush)
     
 def decompress_gzip(data):
-    _logger.info("Decompressing data with gzip...")
+    _logger.debug("Decompressing data with gzip...")
     decompressor = zlib.decompressobj()
     return _process(data, decompressor.decompress, decompressor.flush)
     
 def compress_lzma(data):
-    _logger.info("Compressing data with lzma...")
+    _logger.debug("Compressing data with lzma...")
     compressor = lzma.LZMACompressor()
     return _process(data, compressor.compress, compressor.flush)
     
 def decompress_lzma(data):
-    _logger.info("Decompressing data with lzma...")
+    _logger.debug("Decompressing data with lzma...")
     decompressor = lzma.LZMADecompressor()
     return _process(data, decompressor.decompress, decompressor.flush)
     

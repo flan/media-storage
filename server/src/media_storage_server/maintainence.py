@@ -10,6 +10,7 @@ import time
 from config import CONFIG
 import compression
 import database
+import filesystem
 import state
 
 #Window structures to determine when threads may run
@@ -128,15 +129,12 @@ class DeletionMaintainer(_PolicyMaintainer):
     _windows = DELETION_WINDOWS
     
     def _process_record(self, record):
-        _logger.info("Deleting record '%(uid)s'..." % {
-         'uid': record['_id'],
-        })
+        _logger.info("Unlinking record...")
         filesystem = state.get_filesystem(record['physical']['family'])
         try:
             filesystem.unlink(record)
         except Exception as e:
-            #TODO: log
-            pass
+            _logger.warn("Unable to unlink record")
         else:
             database.drop_record(record['_id'])
             
@@ -155,37 +153,39 @@ class CompressionMaintainer(_PolicyMaintainer):
         })
         current_compression = record['physical']['format'].get('comp')
         target_compression = record['policy']['compress'].get('comp')
-        if current_compression == target_compression: #Nothing to do
+        if current_compression == target_compression:
+            _logger.debug("File already compressed in target format")
             return
             
         filesystem = state.get_filesystem(record['physical']['family'])
-        
         data = filesystem.get(record)
         if current_compression: #Must be decompressed first
-            #log
-            decompressor = getattr(compression, 'decompress_' + current_compression)
-            data = decompressor(data)
-        compressor = getattr(compression, 'compress_' + target_compression)
-        data = compressor(data)
+            _logger.info("Decompressing file...")
+            data = compression.get_decompressor(current_compression)(data)
+        data = compression.get_compressor(target_compression)(data)
         
+        _logger.info("Updating entity...")
         old_format = record['physical']['format'].copy()
         record['physical']['format']['comp'] = target_compression
         try:
             filesystem.put(record, data)
         except Exception as e: #Harmless backout point
-            #TODO: log
+            _logger.warn("Unable to write compressed file to disk; backing out with no consequences")
         else:
             record['policy']['compress'].clear() #Drop the compression policy
             try:
                 database.update_record(record)
-            except Exception as e: #Results in wasted space until the next attempt, but the old file will resolve
-                #TODO: log
+            except Exception as e: #Results in wasted space until the next attempt
+                _logger.error("Unable to update record; old file will be served, and new file will be replaced on subsequent compression attempt")
             else:
                 record['physical']['format'] = old_format
                 try:
                     filesystem.unlink(record)
                 except Exception as e: #Results in wasted space, but non-fatal
-                    #TODO: log
+                    _logger.error("Unable to unlink old file; space non-recoverable unless unlinked manually: %(family)r | %(file)s" % {
+                     'family': record['physical']['family'],
+                     'file': filesystem.resolve_path(record),
+                    })
                     
 class DatabaseMaintainer(_Maintainer):
     """
@@ -212,8 +212,10 @@ class DatabaseMaintainer(_Maintainer):
                 
                 filesystem = state.get_filesystem(record['physical']['family'])
                 if not filesystem.file_exists(record):
+                    _logger.warn("Discovered database record for '%(uid)s' without matching file; dropping record..." % {
+                     'uid': record['_id'],
+                    })
                     database.drop_record(record['_id'])
-                    #TODO: log
                     
             if not records_retrieved: #Cycle complete
                 _logger.debug("All records processed; sleeping")
@@ -235,7 +237,9 @@ class FilesystemMaintainer(_Maintainer):
         """
         while True:
             for family in state.get_families():
-                #TODO: log
+                _logger.info("Processing family %(family)r..." % {
+                 'family': family,
+                })
                 filesystem = state.get_filesystem(family)
                 self._walk(filesystem, './')
                 
@@ -251,13 +255,23 @@ class FilesystemMaintainer(_Maintainer):
                 else:
                     try:
                         if not self._keep_file(filename):
-                            filesystem.unlink(directory + filename)
+                            _logger.warn("Discovered orphaned file '%(name)s'; unlinking..." % {
+                             'name': filename,
+                            })
+                            try:
+                                filesystem.unlink(directory + filename)
+                            except Exception as e:
+                                _logger.warn("Unable to unlink file: %(error)s" % {
+                                 'error': str(e),
+                                })
                     except Exception as e:
-                        #TODO: log
-                        pass
+                        _logger.warn("Unable to query database: %(error)s" % {
+                         'error': str(e),
+                        })
         except Exception as e:
-            #TODO: log
-            pass
+            _logger.warn("Unable to traverse filesystem: %(error)s" % {
+             'error': str(e),
+            })
             
     def _keep_file(self, filename):
         while not self._within_window(FILESYSTEM_WINDOWS):
