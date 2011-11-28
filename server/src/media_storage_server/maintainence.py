@@ -89,6 +89,9 @@ class _PolicyMaintainer(_Maintainer):
         })
         while True:
             while not self._within_window(self._windows):
+                _logger.debug("%(name)s not in execution window; sleeping" % {
+                 'name': self.name,
+                })
                 time.sleep(60)
                 
             while True: #Process stale records
@@ -192,6 +195,9 @@ class DatabaseMaintainer(_Maintainer):
         ctime = -1.0
         while True:
             while not self._within_window(DATABASE_WINDOWS):
+                _logger.debug("%(name)s not in execution window; sleeping" % {
+                 'name': self.name,
+                })
                 time.sleep(60)
                 
             records_retrieved = False
@@ -251,6 +257,9 @@ class FilesystemMaintainer(_Maintainer):
             
     def _keep_file(self, filename):
         while not self._within_window(FILESYSTEM_WINDOWS):
+            _logger.debug("%(name)s not in execution window; sleeping" % {
+             'name': self.name,
+            })
             time.sleep(60)
             
         sep_pos = filename.find('.')
