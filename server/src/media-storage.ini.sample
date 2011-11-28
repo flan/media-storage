@@ -52,7 +52,7 @@ filesystem_sleep = 43200
 file_path = ./log
 file_history = 7
 file_verbosity = INFO
-console_verbosity = DEBUG
+console_verbosity = DEBUG ;If blank, console logging is disabled
 
 [email]
 ;If enabled, critical failure notifications are sent to an e-mail address
