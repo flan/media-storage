@@ -194,8 +194,7 @@ class GetHandler(BaseHandler):
             applied_compression = record['physical']['format'].get('comp')
             supported_compressions = (c.strip() for c in (self.request.headers.get('Media-Storage-Supported-Compression') or '').split(';'))
             if applied_compression and not applied_compression in supported_compressions: #Must be decompressed first
-                decompressor = getattr(compression, 'decompress_' + applied_compression)
-                data = decompressor(data)
+                data = compression.get_decompressor(applied_compression)(data)
                 applied_compression = None
                 
             _logger.debug("Returning entity...")
@@ -248,8 +247,8 @@ class PutHandler(BaseHandler):
         _logger.debug("Evaluating compression requirements...")
         target_compression = record['physical']['format'].get('comp')
         if target_compression and self.request.headers.get('Media-Storage-Compress-On-Server') == 'yes':
-            compressor = getattr(compression, 'compress_' + target_compression)
-            data = compressor(data)
+            _logger.info("Compressing file...")
+            data = compression.get_compressor(target_compression)(data)
             
         _logger.debug("Storing entity...")
         database.add_record(record)

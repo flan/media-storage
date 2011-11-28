@@ -90,8 +90,14 @@ def drop_record(uid):
     _logger.info("Dropping record for '%(uid)s'..." % {
      'uid': uid,
     })
-    _COLLECTION.remove(uid)
-    
+    try:
+        _COLLECTION.remove(uid)
+    except Exception as e:
+        _logger.warn("Unable to remove record: %(error)s" % {
+         'error': str(e),
+        })
+        raise
+        
 @authenticate
 def record_exists(uid):
     _logger.info("Testing existence of record for '%(uid)s'..." % {
