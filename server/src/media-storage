@@ -34,14 +34,13 @@ def _setup_logging(logger):
         ))
         logger.addHandler(file_logger)
         
-    #Console-based logging is always enabled, though it's typically at a very high level.
-    console_logger = logging.StreamHandler()
-    console_logger.setLevel(getattr(logging, CONFIG.log_console_verbosity))
-    console_logger.setFormatter(logging.Formatter(
-     "%(asctime)s : %(levelname)s : %(name)s:%(lineno)d[%(threadName)s] : %(message)s"
-    ))
-    logger.addHandler(console_logger)
-
+    if CONFIG.log_console_verbosity: #Determine whether console-based logging is desired.
+        console_logger = logging.StreamHandler()
+        console_logger.setLevel(getattr(logging, CONFIG.log_console_verbosity))
+        console_logger.setFormatter(logging.Formatter(
+         "%(asctime)s : %(levelname)s : %(name)s:%(lineno)d[%(threadName)s] : %(message)s"
+        ))
+        logger.addHandler(console_logger)
 
 if __name__ == '__main__':
     #Set up logging
