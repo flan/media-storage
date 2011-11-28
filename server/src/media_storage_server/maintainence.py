@@ -62,27 +62,33 @@ def _parse_windows(definition, name):
             windows[_DAY_MAP[match.group('day')]] = tuple(times)
     return windows
     
-def _within_window(windows):
-    ts = time.localtime()
-    ts = ts.tm_hour * 60 + ts.tm_min
-    ranges = windows.get(ts.tm_wday)
-    if not ranges:
-        return False
-        
-    for (start, end) in ranges:
-        if start <= ts < end:
-            return True
-    return False
-    
 class _Maintainer(threading.Thread):
     def __init__(self)
+        _logger.info("Configuring %(name)s..." % {
+         'name': self.name,
+        })
         threding.Thread.__init__(self)
         self.daemon = True
         
+    def self._within_window(self, windows):
+        ts = time.localtime()
+        ts = ts.tm_hour * 60 + ts.tm_min
+        ranges = windows.get(ts.tm_wday)
+        if not ranges:
+            return False
+            
+        for (start, end) in ranges:
+            if start <= ts < end:
+                return True
+        return False
+        
 class _PolicyMaintainer(_Maintainer):
     def run(self):
+        _logger.info("%(name)s online" % {
+         'name': self.name,
+        })
         while True:
-            while not _within_window(self._windows):
+            while not self._within_window(self._windows):
                 time.sleep(60)
                 
             while True: #Process stale records
@@ -110,6 +116,7 @@ class _PolicyMaintainer(_Maintainer):
 class DeletionMaintainer(_PolicyMaintainer):
     """
     """
+    name = 'deletion-maintainer'
     _stale_query = 'this.physical.atime + this.policy.delete.stale < %(time)i'
     _fixed_field = 'policy.delete.fixed'
     _sleep_period = CONFIG.maintainer_deletion_sleep
@@ -128,6 +135,7 @@ class DeletionMaintainer(_PolicyMaintainer):
 class CompressionMaintainer(_PolicyMaintainer):
     """
     """
+    name = 'compression-maintainer'
     _stale_query = 'this.physical.atime + this.policy.compress.stale < %(time)i'
     _fixed_field = 'policy.compress.fixed'
     _sleep_period = CONFIG.maintainer_compression_sleep
@@ -171,14 +179,19 @@ class CompressionMaintainer(_PolicyMaintainer):
 class DatabaseMaintainer(_Maintainer):
     """
     """
+    name = 'database-maintainer'
+    
     def run(self):
         """
         Cycles through every database record in order, removing any records associated
         with files that do not exist.
         """
+        _logger.info("%(name)s online" % {
+         'name': self.name,
+        })
         ctime = -1.0
         while True:
-            while not _within_window(DATABASE_WINDOWS):
+            while not self._within_window(DATABASE_WINDOWS):
                 time.sleep(60)
                 
             records_retrieved = False
@@ -201,11 +214,16 @@ class FilesystemMaintainer(_Maintainer):
     all data if the Mongo database is dropped for any reason, and, in smaller
     data-centres, a full filesystem backup may not exist.
     """
+    name = 'filesystem-maintainer'
+    
     def run(self):
         """
         Cycles through every filesystem entry in order, removing any files associated
         with database records that do not exist.
         """
+        _logger.info("%(name)s online" % {
+         'name': self.name,
+        })
         while True:
             for family in state.get_families():
                 #TODO: log
@@ -232,7 +250,7 @@ class FilesystemMaintainer(_Maintainer):
             pass
             
     def _keep_file(self, filename):
-        while not _within_window(FILESYSTEM_WINDOWS):
+        while not self._within_window(FILESYSTEM_WINDOWS):
             time.sleep(60)
             
         sep_pos = filename.find('.')
