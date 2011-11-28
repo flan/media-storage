@@ -388,6 +388,9 @@ class HTTPService(threading.Thread):
         self.daemon = daemon
         self.name = "http"
         
+        _logger.info("Configuring HTTP server on port %(port)i..." % {
+         'port': port,
+        })
         self._http_server = tornado.ioloop.IOLoop.instance()
         self._http_application = tornado.web.Application(handlers, log_function=(lambda x:''), xheaders=True)
         self._http_application.listen(port)

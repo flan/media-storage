@@ -2,6 +2,7 @@
 Runs an asynchronous maintenance thread that handles deletions, compressions,
 and bidirectional orphan-purging.
 """
+import logging
 import re
 import threading
 import time
@@ -11,7 +12,25 @@ import compression
 import database
 import state
 
-def _parse_windows(definition):
+#Window structures to determine when threads may run
+DELETION_WINDOWS = None
+COMPRESSION_WINDOWS = None
+DATABASE_WINDOWS = None
+FILESYSTEM_WINDOWS = None
+
+_logger = logging.getLogger("media_storage.maintainence")
+
+def parse_windows():
+    global DELETION_WINDOWS
+    DELETION_WINDOWS = _parse_windows(CONFIG.maintainer_deletion_windows, 'deletion policy')
+    global COMPRESSION_WINDOWS
+    COMPRESSION_WINDOWS = _parse_windows(CONFIG.maintainer_compression_windows, 'compression policy')
+    global DATABASE_WINDOWS
+    DATABASE_WINDOWS = _parse_windows(CONFIG.maintainer_database_windows, 'database integrity')
+    global FILESYSTEM_WINDOWS
+    FILESYSTEM_WINDOWS = _parse_windows(CONFIG.maintainer_filesystem_windows, 'filesystem integrity')
+    
+def _parse_windows(definition, name):
     _DAY_MAP = {
      'mo': 0,
      'tu': 1,
@@ -27,6 +46,10 @@ def _parse_windows(definition):
     for day in definition.lower().split():
         match = _WINDOW_DAY_RE.match(day)
         if match:
+            _logger.info("Validated execution windows for %(name)s maintainer: %(windows)s" % {
+             'name': name,
+             'windows': day,
+            })
             times = []
             for timerange in match.group('times').split(','):
                 (start, end) = timerange.split('..', 1)
@@ -38,13 +61,7 @@ def _parse_windows(definition):
                 ))
             windows[_DAY_MAP[match.group('day')]] = tuple(times)
     return windows
-#Window structures to determine when threads may run
-DELETION_WINDOWS = _parse_windows(CONFIG.maintainer_deletion_windows)
-COMPRESSION_WINDOWS = _parse_windows(CONFIG.maintainer_compression_windows)
-DATABASE_WINDOWS = _parse_windows(CONFIG.maintainer_database_windows)
-FILESYSTEM_WINDOWS = _parse_windows(CONFIG.maintainer_filesystem_windows)
-del _parse_windows
-
+    
 def _within_window(windows):
     ts = time.localtime()
     ts = ts.tm_hour * 60 + ts.tm_min

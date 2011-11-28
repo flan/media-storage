@@ -9,6 +9,7 @@ import traceback
 
 from media_storage_server.config import CONFIG
 import media_storage_server.mail as mail
+import media_storage_server.maintainence as maintainence
 import media_storage_server.filesystem as filesystem
 import media_storage_server.http as http
 import media_storage_server.state as state
@@ -68,18 +69,26 @@ if __name__ == '__main__':
             state.register_family(name, filesystem.Filesystem(uri))
         _logger.info("Filesystem families registered")
         
-        _logger.info("Configuring webservice on port %(port)i..." % {
-         'port': CONFIG.http_port,
-        })
-        server = http.HTTPService(port=CONFIG.http_port, handlers=[
+        _logger.info("Determining maintainence scheduling...")
+        maintainence.parse_windows()
+        for (windows, maintainer) in (
+         (maintainence.DELETION_WINDOWS, maintainence.DeletionMaintainer),
+         (maintainence.COMPRESSION_WINDOWS, maintainence.CompressionMaintainer),
+         (maintainence.DATABASE_WINDOWS, maintainence.DatabaseMaintainer),
+         (maintainence.FILESYSTEM_WINDOWS, maintainence.FilesystemMaintainer),
+        ):
+            if windows:
+                maintainer().start()
+        _logger.info("Maintainence subsystems online...")
+        
+        http_server = http.HTTPService(port=CONFIG.http_port, handlers=[
          (r'/describe', http.DescribeHandler),
          (r'/get', http.GetHandler),
          (r'/put', http.PutHandler),
          (r'/unlink', http.UnlinkHandler),
          (r'/query', http.QueryHandler),
         ], daemon=False)
-        server.start()
-        _logger.info("Webservice online")
+        http_server.start()
         
         _logger.info("All subsystems online")
         while not _kill_flag:
@@ -92,9 +101,9 @@ if __name__ == '__main__':
         summary = "System shutting down; unhandled exception details follow:\n" + traceback.format_exc()
         _logger.critical(summary)
         mail.send_alert(summary)
-    finally: #Ensure all threads have been killed
+    finally: #Ensure all non-daemon threads have been killed
         try:
-            server.kill()
+            http_server.kill()
         except Exception:
             _logger.warn("Unable to stop webservice thread; subsystem may not have been started")
             
