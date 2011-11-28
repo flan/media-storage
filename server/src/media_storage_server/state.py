@@ -24,3 +24,6 @@ def get_filesystem(family):
         _logger.debug("Retrieved filesystem reference for generic family")
     return filesystem
     
+def get_families():
+    return _FAMILIES.keys()
+    

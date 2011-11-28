@@ -84,21 +84,19 @@ class _Maintainer(threading.Thread):
         
 class _PolicyMaintainer(_Maintainer):
     def run(self):
-        _logger.info("%(name)s online" % {
-         'name': self.name,
-        })
         while True:
             while not self._within_window(self._windows):
-                _logger.debug("%(name)s not in execution window; sleeping" % {
-                 'name': self.name,
-                })
+                _logger.debug("Not in execution window; sleeping")
                 time.sleep(60)
                 
-            while True: #Process stale records
+            while True: #Process fixed records
                 records_processed = False
                 for record in database.enumerate_where({
                  self._fixed_field: {'$lt': int(time.time())},
                 }):
+                    _logger.info("Discovered fixed record: %(uid)s" % {
+                     'uid': record['_id'],
+                    })
                     records_processed = True
                     self._process_record(record)
                 if not records_processed:
@@ -109,11 +107,15 @@ class _PolicyMaintainer(_Maintainer):
                 for record in database.enumerate_where(self._stale_query % {
                  'time': int(time.time()),
                 }):
+                    _logger.info("Discovered stale record: %(uid)s" % {
+                     'uid': record['_id'],
+                    })
                     records_processed = True
                     self._process_record(record)
                 if not records_processed:
                     break
                     
+            _logger.debug("All records processed; sleeping")
             time.sleep(self._sleep_period)
             
 class DeletionMaintainer(_PolicyMaintainer):
@@ -126,6 +128,9 @@ class DeletionMaintainer(_PolicyMaintainer):
     _windows = DELETION_WINDOWS
     
     def _process_record(self, record):
+        _logger.info("Deleting record '%(uid)s'..." % {
+         'uid': record['_id'],
+        })
         filesystem = state.get_filesystem(record['physical']['family'])
         try:
             filesystem.unlink(record)
@@ -145,6 +150,9 @@ class CompressionMaintainer(_PolicyMaintainer):
     _windows = COMPRESSION_WINDOWS
     
     def _process_record(self, record):
+        _logger.info("Compressing record '%(uid)s'..." % {
+         'uid': record['_id'],
+        })
         current_compression = record['physical']['format'].get('comp')
         target_compression = record['policy']['compress'].get('comp')
         if current_compression == target_compression: #Nothing to do
@@ -189,13 +197,10 @@ class DatabaseMaintainer(_Maintainer):
         Cycles through every database record in order, removing any records associated
         with files that do not exist.
         """
-        _logger.info("%(name)s online" % {
-         'name': self.name,
-        })
         ctime = -1.0
         while True:
             while not self._within_window(DATABASE_WINDOWS):
-                _logger.debug("%(name)s not in execution window; sleeping" % {
+                _logger.debug("Not in execution window; sleeping" % {
                  'name': self.name,
                 })
                 time.sleep(60)
@@ -211,6 +216,7 @@ class DatabaseMaintainer(_Maintainer):
                     #TODO: log
                     
             if not records_retrieved: #Cycle complete
+                _logger.debug("All records processed; sleeping")
                 time.sleep(CONFIG.maintainer_database_sleep)
                 ctime = -1.0
                 
@@ -227,15 +233,13 @@ class FilesystemMaintainer(_Maintainer):
         Cycles through every filesystem entry in order, removing any files associated
         with database records that do not exist.
         """
-        _logger.info("%(name)s online" % {
-         'name': self.name,
-        })
         while True:
             for family in state.get_families():
                 #TODO: log
                 filesystem = state.get_filesystem(family)
                 self._walk(filesystem, './')
-            #Cycle complete
+                
+            _logger.debug("All records processed; sleeping")
             time.sleep(CONFIG.maintainer_filesystem_sleep)
             
     def _walk(self, filesystem, path):
@@ -257,9 +261,7 @@ class FilesystemMaintainer(_Maintainer):
             
     def _keep_file(self, filename):
         while not self._within_window(FILESYSTEM_WINDOWS):
-            _logger.debug("%(name)s not in execution window; sleeping" % {
-             'name': self.name,
-            })
+            _logger.debug("Not in execution window; sleeping")
             time.sleep(60)
             
         sep_pos = filename.find('.')
