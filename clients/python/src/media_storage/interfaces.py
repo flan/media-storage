@@ -1,10 +1,10 @@
 """
 Defines interfaces that implementing classes must fulfill.
 """
-import abc
+from abc import ABCMeta, abstractmethod
 
 class StorageConstruct(object):
-    __metaclass__ = abc.ABCMeta
+    __metaclass__ = ABCMeta
     
     #Basis of the proxy implementation
     
@@ -18,7 +18,7 @@ class StorageConstruct(object):
         
         
 class RetrievalConstruct(object):
-    __metaclass__ = abc.ABCMeta
+    __metaclass__ = ABCMeta
     
     #Basis of the caching proxy implementation
     #describe will be implemented as a pass-through on the proxy
@@ -32,7 +32,7 @@ class RetrievalConstruct(object):
         raise NotImplementedError("describe() must be overridden in child classes")
         
 class ControlConstruct(StorageConstruct, RetrievalConstruct):
-    __metaclass__ = abc.ABCMeta
+    __metaclass__ = ABCMeta
     
     #Basis of the main implementation
     
