@@ -1,8 +1,11 @@
 from common import (
- BaseBackend,
- FileNotFoundError, PermissionsError, CollisionError, NotEmptyError,
+ FileNotFoundError, PermissionsError, CollisionError, NotEmptyError, NoSpaceError,
+ NoFilehandleError,
 )
+import directory
 
-class SFTPBackend(BaseBackend):
+class SFTPBackend(directory.DirectoryBackend):
     pass
+    
+    #_walk() will need to be a generator function defined internally
     

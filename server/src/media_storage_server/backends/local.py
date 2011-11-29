@@ -1,10 +1,10 @@
 import os
 
 from common import (
- BaseBackend,
  FileNotFoundError, PermissionsError, CollisionError, NotEmptyError, NoSpaceError,
  NoFilehandleError,
 )
+import directory
 
 _CHUNK_SIZE = 32 * 1024 #Work with 32K chunks
 
@@ -20,7 +20,7 @@ def _handle_error(e):
     elif e.errno == 28:
         raise NoSpaceError(str(e))
         
-class LocalBackend(BaseBackend):
+class LocalBackend(directory.DirectoryBackend):
     _path = None #The path on which this backend operates
     
     def __init__(self, path):
@@ -105,9 +105,6 @@ class LocalBackend(BaseBackend):
     def _unlink(self, path):
         self._action(path, os.unlink)
         
-    def _lsdir(self, path):
-        self._action(path, os.listdir)
-        
     def _mkdir(self, path):
         target_path = self._path + path
         try:
@@ -126,6 +123,6 @@ class LocalBackend(BaseBackend):
     def _file_exists(self, path):
         return os.path.exists(self._path + path)
         
-    def _is_dir(self, path):
-        return os.path.isdir(self._path + path)
+    def _walk(self):
+        return os.walk(self.path)
         
