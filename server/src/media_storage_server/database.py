@@ -71,20 +71,33 @@ def get_record(uid):
     _logger.debug("Retrieving record for '%(uid)s'..." % {
      'uid': uid,
     })
-    record = _COLLECTION.find_one(uid)
-    if record is None:
-        _logger.info("No record found for '%(uid)s'" % {
-         'uid': uid,
+    try:
+        record = _COLLECTION.find_one(uid)
+    except Exception as e:
+        _logger.error("Unable to retrieve record: %(error)s" % {
+         'error': str(e),
         })
-    return record
-    
+        raise
+    else:
+        if record is None:
+            _logger.info("No record found for '%(uid)s'" % {
+             'uid': uid,
+            })
+        return record
+        
 @authenticate
 def add_record(record):
     _logger.info("Adding record for '%(uid)s'..." % {
      'uid': record['_id'],
     })
-    _COLLECTION.insert(record)
-    
+    try:
+        _COLLECTION.insert(record)
+    except Exception as e:
+        _logger.error("Unable to add record: %(error)s" % {
+         'error': str(e),
+        })
+        raise
+        
 @authenticate
 def drop_record(uid):
     _logger.info("Dropping record for '%(uid)s'..." % {
@@ -93,18 +106,24 @@ def drop_record(uid):
     try:
         _COLLECTION.remove(uid)
     except Exception as e:
-        _logger.warn("Unable to remove record: %(error)s" % {
+        _logger.error("Unable to remove record: %(error)s" % {
          'error': str(e),
         })
         raise
         
 @authenticate
 def record_exists(uid):
-    _logger.info("Testing existence of record for '%(uid)s'..." % {
+    _logger.debug("Testing existence of record for '%(uid)s'..." % {
      'uid': uid,
     })
-    return bool(_COLLECTION.find_one(
-     spec=uid,
-     fields=[],
-    ))
-    
+    try:
+        return bool(_COLLECTION.find_one(
+         spec=uid,
+         fields=[],
+        ))
+    except Exception as e:
+        _logger.error("Unable to search for record: %(error)s" % {
+         'error': str(e),
+        })
+        raise
+        
