@@ -1,0 +1,68 @@
+[general]
+
+[http]
+port = 1234
+
+[database]
+host = localhost
+;port = 
+;username = 
+;password = 
+database = media-storage
+collection = entities
+
+[storage]
+;The minute-scale on which directories will be sub-divided
+;This should be small enough to avoid filesystem limitations, but big enough to help operators
+minute_resolution = 5
+
+;The filesystem that serves the generic family class
+;Any specialised families must be enumerated in the [families] section
+generic_family = file:///home/flan/media-storage/generic
+
+[families]
+;Any specialised families must be enumerated here, with the value on the left
+;being the literal family name
+;Families should not be nested, but they may reside on the same partition
+test = file:///home/flan/media-storage/test
+
+[security]
+;All hosts that may access stored resources without supplying the associated keys
+;This should be limited to, at most, localhost and the operations console
+;Values are IPs (v4 or v6), separated by whitespace
+trusted_hosts = 127.0.0.1
+
+[maintainers]
+;If no window values are specified, the thread won't be instantiated at all
+;Sleep times cause the thread to wait for that many seconds, after completing a sweep, before
+;starting again
+deletion_windows = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
+deletion_sleep = 300
+
+compression_windows = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
+compression_sleep = 1800
+
+database_windows = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
+database_sleep = 43200
+
+filesystem_windows = 
+filesystem_sleep = 43200
+
+[log]
+file_path = ./log
+file_history = 7
+file_verbosity = INFO
+console_verbosity = DEBUG ;If blank, console logging is disabled
+
+[email]
+;If enabled, critical failure notifications are sent to an e-mail address
+alert = no
+alert_subject = Critical failure in Media Storage system on some host
+alert_from = media-storage@example.org
+alert_to = media-storage@example.com
+alert_host = localhost
+alert_port = 25
+alert_tls = no
+alert_username = 
+alert_password = 
+
