@@ -124,5 +124,6 @@ class LocalBackend(directory.DirectoryBackend):
         return os.path.exists(self._path + path)
         
     def _walk(self):
-        return os.walk(self.path)
-        
+        for (root, dirnames, files) in os.walk(self.path):
+            yield (root[len(self._path):], files)
+            
