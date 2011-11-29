@@ -13,6 +13,10 @@ class StorageConstruct(object):
      meta=None
     ):
         """
+        If either policy is a dictionary, it value replaces that on the server; an empty dictionary
+        disables the policy. None effects no change.
+        """
+        """
         Full implementations are possible. @abstractmethod just means that the method must be
         present in any derived classes, whether inherited or otherwise.
         """
