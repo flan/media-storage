@@ -7,8 +7,28 @@ class Client(interfaces.ControlConstruct):
     def put(self, data, mime, family=None,
      extension=None, compression=None, compress_on_server=False,
      deletion_policy=None, compression_policy=None,
-     meta=None
+     meta=None,
+     uid=None, keys=None
     ):
+        description = {
+         'uid': uid,
+         'keys': keys,
+         'physical': {
+          'family': family,
+          'format': {
+           'mime': mime,
+           'ext': extension,
+           'comp': compression,
+          },
+         },
+         'policy': {
+          'delete': deletion_policy,
+          'compress': compression_policy,
+         },
+         'meta': meta,
+        }
+        
+
         raise NotImplementedError("put() must be overridden in child classes")
         
     def get(self, uid, read_key):
