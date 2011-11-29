@@ -10,7 +10,6 @@ from common import (
  NoFilehandleError,
 )
 from local import LocalBackend
-from sftp import SFTPBackend
 
 _URI_RE = re.compile(
  r'(?P<schema>[a-z]+)://(?:(?P<username>.+?)(?::(?P<password>.+?))?@)?(?P<host>.*?)(?::(?P<port>\d+))?(?P<path>/.*)'
@@ -42,8 +41,6 @@ def get_backend(uri):
     
     if schema == 'file':
         return LocalBackend(path)
-    elif schema == 'sftp':
-        return SFTPBackend(username, password, host, port, path)
         
     _logger.error("Unknown schema")
     raise UnknownSchemaError("'%(schema)s' does not match any recognised type" % {
