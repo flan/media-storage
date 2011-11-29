@@ -34,9 +34,15 @@ class Filesystem(object):
         self._backend = backends.get_backend(uri)
         
     def get(self, record):
+        _logger.debug("Retrieving filesystem entity for %(uid)s..." % {
+         'uid': record['_id'],
+        })
         return self._backend.get(resolve_path(record))
         
     def put(self, record, data):
+        _logger.info("Setting filesystem entity for %(uid)s..." % {
+         'uid': record['_id'],
+        })
         self._backend.put(resolve_path(record), data)
         
     def unlink(self, record):
@@ -47,20 +53,29 @@ class Filesystem(object):
         be placed inside (2 * resolution in minutes), then directories may be removed to free
         allocation resources.
         """
+        _logger.info("Unlinking filesystem entity for %(uid)s..." % {
+         'uid': record['_id'],
+        })
         self._backend.unlink(
          resolve_path(record),
          rmdir=(time.time() - record['physical']['ctime'] > CONFIG.storage_minute_resolution * 120)
         )
         
     def file_exists(self, record):
+        _logger.debug("Testing existence of filesystem entity for %(uid)s..." % {
+         'uid': record['_id'],
+        })
         return self._backend.file_exists(resolve_path(record))
         
-    def file_size(self, record):
-        return self._backend.file_size(resolve_path(record))
-        
     def lsdir(self, path):
+        _logger.debug("Retrieving list of filesystem contents at %(path)s..." % {
+         'path': path,
+        })
         return self._backend.lsdir(path)
         
     def is_dir(self, path):
+        _logger.debug("Testing directory status of filesystem entity at %(path)s..." % {
+         'path': path,
+        })
         return self._backend.is_dir(path)
         

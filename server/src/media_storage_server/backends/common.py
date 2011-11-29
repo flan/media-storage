@@ -1,13 +1,23 @@
+import logging
+
+_logger = logging.getLogger("media_storage.backends.common")
+
 class BaseBackend(object):
     _last_accessed_directory = None #A TLB-like placeholder
     
     def get(self, path):
+        _logger.debug("Retrieving filesystem entity at %(path)s..." % {
+         'path': path,
+        })
         return self._get(path)
         
     def _get(self, path):
         raise NotImplementedError("'_get()' needs to be overridden in a subclass")
         
     def put(self, path, data):
+        _logger.info("Setting filesystem entity at %(path)s..." % {
+         'path': path,
+        })
         directory = path[:path.rfind('/') + 1]
         if not directory == self._last_accessed_directory:
             try:
@@ -24,6 +34,9 @@ class BaseBackend(object):
         """
         If `rmdir` is set, empty directories will be removed recursively.
         """
+        _logger.info("Unlinking filesystem entity at %(path)s..." % {
+         'path': path,
+        })
         self._unlink(path)
         if rmdir:
             while True:
@@ -32,10 +45,15 @@ class BaseBackend(object):
                     break
                     
                 if not self.lsdir(path): #Directory empty; remove
+                    _logger.info("Unlinking empty directory at %(path)s..." % {
+                     'path': path,
+                    })
                     try:
                         self.rmdir(path)
                     except NotEmptyError as e:
-                        #Log e
+                        _logger.info("Directory at %(path)s unexpectedly found to be non-empty" % {
+                         'path': path,
+                        })
                         break
                 else: #Directory not empty; bail
                     break
@@ -44,36 +62,45 @@ class BaseBackend(object):
         raise NotImplementedError("'_unlink()' needs to be overridden in a subclass")
         
     def lsdir(self, path):
+        _logger.debug("Retrieving list of filesystem contents at %(path)s..." % {
+         'path': path,
+        })
         return self._lsdir()
         
     def _lsdir(self, path):
         raise NotImplementedError("'_lsdir()' needs to be overridden in a subclass")
         
     def mkdir(self, path):
+        _logger.info("Creating directory at %(path)s..." % {
+         'path': path,
+        })
         self._mkdir(path)
         
     def _mkdir(self, path):
         raise NotImplementedError("'_mkdir()' needs to be overridden in a subclass")
         
     def rmdir(self, path):
+        _logger.debug("Unlinking directory at %(path)s..." % {
+         'path': path,
+        })
         self._rmdir(path)
         
     def _rmdir(self, path):
         raise NotImplementedError("'_rmdir()' needs to be overridden in a subclass")
         
     def file_exists(self, path):
+        _logger.debug("Testing existence of filesystem entity at %(path)s..." % {
+         'path': path,
+        })
         return self._file_exists(path)
         
     def _file_exists(self, path):
         raise NotImplementedError("'_file_exists()' needs to be overridden in a subclass")
         
-    def file_size(self, path):
-        return self._file_length(path)
-        
-    def _file_size(self, path):
-        raise NotImplementedError("'_file_size()' needs to be overridden in a subclass")
-        
     def is_dir(self, path):
+        _logger.debug("Testing directory status of filesystem entity at %(path)s..." % {
+         'path': path,
+        })
         return self._is_dir()
         
     def _is_dir(self, path):

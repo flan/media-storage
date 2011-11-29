@@ -30,16 +30,26 @@ class LocalBackend(BaseBackend):
             self._path = path
             
     def _get(self, path):
+        target_path = self._path + path
         try:
-            return open(self._path + path, 'rb')
+            return open(target_path, 'rb')
         except IOError as e:
+            _logger.error("Unable to open file at %(path)s: %(error)s" % {
+             'path': target_path,
+             'error': str(e),
+            })
             _handle_error(e)
             raise
             
     def _put(self, path, data):
+        target_path = self._path + path
         try:
-            target = open(self._path + path, 'wb')
+            target = open(target_path, 'wb')
         except IOError as e:
+            _logger.error("Unable to open file for writing at %(path)s: %(error)s" % {
+             'path': target_path,
+             'error': str(e),
+            })
             _handle_error(e)
             raise
         else:
@@ -55,24 +65,40 @@ class LocalBackend(BaseBackend):
                 try:
                     target.close()
                 except Exception:
-                    pass
+                    _logger.error("Unable to close handle for abandoned file at %(path)s: %(error)s" % {
+                     'path': target_path,
+                     'error': str(e),
+                    })
+                _logger.error("Unable to write content to file at %(path)s: %(error)s" % {
+                 'path': target_path,
+                 'error': str(e),
+                })
                 try:
-                    self._unlink(self._path + path)
+                    self._unlink(target_path)
                 except Exception as e:
-                    #Log e
-                    pass
+                    _logger.error("Unable to unlink incomplete file at %(path)s: %(error)s" % {
+                     'path': target_path,
+                     'error': str(e),
+                    })
                 raise
             else:
                 try:
                     target.close()
                 except Exception as e:
-                    #Log e
-                    pass
+                    _logger.error("Unable to close handle for file at %(path)s: %(error)s" % {
+                     'path': target_path,
+                     'error': str(e),
+                    })
                     
     def _action(self, path, handler):
+        target_path = self._path + path
         try:
-            return handler(self._path + path)
+            return handler(target_path)
         except (IOError, OSError) as e:
+            _logger.error("Unable to perform requested operation on %(path)s: %(error)s" % {
+             'path': target_path,
+             'error': str(e),
+            })
             _handle_error(e)
             raise
             
@@ -83,15 +109,14 @@ class LocalBackend(BaseBackend):
         self._action(path, os.listdir)
         
     def _mkdir(self, path):
+        target_path = self._path + path
         try:
-            os.makedirs(self._path + path, 0750)
-            """path_fragments = [f for f in path.split('/') if f]
-            for i in range(len(path_fragments)):
-                subpath = self._path + '/'.join(path_fragments[:i + 1])
-                print subpath
-                if not self._is_dir(subpath):
-                    os.mkdir(subpath, 0750)"""
+            os.makedirs(target_path, 0750)
         except (IOError, OSError) as e:
+            _logger.error("Unable to create directory at %(path)s: %(error)s" % {
+             'path': target_path,
+             'error': str(e),
+            })
             _handle_error(e)
             raise
             
@@ -100,9 +125,6 @@ class LocalBackend(BaseBackend):
         
     def _file_exists(self, path):
         return os.path.exists(self._path + path)
-        
-    def _file_size(self, path):
-        return self._action(path, os.stat).st_size
         
     def _is_dir(self, path):
         return os.path.isdir(self._path + path)
