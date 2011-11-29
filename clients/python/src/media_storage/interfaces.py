@@ -9,13 +9,12 @@ class StorageConstruct(object):
     #Basis of the proxy implementation
     
     @abstractmethod
-    def put(self, data, mime, ???):
+    def put(self, data, mime, family=None, extention=None, compression=None, compress_on_server=False, meta=None):
         """
         Full implementations are possible. @abstractmethod just means that the method must be
         present in any derived classes, whether inherited or otherwise.
         """
         raise NotImplementedError("put() must be overridden in child classes")
-        
         
 class RetrievalConstruct(object):
     __metaclass__ = ABCMeta
@@ -41,6 +40,10 @@ class ControlConstruct(StorageConstruct, RetrievalConstruct):
         raise NotImplementedError("delete() must be overridden in child classes")
         
     @abstractmethod
-    def query(self, ???):
+    def query(self):
         raise NotImplementedError("query() must be overridden in child classes")
+        
+    @abstractmethod
+    def update_meta(self, uid, write_key, new={}, removed=()):
+        raise NotImplementedError("update_meta() must be overridden in child classes")
         
