@@ -357,7 +357,26 @@ class QueryHandler(BaseHandler):
         #Issue the query; if not trust.read, only return matching records with key.read=None
         pass
         
+class UpdateHandler(BaseHandler):
+    def _post(self):
+        request = _get_json(self.request.body)
+        uid = request['uid']
+        _logger.info("Proceeding with unlink request for '%(uid)s'..." % {
+         'uid': uid,
+        })
+        
+        record = database.get_record(uid)
+        if not record:
+            self.send_error(404)
+            return
             
+        trust = _get_trust(record, request.get('keys'), self.request.remote_ip)
+        if not trust.write:
+            self.send_error(403)
+            return
+            
+        #Updates properties associated with a record
+        
 class HTTPService(threading.Thread):
     """
     A threaded handler for HTTP requests, so that client interaction can happen in parallel with

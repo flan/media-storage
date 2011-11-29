@@ -87,6 +87,7 @@ if __name__ == '__main__':
          (r'/put', http.PutHandler),
          (r'/unlink', http.UnlinkHandler),
          (r'/query', http.QueryHandler),
+         (r'/update', http.UpdateHandler),
         ], daemon=False)
         http_server.start()
         
