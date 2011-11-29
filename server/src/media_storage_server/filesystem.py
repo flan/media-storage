@@ -2,6 +2,7 @@
 Provides a means of resolving and accessing filesystem targets, regardless of
 backend.
 """
+import logging
 import time
 
 import backends
@@ -11,6 +12,9 @@ from backends import (
  NoFilehandleError,
 )
 from config import CONFIG
+
+_logger = logging.getLogger('media_storage.filesystem')
+
 
 def assemble_filename(record):
     filename_parts = (record['_id'], record['physical']['format']['ext'], record['physical']['format']['comp'])

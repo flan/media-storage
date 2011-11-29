@@ -64,26 +64,26 @@ def _parse_windows(definition, name):
     return windows
     
 class _Maintainer(threading.Thread):
-    def __init__(self)
-        _logger.info("Configuring %(name)s..." % {
-         'name': self.name,
-        })
-        threding.Thread.__init__(self)
+    def __init__(self):
+        threading.Thread.__init__(self)
         self.daemon = True
         
-    def self._within_window(self, windows):
+    def _within_window(self, windows):
         ts = time.localtime()
-        ts = ts.tm_hour * 60 + ts.tm_min
+        tc = ts.tm_hour * 60 + ts.tm_min
         ranges = windows.get(ts.tm_wday)
         if not ranges:
             return False
             
         for (start, end) in ranges:
-            if start <= ts < end:
+            if start <= tc < end:
                 return True
         return False
         
 class _PolicyMaintainer(_Maintainer):
+    def __init__(self):
+        _Maintainer.__init__(self)
+        
     def run(self):
         while True:
             while not self._within_window(self._windows):
@@ -122,12 +122,14 @@ class _PolicyMaintainer(_Maintainer):
 class DeletionMaintainer(_PolicyMaintainer):
     """
     """
-    name = 'deletion-maintainer'
-    _stale_query = 'this.physical.atime + this.policy.delete.stale < %(time)i'
-    _fixed_field = 'policy.delete.fixed'
-    _sleep_period = CONFIG.maintainer_deletion_sleep
-    _windows = DELETION_WINDOWS
-    
+    def __init__(self):
+        _PolicyMaintainer.__init__(self)
+        self.name = 'deletion-maintainer'
+        self._windows = DELETION_WINDOWS
+        self._stale_query = 'this.physical.atime + this.policy.delete.stale < %(time)i'
+        self._fixed_field = 'policy.delete.fixed'
+        self._sleep_period = CONFIG.maintainer_deletion_sleep
+        
     def _process_record(self, record):
         _logger.info("Unlinking record...")
         filesystem = state.get_filesystem(record['physical']['family'])
@@ -141,12 +143,14 @@ class DeletionMaintainer(_PolicyMaintainer):
 class CompressionMaintainer(_PolicyMaintainer):
     """
     """
-    name = 'compression-maintainer'
-    _stale_query = 'this.physical.atime + this.policy.compress.stale < %(time)i'
-    _fixed_field = 'policy.compress.fixed'
-    _sleep_period = CONFIG.maintainer_compression_sleep
-    _windows = COMPRESSION_WINDOWS
-    
+    def __init__(self):
+        _PolicyMaintainer.__init__(self)
+        self.name = 'compression-maintainer'
+        self._stale_query = 'this.physical.atime + this.policy.compress.stale < %(time)i'
+        self._fixed_field = 'policy.compress.fixed'
+        self._sleep_period = CONFIG.maintainer_compression_sleep
+        self._windows = COMPRESSION_WINDOWS
+        
     def _process_record(self, record):
         _logger.info("Compressing record '%(uid)s'..." % {
          'uid': record['_id'],
@@ -190,8 +194,10 @@ class CompressionMaintainer(_PolicyMaintainer):
 class DatabaseMaintainer(_Maintainer):
     """
     """
-    name = 'database-maintainer'
-    
+    def __init__(self):
+        _Maintainer.__init__(self)
+        self.name = 'database-maintainer'
+        
     def run(self):
         """
         Cycles through every database record in order, removing any records associated
@@ -228,8 +234,10 @@ class FilesystemMaintainer(_Maintainer):
     all data if the Mongo database is dropped for any reason, and, in smaller
     data-centres, a full filesystem backup may not exist.
     """
-    name = 'filesystem-maintainer'
-    
+    def __init__(self):
+        _Maintainer.__init__(self)
+        self.name = 'filesystem-maintainer'
+        
     def run(self):
         """
         Cycles through every filesystem entry in order, removing any files associated

@@ -33,10 +33,12 @@ def get_backend(uri):
     (schema, username, password, host, port, path) = match.groups()
     if port:
         port = int(port)
-    _logger.info("Building backend instance for %(path)s@%(host)s%(port)s via %(schema)s..." % {
+    _logger.info("Building backend instance for %(path)s%(host)s via the %(schema)s protocol..." % {
      'path': path,
-     'host': host,
-     'port': port and ':' + port,
+     'host': '%(host)s%(port)s' % {
+      'host': host and '@' + host or '',
+      'port': port and ':' + port or '',
+     },
      'schema': schema,
     })
     
