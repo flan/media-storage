@@ -10,8 +10,13 @@ class StorageConstruct(object):
     def put(self, data, mime, family=None,
      extension=None, compression=None, compress_on_server=False,
      deletion_policy=None, compression_policy=None,
-     meta=None
+     meta=None,
+     uid=None, keys=None
     ):
+        """
+        If either policy is a dictionary, it value replaces that on the server; an empty dictionary
+        disables the policy. None effects no change.
+        """
         """
         Full implementations are possible. @abstractmethod just means that the method must be
         present in any derived classes, whether inherited or otherwise.

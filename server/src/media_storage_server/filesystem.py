@@ -62,7 +62,7 @@ class Filesystem(object):
         })
         self._backend.unlink(
          resolve_path(record),
-         rmdir=(time.time() - record['physical']['ctime'] > CONFIG.storage_minute_resolution * 120)
+         rmcontainer=(time.time() - record['physical']['ctime'] > CONFIG.storage_minute_resolution * 120)
         )
         
     def file_exists(self, record):
@@ -71,15 +71,9 @@ class Filesystem(object):
         })
         return self._backend.file_exists(resolve_path(record))
         
-    def lsdir(self, path):
-        _logger.debug("Retrieving list of filesystem contents at %(path)s..." % {
-         'path': path,
-        })
-        return self._backend.lsdir(path)
-        
-    def is_dir(self, path):
-        _logger.debug("Testing directory status of filesystem entity at %(path)s..." % {
-         'path': path,
-        })
-        return self._backend.is_dir(path)
+    def walk(self):
+        """
+        Returns a generator that recursively traverses the whole filesystem.
+        """
+        return self._backend.walk()
         

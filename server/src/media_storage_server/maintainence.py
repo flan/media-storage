@@ -249,25 +249,22 @@ class FilesystemMaintainer(_Maintainer):
                  'family': family,
                 })
                 filesystem = state.get_filesystem(family)
-                self._walk(filesystem, './')
+                self._walk(filesystem.walk())
                 
             _logger.debug("All records processed; sleeping")
             time.sleep(CONFIG.maintainer_filesystem_sleep)
             
-    def _walk(self, filesystem, path):
+    def _walk(self, walker):
         try:
-            for filename in filesystem.lsdir(path):
-                subpath = path + filename
-                if filesystem.is_dir(subpath):
-                    self._walk(filesystem, subpath + '/')
-                else:
+            for (path, files) in walker:
+                for filename in files:
                     try:
                         if not self._keep_file(filename):
                             _logger.warn("Discovered orphaned file '%(name)s'; unlinking..." % {
                              'name': filename,
                             })
                             try:
-                                filesystem.unlink(directory + filename)
+                                filesystem.unlink(path + '/' + filename)
                             except Exception as e:
                                 _logger.warn("Unable to unlink file: %(error)s" % {
                                  'error': str(e),
