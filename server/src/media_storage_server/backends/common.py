@@ -1,10 +1,13 @@
+from abc import ABCMeta, abstractmethod
 import logging
 
 _logger = logging.getLogger("media_storage.backends.common")
 
 class BaseBackend(object):
+    __metaclass__ = ABCMeta
     _last_accessed_directory = None #A TLB-like placeholder
     
+    @abstractmethod
     def get(self, path):
         _logger.debug("Retrieving filesystem entity at %(path)s..." % {
          'path': path,
@@ -14,6 +17,7 @@ class BaseBackend(object):
     def _get(self, path):
         raise NotImplementedError("'_get()' needs to be overridden in a subclass")
         
+    @abstractmethod
     def put(self, path, data):
         _logger.info("Setting filesystem entity at %(path)s..." % {
          'path': path,
@@ -30,6 +34,7 @@ class BaseBackend(object):
     def _put(self, path, data):
         raise NotImplementedError("'_put()' needs to be overridden in a subclass")
         
+    @abstractmethod
     def unlink(self, path, rmdir=False):
         """
         If `rmdir` is set, empty directories will be removed recursively.
@@ -61,6 +66,7 @@ class BaseBackend(object):
     def _unlink(self, path):
         raise NotImplementedError("'_unlink()' needs to be overridden in a subclass")
         
+    @abstractmethod
     def lsdir(self, path):
         _logger.debug("Retrieving list of filesystem contents at %(path)s..." % {
          'path': path,
@@ -70,6 +76,7 @@ class BaseBackend(object):
     def _lsdir(self, path):
         raise NotImplementedError("'_lsdir()' needs to be overridden in a subclass")
         
+    @abstractmethod
     def mkdir(self, path):
         _logger.info("Creating directory at %(path)s..." % {
          'path': path,
@@ -79,6 +86,7 @@ class BaseBackend(object):
     def _mkdir(self, path):
         raise NotImplementedError("'_mkdir()' needs to be overridden in a subclass")
         
+    @abstractmethod
     def rmdir(self, path):
         _logger.debug("Unlinking directory at %(path)s..." % {
          'path': path,
@@ -88,6 +96,7 @@ class BaseBackend(object):
     def _rmdir(self, path):
         raise NotImplementedError("'_rmdir()' needs to be overridden in a subclass")
         
+    @abstractmethod
     def file_exists(self, path):
         _logger.debug("Testing existence of filesystem entity at %(path)s..." % {
          'path': path,
@@ -97,6 +106,7 @@ class BaseBackend(object):
     def _file_exists(self, path):
         raise NotImplementedError("'_file_exists()' needs to be overridden in a subclass")
         
+    @abstractmethod
     def is_dir(self, path):
         _logger.debug("Testing directory status of filesystem entity at %(path)s..." % {
          'path': path,
