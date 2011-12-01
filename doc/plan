@@ -38,8 +38,6 @@
  },
  'stats': {
   'accesses': 1, #Number of times the file has been accessed
-  'checksum': '12345678', #The Adler32 checksum of the file, if supplied by the
-                          #client; may be omitted; validated only by clients
  },
  'meta': {
   'key': 'value'/5/42.7, #Typical key-value store; when querying, the interface
