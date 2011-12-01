@@ -32,7 +32,7 @@ class LocalBackend(directory.DirectoryBackend):
     def _get(self, path):
         target_path = self._path + path
         try:
-            return open(target_path, 'rb')
+            return (open(target_path, 'rb'), os.stat(target_path).st_size)
         except IOError as e:
             _logger.error("Unable to open file at %(path)s: %(error)s" % {
              'path': target_path,

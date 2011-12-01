@@ -182,7 +182,7 @@ class GetHandler(BaseHandler):
             
         fs = state.get_filesystem(record['physical']['family'])
         try:
-            data = fs.get(record)
+            (data, size) = fs.get(record)
         except filesystem.FileNotFoundError as e:
             _logger.error("Database record exists for '%(uid)s', but filesystem entry does not" % {
              'uid': uid,
@@ -194,11 +194,12 @@ class GetHandler(BaseHandler):
             applied_compression = record['physical']['format'].get('comp')
             supported_compressions = (c.strip() for c in (self.request.headers.get('Media-Storage-Supported-Compression') or '').split(';'))
             if applied_compression and not applied_compression in supported_compressions: #Must be decompressed first
-                data = compression.get_decompressor(applied_compression)(data)
+                (data, size) = compression.get_decompressor(applied_compression)(data)
                 applied_compression = None
                 
             _logger.debug("Returning entity...")
             self.set_header('Content-Type', record['physical']['format']['mime'])
+            self.set_header('Content-Length', str(size))
             if applied_compression:
                 self.set_header('Media-Storage-Applied-Compression', applied_compression)
             while True:
@@ -248,7 +249,7 @@ class PutHandler(BaseHandler):
         target_compression = record['physical']['format'].get('comp')
         if target_compression and self.request.headers.get('Media-Storage-Compress-On-Server') == 'yes':
             _logger.info("Compressing file...")
-            data = compression.get_compressor(target_compression)(data)
+            (data, size) = compression.get_compressor(target_compression)(data)
             
         _logger.debug("Storing entity...")
         database.add_record(record)
