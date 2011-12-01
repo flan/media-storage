@@ -1,6 +1,7 @@
 """
 Shared functions and stuff. Mostly just HTTP access methods.
 """
+import hashlib
 import json
 import types
 import urllib2
@@ -20,35 +21,40 @@ PROPERTY_APPLIED_COMPRESSION = 'applied-compression'
 
 _CHUNK_SIZE = 32 * 1024 #Transfer data in 32k chunks
 
-def _process_data(data):
-    if not type(data) in types.StringTypes:
-        if type(data) is dict:
-            return json.dumps(data)
+def process_file(file):
+    """
+    Returns the file's content as a string, computing its sha256 checksum along the way; both values
+    are returned in a tuple.
+    """
+    global _CHUNK_SIZE
+    buffer = []
+    hash = hashlib.sha256()
+    while True:
+        chunk = file.read(_CHUNK_SIZE)
+        if chunk:
+            hash.update(chunk)
+            buffer.append(chunk)
         else:
-            return data.read()
-        raise ValueError("Unexpected data-type received: %(data)r" % {
-         'data': data,
-        })
-    return data
+            break
+    return (''.join(buffer), hash.hexdigest())
     
-def assemble_request(destination, headers={}, data=None):
+def assemble_request(destination, header, file=None, headers={}):
     """
     `destination` is the URI to which the request will be sent.
     
     `headers` is a dictionary containing any optional headers to be sent to the server, in addition
     to any required by the protocol (new headers will overwrite base ones).
+
+    `header` is the JSON structure that contains the semantics of the request.
     
-    `data` may, if not None, either be a string-type, a dictionary, or a file-like object, with
-    file-like objects being read and passed as strings and dictionaries being converted to JSON,
-    then passed as strings. If `data` is a sequence, each element will be individually processed
-    and separated by a null character in the bytestream.
+    `file`, if present, is a file-like object with additional binary content to be attached to the
+    request, used only for uploading. It is appended after the JSON header, delimited by a null
+    character.
     """
-    if data:
-        if type(data) in (list, tuple):
-            data = '\0'.join((_process_data(d) for d in data))
-        else:
-            data = _process_data(data)
-            
+    data = json.dumps(header)
+    if file:
+        data += '\0' + file
+        
     return urllib2.Request(
      url=destination,
      headers=headers,
@@ -64,7 +70,7 @@ def send_request(request, output=None, timeout=10.0):
     try:
         response = urllib2.urlopen(request, timeout=timeout)
     except Exception as e:
-        #TODO: Add exceptions for cases from which recovery is possible, like 404 and 503
+        #TODO: Add exceptions for cases from which recovery is possible, like 404, 408, and 503
         raise
     else:
         properties = {
