@@ -3,7 +3,6 @@ Provides all resources needed for the HTTP interface.
 """
 import base64
 import collections
-import hashlib
 import json
 import logging
 import os
@@ -63,32 +62,22 @@ def _get_payload(body):
     """
     Depending on whether the request came through an nginx proxy, this will determine the right
     way to expose the received data. Regardless of path, the values returned will be a JSON
-    object descriptor, a file-like object containing the submitted bytes, and the sha256 checksum of
-    the object.
+    object descriptor and a file-like object containing the submitted bytes.
     """
-    global _CHUNK_SIZE
-    
     if False: #nginx proxy
         _logger.debug("Extracting payload from nginx proxy structure...")
         return ({}, None)
     else:
-        size = len(body)
         divider = body.find('\0')
         
         header = _get_json(body[:divider])
-
+        
         content = tempfile.SpooledTemporaryFile(_TEMPFILE_THRESHOLD)
-        position = divider + 1
-        hash = hashlib.sha256()
-        while position < size:
-            chunk = body[position:position + _CHUNK_SIZE]
-            hash.update(chunk)
-            content.write(chunk)
-            content.flush()
-            position += _CHUNK_SIZE
+        content.write(body[divider + 1:])
+        content.flush()
         content.seek(0)
         
-        return (header, content, hash.hexdigest())
+        return (header, content)
         
         
 class BaseHandler(tornado.web.RequestHandler):
@@ -223,16 +212,8 @@ class GetHandler(BaseHandler):
             
 class PutHandler(BaseHandler):
     def _post(self):
-        (header, data, checksum) = _get_payload(self.request.body)
-
-        if not checksum == header['physical']['checksum']:
-            _logger.error("Checksum received (%(received)s) does not match checksum computed (%(computed)s)" % {
-             'received': header['physical']['checksum'],
-             'computed': checksum,
-            })
-            self.send_error(408)
-            return
-            
+        (header, data) = _get_payload(self.request.body)
+        
         current_time = time.time()
         try:
             _logger.debug("Assembling database record...")
@@ -241,7 +222,6 @@ class PutHandler(BaseHandler):
              'keys': self._build_key(header),
              'physical': {
               'family': header['physical'].get('family'),
-              'checksum': header['physical']['checksum'],
               'ctime': current_time,
               'minRes': CONFIG.storage_minute_resolution,
               'atime': int(current_time),
