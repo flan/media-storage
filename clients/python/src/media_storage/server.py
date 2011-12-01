@@ -1,7 +1,6 @@
 """
 Provides an implementation for the main client.
 """
-import common
 import interfaces
 
 class Client(interfaces.ControlConstruct):
@@ -11,13 +10,11 @@ class Client(interfaces.ControlConstruct):
      meta=None,
      uid=None, keys=None
     ):
-        (data, checksum) = common.process_file(data)
         description = {
          'uid': uid,
          'keys': keys,
          'physical': {
           'family': family,
-          'checksum': checksum,
           'format': {
            'mime': mime,
            'ext': extension,
