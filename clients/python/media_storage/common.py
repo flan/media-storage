@@ -49,14 +49,14 @@ def assemble_request(destination, header, headers={}, data=None):
     the request. It is appended after the JSON header, delimited by a null character. It can also be
     a string. Just sayin'.
     """
-    data = json.dumps(header)
+    body = json.dumps(header)
     if data:
-        data += '\0' + (type(data) in types.StringTypes and data or data.read())
+        body += '\0' + (type(data) in types.StringTypes and data or data.read())
         
     return urllib2.Request(
      url=destination,
      headers=headers,
-     data=data,
+     data=body,
     )
     
 def send_request(request, output=None, timeout=10.0):
@@ -70,9 +70,9 @@ def send_request(request, output=None, timeout=10.0):
     except urllib2.HTTPError as e:
         if e.code == 404:
             raise NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined")
-        elif e.core == 412:
+        elif e.code == 412:
             raise InvalidHeadersError("One or more of the headers supplied (likely Content-Length) was rejected by the server")
-        elif e.core == 503:
+        elif e.code == 503:
             raise TemporaryFailureError("The server was unable to process the request")
         else:
             raise HTTPError("Unable to send message; code: %(code)i" % {
@@ -86,7 +86,7 @@ def send_request(request, output=None, timeout=10.0):
         raise
     else:
         properties = {
-         PROPERTY_APPLIED_COMPRESION: response.headers.get(HEADER_APPLIED_COMPRESSION),
+         PROPERTY_APPLIED_COMPRESSION: response.headers.get(HEADER_APPLIED_COMPRESSION),
          PROPERTY_CONTENT_TYPE: response.headers.get(HEADER_CONTENT_TYPE),
         }
         if output:

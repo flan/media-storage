@@ -17,7 +17,7 @@ _logger = logging.getLogger('media_storage.filesystem')
 
 
 def assemble_filename(record):
-    filename_parts = (record['_id'], record['physical']['format']['ext'], record['physical']['format']['comp'])
+    filename_parts = (record['_id'], record['physical']['format'].get('ext'), record['physical']['format'].get('comp'))
     return '.'.join((part for part in filename_parts if part))
     
 def resolve_path(record):
