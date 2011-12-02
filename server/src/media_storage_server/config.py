@@ -154,6 +154,10 @@ class _Settings(_Config):
     def security_trusted_hosts(self):
         return self.get('security', 'trusted_hosts', '')
         
+    @property
+    def security_query_size(self):
+        return self.getint('security', 'query_size', 100)
+        
         
     @property
     def maintainer_deletion_windows(self):

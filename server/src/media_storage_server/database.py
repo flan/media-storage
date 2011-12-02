@@ -2,7 +2,6 @@
 Provides all necessary database-access routines and query-interpretation.
 """
 import logging
-import types
 
 import pymongo
 
@@ -30,42 +29,47 @@ def authenticate(f):
     def authenticated_f(*args, **kwargs):
         if _CREDENTIALS:
             _logger.debug("Authenticating to database...")
-            _DATABASE.authenticate(*_CREDENTIALS)
+            try:
+                _DATABASE.authenticate(*_CREDENTIALS)
+            except Exception as e:
+                _logger.error("Unable to authenticate to database: %(error)s" % {
+                 'error': str(e),
+                })
+                raise
         return f(*args, **kwargs)
     return authenticated_f
     
 @authenticate
 def enumerate_all(ctime):
-    return _COLLECTION.find(
-     spec={
-      'physical.ctime': {'$gt': ctime,},
-     },
-     fields=['physical'],
-     limit=250,
-     sort=[('physical.ctime', pymongo.ASCENDING)],
-    )
-    
-@authenticate
-def enumerate_where(query):
-    if type(query) in types.StringTypes:
+    try:
         return _COLLECTION.find(
-         spec={'$where': query},
+         spec={
+          'physical.ctime': {'$gt': ctime,},
+         },
+         fields=['physical'],
+         limit=250,
+         sort=[('physical.ctime', pymongo.ASCENDING)],
         )
-    else:
-        return _COLLECTION.find(
-         spec=query,
-        )
+    except Exception as e:
+        _logger.error("Unable to retrieve records: %(error)s" % {
+         'error': str(e),
+        })
+        raise
         
 @authenticate
-def enumerate_meta():
-    """
-    The client query interface.
-    """
-    
-    #Apply the following to the web request
-    #del record['physical']['minRes']
-    #del record['key']
-    
+def enumerate_where(query):
+    try:
+        return _COLLECTION.find(
+         spec=query,
+         limit=CONFIG.security_query_size,
+         sort=[('physical.ctime', pymongo.ASCENDING)],
+        )
+    except Exception as e:
+        _logger.error("Unable to retrieve records: %(error)s" % {
+         'error': str(e),
+        })
+        raise
+        
 @authenticate
 def get_record(uid):
     _logger.debug("Retrieving record for '%(uid)s'..." % {
@@ -104,7 +108,7 @@ def update_record(record):
      'uid': record['_id'],
     })
     try:
-        _COLLECTION.update(record)
+        _COLLECTION.update(record['_id'], record)
     except Exception as e:
         _logger.error("Unable to update record: %(error)s" % {
          'error': str(e),

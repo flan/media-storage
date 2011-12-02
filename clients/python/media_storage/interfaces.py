@@ -68,7 +68,8 @@ class QueryStruct(object):
      - ':lte:<number>'/':gte:<number>' : relative queries over numeric types
      - ':re:<pcre>'/':re.i:<pcre>' : PCRE regular expression, with the second form being
        case-insensitive
-     - ':like:<pattern>' : behaves like a case-insensitive SQL 'LIKE', with '%' as wildcards
+     - ':like:<pattern>' : behaves like SQL 'LIKE', with '%' as wildcards
+     - ':ilike:<pattern>' : behaves like SQL 'ILIKE', with '%' as wildcards
      - '::<whatever>' : Ignores the first colon and avoids parsing, in case a value actually starts
        with a ':<filter>:' structure
        
