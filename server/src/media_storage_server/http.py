@@ -447,7 +447,7 @@ class QueryHandler(BaseHandler):
             else:
                 query['physical.mime'] = {'$regex': '^' + mime}
                 
-        for (key, value) in request['meta']:
+        for (key, value) in request['meta'].items():
             key = 'meta.' + key
             
             if type(value) in types.StringTypes:

@@ -1,3 +1,4 @@
+import logging
 import os
 
 from common import (
@@ -7,6 +8,8 @@ from common import (
 import directory
 
 _CHUNK_SIZE = 32 * 1024 #Work with 32K chunks
+
+_logger = logging.getLogger("media_storage.backends.local")
 
 def _handle_error(e):
     if e.errno == 2:

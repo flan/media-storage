@@ -121,7 +121,7 @@ class Client(interfaces.ControlConstruct):
         """
         headers = {}
         if not decompress_on_server: #Tell the server what the client supports
-            headers[HEADER_SUPPORTED_COMPRESSION] = HEADER_SUPPORTED_COMPRESSION_DELIMITER.join(compression.SUPPORTED_FORMATS)
+            headers[common.HEADER_SUPPORTED_COMPRESSION] = common.HEADER_SUPPORTED_COMPRESSION_DELIMITER.join(compression.SUPPORTED_FORMATS)
             
         request = common.assemble_request(self._server + common.SERVER_GET, {
          'uid': uid,
@@ -135,8 +135,8 @@ class Client(interfaces.ControlConstruct):
             output = output_file
         properties = common.send_request(request, output=output, timeout=timeout)
         
-        if properties.get(PROPERTY_APPLIED_COMPRESION):
-            output = compression.get_decompressor(properties.get(PROPERTY_APPLIED_COMPRESION))(output)
+        if properties.get(common.PROPERTY_APPLIED_COMPRESSION):
+            output = compression.get_decompressor(properties.get(common.PROPERTY_APPLIED_COMPRESSION))(output)
             if output_file: #The decompression process returns a tempfile
                 output_file.seek(0)
                 output_file.truncate()
@@ -176,8 +176,7 @@ class Client(interfaces.ControlConstruct):
           'write': write_key,
          },
         })
-        (properties, response) = common.send_request(request, timeout=timeout)
-        return json.loads(response)
+        common.send_request(request, timeout=timeout)
         
     def update(self, uid, write_key,
      new={}, removed=(),
@@ -215,7 +214,7 @@ class Client(interfaces.ControlConstruct):
         }
         
         request = common.assemble_request(self._server + common.SERVER_UPDATE, update)
-        (properties, response) = common.send_request(request, timeout=timeout)
+        common.send_request(request, timeout=timeout)
         
     def query(self, query, timeout=5.0):
         """

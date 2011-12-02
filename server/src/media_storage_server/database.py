@@ -108,7 +108,7 @@ def update_record(record):
      'uid': record['_id'],
     })
     try:
-        _COLLECTION.update(record['_id'], record)
+        _COLLECTION.update({'_id': record['_id']}, record)
     except Exception as e:
         _logger.error("Unable to update record: %(error)s" % {
          'error': str(e),
