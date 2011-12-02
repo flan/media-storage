@@ -210,9 +210,18 @@ class Client(interfaces.ControlConstruct):
          },
         }
         
-        request = common.assemble_request(self._server + common.SERVER_UODATE, update)
+        request = common.assemble_request(self._server + common.SERVER_UPDATE, update)
         (properties, response) = common.send_request(request, timeout=timeout)
         
-    def query(self, timeout=5.0):
-        raise NotImplementedError("query() must be overridden in child classes")
+    def query(self, query, timeout=5.0):
+        """
+        Given a QueryStruct as `query`, a list of all matching records, up to the server's limit,
+        is returned as a list of records.
+        
+        `timeout` defaults to 5.0s, but should be adjusted if the server is known to be slow to
+        respond.
+        """
+        request = common.assemble_request(self._server + common.SERVER_QUERY, query.to_dict())
+        (properties, response) = common.send_request(request, timeout=timeout)
+        return json.loads(response)['records']
         

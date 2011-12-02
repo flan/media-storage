@@ -31,6 +31,8 @@ test = file:///home/flan/media-storage/test
 ;This should be limited to, at most, localhost and the operations console
 ;Values are IPs (v4 or v6), separated by whitespace
 trusted_hosts = 127.0.0.1
+;The number of records to return on a query
+query_size = 100
 
 [maintainers]
 ;If no window values are specified, the thread won't be instantiated at all

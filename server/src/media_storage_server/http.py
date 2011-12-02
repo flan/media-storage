@@ -7,10 +7,12 @@ import json
 import logging
 import os
 import random
+import re
 import tempfile
 import threading
 import time
 import traceback
+import types
 import uuid
 
 import pymongo
@@ -26,6 +28,8 @@ import state
 
 _CHUNK_SIZE = 16 * 1024 #Write 16k at a time.
 _TEMPFILE_THRESHOLD = 128 * 1024 #Buffer up to 128k in memory
+
+_FILTER_RE = re.compile(r':(?P<filter>.+?):(?P<query>.+)')
 
 _TrustLevel = collections.namedtuple('TrustLevel', ('read', 'write',))
 
@@ -81,14 +85,17 @@ def _get_payload(body):
         
 def _unpack_policy(policy):
         new_policy = {}
+        current_time = int(time.time())
         
         expiration = policy.get('fixed')
         if expiration:
-            new_policy['fixed'] = int(time.time() + expiration)
+            new_policy['fixed'] = current_time + int(expiration)
             
         stale = policy.get('stale')
         if stale:
-            new_policy['stale'] = int(stale)
+            stale = int(stale)
+            new_policy['stale'] = stale
+            new_policy['staleTime'] = current_time + stale
             
         return new_policy
         
@@ -140,8 +147,8 @@ class BaseHandler(tornado.web.RequestHandler):
             _logger.debug("Responding to request...")
             if not output is None:
                 self.write(output)
-                self.finish()
-                
+            self.finish()
+            
     def _post(self):
         """
         Returns the current time; override this to do useful things.
@@ -193,6 +200,14 @@ class GetHandler(BaseHandler):
             self.send_error(403)
             return
             
+        current_time = int(time.time())
+        record['physical']['atime'] = current_time
+        record['stats']['accesses'] += 1
+        for policy in ('delete', 'compress'):
+            if 'stale' in record['policy'][policy]:
+                record['policy'][policy]['staleTime'] = current_time + record['policy'][policy]['stale']
+        database.update_record(record)
+        
         fs = state.get_filesystem(record['physical']['family'])
         try:
             (data, size) = fs.get(record)
@@ -402,11 +417,83 @@ class QueryHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
         
-        trust = _get_trust(None, None, self.request.remote_ip)
-        #Issue the query; if not trust.read, only return matching records with key.read=None
-        pass
+        query = {}
+        if not _get_trust(None, None, self.request.remote_ip).read:
+            query['keys.read'] = None #Anonymous records only
+            
+        and_block = []
+        def _assemble_block(name, attribute):
+            _min = request[name]['min']
+            _max = request[name]['max']
+            _block = {}
+            if _min:
+                _block['$gte'] = _min
+            if _max:
+                _block['$lte'] = _max
+            if _block:
+                and_block.append({attribute: _block})
+        _assemble_block('ctime', 'physical.ctime')
+        _assemble_block('atime', 'physical.atime')
+        _assemble_block('accesses', 'stats.accesses')
+        if and_block:
+            query['$and'] = and_block
+            
+        query['physical.family'] = request['family']
         
-        
+        mime = request['mime']
+        if mime:
+            if '/' in mime:
+                query['physical.mime'] = mime
+            else:
+                query['physical.mime'] = {'$regex': '^' + mime}
+                
+        for (key, value) in request['meta']:
+            key = 'meta.' + key
+            
+            if type(value) in types.StringTypes:
+                if value.startswith('::'):
+                    value = value[1:]
+                else:
+                    match = _FILTER_RE.match(value)
+                    if match:
+                        filter = match.group('filter')
+                        query = match.group('query')
+                        if filter == 'range':
+                            (_min, _max) = (float(v) for v in query.split(':', 1))
+                            value = {'$gte': _min, '$lte': _max}
+                        elif filter == 'lte':
+                            value = {'$lte': float(query)}
+                        elif filter == 'gte':
+                            value = {'$gte': float(query)}
+                        elif filter == 're':
+                            value = {'$regex': query}
+                        elif filter == 're':
+                            value = {'$regex': query}
+                        elif filter == 're.i':
+                            value = {'$regex': query, '$options': 'i'}
+                        elif filter == 'like':
+                            if query.count('%') == 1 and query.endswith('%'):
+                                value = {'$regex': '^' + query[:-1]}
+                            else:
+                                value = {'$regex': '^' + query.replace('%', '.*') + '$'}
+                        elif filter == 'ilike':
+                            value = {'$regex': '^' + query.replace('%', '.*') + '$', '$options': 'i'}
+                        else:
+                            raise ValueError("Unrecognised filter: %(filter)s" % {
+                             'filter': filter,
+                            })
+            query[key] = value
+            
+            records = []
+            for record in database.enumerate_where(query):
+                del record['physical']['minRes']
+                del record['keys']
+                records.append(record)
+            return {
+             'records': records,
+            }
+            
+            
 class HTTPService(threading.Thread):
     """
     A threaded handler for HTTP requests, so that client interaction can happen in parallel with

@@ -90,25 +90,15 @@ class _PolicyMaintainer(_Maintainer):
                 _logger.debug("Not in execution window; sleeping")
                 time.sleep(60)
                 
-            while True: #Process fixed records
+            while True:
                 records_processed = False
                 for record in database.enumerate_where({
-                 self._fixed_field: {'$lt': int(time.time())},
+                 '$or': [
+                  {self._fixed_field: {'$lt': int(time.time())}},
+                  {self._stale_field: {'$lt': int(time.time())}},
+                 ],
                 }):
-                    _logger.info("Discovered fixed record: %(uid)s" % {
-                     'uid': record['_id'],
-                    })
-                    records_processed = True
-                    self._process_record(record)
-                if not records_processed:
-                    break
-                    
-            while True: #Process stale records
-                records_processed = False
-                for record in database.enumerate_where(self._stale_query % {
-                 'time': int(time.time()),
-                }):
-                    _logger.info("Discovered stale record: %(uid)s" % {
+                    _logger.info("Discovered candidate record: %(uid)s" % {
                      'uid': record['_id'],
                     })
                     records_processed = True
@@ -126,7 +116,7 @@ class DeletionMaintainer(_PolicyMaintainer):
         _PolicyMaintainer.__init__(self)
         self.name = 'deletion-maintainer'
         self._windows = DELETION_WINDOWS
-        self._stale_query = 'this.physical.atime + this.policy.delete.stale < %(time)i'
+        self._stale_query = 'policy.delete.staleTime'
         self._fixed_field = 'policy.delete.fixed'
         self._sleep_period = CONFIG.maintainer_deletion_sleep
         
@@ -146,7 +136,7 @@ class CompressionMaintainer(_PolicyMaintainer):
     def __init__(self):
         _PolicyMaintainer.__init__(self)
         self.name = 'compression-maintainer'
-        self._stale_query = 'this.physical.atime + this.policy.compress.stale < %(time)i'
+        self._stale_query = 'policy.compress.staleTime'
         self._fixed_field = 'policy.compress.fixed'
         self._sleep_period = CONFIG.maintainer_compression_sleep
         self._windows = COMPRESSION_WINDOWS
