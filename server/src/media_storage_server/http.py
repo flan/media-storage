@@ -302,8 +302,9 @@ class PutHandler(BaseHandler):
                     policy['compress']['comp'] = compress_format
                     policy['compress'].update(self._unpack_policy(compress_policy))
                 else:
-                    #log
-                    pass
+                    _logger.warn("Unsupported compression format specified: %(format)s" % {
+                     'format': compress_format,
+                    })
                     
         return policy
         
@@ -377,6 +378,7 @@ class UpdateHandler(BaseHandler):
             return
             
         #Updates properties associated with a record
+        
         
 class HTTPService(threading.Thread):
     """
