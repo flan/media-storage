@@ -7,6 +7,6 @@ from compression import (
 
 from interfaces import QueryStruct
 from client import Client
-from proxy import ProxyClient
+from storage_proxy import StorageProxyClient
 from caching_proxy import CachingProxyClient
 

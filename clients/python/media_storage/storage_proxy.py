@@ -5,7 +5,7 @@ import json
 
 import interfaces
 
-class ProxyClient(interfaces.StorageConstruct):
+class StorageProxyClient(interfaces.StorageConstruct):
     def __init__(self, server, proxy):
         self._server = server
         self._proxy = proxy
