@@ -79,6 +79,19 @@ def _get_payload(body):
         
         return (header, content)
         
+def _unpack_policy(policy):
+        new_policy = {}
+        
+        expiration = policy.get('fixed')
+        if expiration:
+            new_policy['fixed'] = int(time.time() + expiration)
+            
+        stale = policy.get('stale')
+        if stale:
+            new_policy['stale'] = int(stale)
+            
+        return new_policy
+        
         
 class BaseHandler(tornado.web.RequestHandler):
     """
@@ -293,33 +306,20 @@ class PutHandler(BaseHandler):
         if header_policy:
             delete_policy = header_policy.get('delete')
             if delete_policy:
-                policy['delete'].update(self._unpack_policy(delete_policy))
+                policy['delete'].update(_unpack_policy(delete_policy))
                 
             compress_policy = header_policy.get('compress')
             if compress_policy:
                 compress_format = compress_policy.get('comp')
                 if compress_format in compression.SUPPORTED_FORMATS:
                     policy['compress']['comp'] = compress_format
-                    policy['compress'].update(self._unpack_policy(compress_policy))
+                    policy['compress'].update(_unpack_policy(compress_policy))
                 else:
                     _logger.warn("Unsupported compression format specified: %(format)s" % {
                      'format': compress_format,
                     })
                     
         return policy
-        
-    def _unpack_policy(self, policy):
-        new_policy = {}
-        
-        expiration = policy.get('fixed')
-        if expiration:
-            new_policy['fixed'] = int(time.time() + expiration)
-            
-        stale = policy.get('stale')
-        if stale:
-            new_policy['stale'] = int(stale)
-            
-        return new_policy
         
 class UnlinkHandler(BaseHandler):
     def _post(self):
@@ -351,14 +351,6 @@ class UnlinkHandler(BaseHandler):
         else:
             database.drop_record(uid)
             
-class QueryHandler(BaseHandler):
-    def _post(self):
-        request = _get_json(self.request.body)
-        
-        trust = _get_trust(None, None, self.request.remote_ip)
-        #Issue the query; if not trust.read, only return matching records with key.read=None
-        pass
-        
 class UpdateHandler(BaseHandler):
     def _post(self):
         request = _get_json(self.request.body)
@@ -377,7 +369,42 @@ class UpdateHandler(BaseHandler):
             self.send_error(403)
             return
             
-        #Updates properties associated with a record
+        self._update_policy(record, request)
+        
+        for removed in request['meta']['removed']:
+            if removed in record['meta']:
+                del record['meta'][removed]
+        record['meta'].update(request['meta']['new'])
+        
+        database.update_record(record)
+        
+    def _update_policy(self, record, request):
+        request_policy = request.get('policy')
+        if request_policy:
+            policy = record['policy']
+            
+            delete_policy = request_policy.get('delete')
+            if not delete_policy is None:
+                policy['delete'] = _unpack_policy(delete_policy)
+                
+            compress_policy = request_policy.get('compress')
+            if not compress_policy is None:
+                compress_format = compress_policy.get('comp')
+                if compress_format in compression.SUPPORTED_FORMATS:
+                    policy['compress'] = _unpack_policy(compress_policy)
+                    policy['compress']['comp'] = compress_format
+                else:
+                    _logger.warn("Unsupported compression format specified: %(format)s" % {
+                     'format': compress_format,
+                    })
+                    
+class QueryHandler(BaseHandler):
+    def _post(self):
+        request = _get_json(self.request.body)
+        
+        trust = _get_trust(None, None, self.request.remote_ip)
+        #Issue the query; if not trust.read, only return matching records with key.read=None
+        pass
         
         
 class HTTPService(threading.Thread):

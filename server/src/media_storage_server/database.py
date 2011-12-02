@@ -99,6 +99,19 @@ def add_record(record):
         raise
         
 @authenticate
+def update_record(record):
+    _logger.info("Updating record for '%(uid)s'..." % {
+     'uid': record['_id'],
+    })
+    try:
+        _COLLECTION.update(record)
+    except Exception as e:
+        _logger.error("Unable to update record: %(error)s" % {
+         'error': str(e),
+        })
+        raise
+        
+@authenticate
 def drop_record(uid):
     _logger.info("Dropping record for '%(uid)s'..." % {
      'uid': uid,
