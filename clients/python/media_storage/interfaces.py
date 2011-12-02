@@ -53,6 +53,63 @@ class ControlConstruct(StorageConstruct, RetrievalConstruct):
         raise NotImplementedError("update_meta() must be overridden in child classes")
         
     @abstractmethod
-    def query(self, timeout=5.0):
+    def query(self, query, timeout=5.0):
         raise NotImplementedError("query() must be overridden in child classes")
+        
+class QueryStruct(object):
+    """
+    The structure used to issue queries against a server.
+    
+    All attributes are meant to be set publically, though `meta` is a dictionary and should be
+    treated as such, being populated with keys to check and value to match on, of appropriate types.
+    
+    To perform non-matching queries on metadata, the following filters may be used:
+     - ':range:<min>:<max>' : range queries over numeric types, inclusive on both ends
+     - ':lte:<number>'/':gte:<number>' : relative queries over numeric types
+     - ':re:<pcre>'/':re.i:<pcre>' : PCRE regular expression, with the second form being
+       case-insensitive
+     - ':like:<pattern>' : behaves like a case-insensitive SQL 'LIKE', with '%' as wildcards
+     - '::<whatever>' : Ignores the first colon and avoids parsing, in case a value actually starts
+       with a ':<filter>:' structure
+       
+    In addition to `meta`, the following fields are defined:
+     - `ctime_min`/`ctime_max` : if either is set, it serves as an <=/>= check against ctime
+     - `atime_min`/`atime_max` : if either is set, it serves as an <=/>= check against atime
+     - `accesses_min`/`accesses_max` : if either is set, it serves as an <=/>= check against
+       accesses
+     - `family` : if set, performs an explicit match against family
+     - `mime` : if set, if a '/' is present, performs an explicit match against MIME; otherwise,
+       performs a match against the super-type of MIME
+    """
+    ctime_min = None
+    ctime_max = None
+    atime_min = None
+    atime_max = None
+    accesses_min = None
+    accesses_max = None
+    family = None
+    mime = None
+    meta = None
+    
+    def __init__(self):
+        self.meta = {}
+        
+    def to_dict(self):
+        return {
+         'ctime': {
+          'min': self.ctime_min,
+          'max': self.ctime_max,
+         },
+         'atime': {
+          'min': self.atime_min,
+          'max': self.atime_max,
+         },
+         'accesses': {
+          'min': self.accesses_min,
+          'max': self.accesses_max,
+         },
+         'family': self.family,
+         'mime': self.mime,
+         'meta': self.meta,
+        }
         
