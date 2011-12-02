@@ -3,11 +3,13 @@ Defines interfaces that implementing classes must fulfill.
 """
 from abc import ABCMeta, abstractmethod
 
+import compression
+
 class StorageConstruct(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def put((self, data, mime, family=None,
+    def put(self, data, mime, family=None,
      extension=None, comp=compression.COMPRESS_NONE, compress_on_server=False,
      deletion_policy=None, compression_policy=None,
      meta=None,
