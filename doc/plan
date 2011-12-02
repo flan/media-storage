@@ -198,18 +198,3 @@ Backups:
 Copy the config file, dump the database, and incrementally copy the datastores.
 Easy.
 
-Implementation notes:
-Every backend will keep a 'last_accessed_path' variable, which is checked before
-a file is stored. If the path matches the file's target, storage happens
-without any need to attempt to create the directory. If there is no match, an
-attempt is made to create the path, with an already-exists exception being
-ignored; the variable is updated after this. This allows for a lock-free setup
-that doesn't need to keep much history and rarely gets tripped, borrowing from
-page-fault logic.
-
-When deleting a file, if the directory is more than `minute-count * 2` old, if
-it is empty, it is removed. If its parent is empty afterwards, it is removed,
-too, recursively up to the year directory (which can also be removed). While
-not guaranteed to remove every empty directory (if deletes happen very shortly
-after uploads), this should help to keep more inodes or clusters free in the
-underlying filesystems.
