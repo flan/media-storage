@@ -5,10 +5,17 @@ import json
 import types
 import urllib2
 
+SERVER_PUT = 'put'
+SERVER_GET = 'get'
+SERVER_DESCRIBE = 'describe'
+SERVER_UNLINK = 'unlink'
+SERVER_UPDATE = 'update'
+SERVER_QUERY = 'query'
+
 #Request headers
 HEADER_COMPRESS_ON_SERVER = 'Media-Storage-Compress-On-Server'
-HEADER_COMPRESS_ON_SERVER__TRUE = 'yes'
-HEADER_COMPRESS_ON_SERVER__FALSE = 'no' #Implied by omission
+HEADER_COMPRESS_ON_SERVER_TRUE = 'yes'
+HEADER_COMPRESS_ON_SERVER_FALSE = 'no' #Implied by omission
 HEADER_SUPPORTED_COMPRESSION = 'Media-Storage-Supported-Compression'
 HEADER_SUPPORTED_COMPRESSION_DELIMITER = ';'
 #Response headers
@@ -20,35 +27,32 @@ PROPERTY_APPLIED_COMPRESSION = 'applied-compression'
 
 _CHUNK_SIZE = 32 * 1024 #Transfer data in 32k chunks
 
-def _process_data(data):
-    if not type(data) in types.StringTypes:
-        if type(data) is dict:
-            return json.dumps(data)
-        else:
-            return data.read()
-        raise ValueError("Unexpected data-type received: %(data)r" % {
-         'data': data,
-        })
-    return data
-    
-def assemble_request(destination, headers={}, data=None):
+def transfer_data(source, destination):
+    while True:
+        chunk = source.read(_CHUNK_SIZE)
+        if not chunk:
+            break
+        destination.write(chunk)
+        destination.flush()
+    destination.seek(0)
+
+def assemble_request(destination, header, headers={}, data=None):
     """
     `destination` is the URI to which the request will be sent.
+    
+    `header` is the JSON structure that contains the semantics of the request.
     
     `headers` is a dictionary containing any optional headers to be sent to the server, in addition
     to any required by the protocol (new headers will overwrite base ones).
     
-    `data` may, if not None, either be a string-type, a dictionary, or a file-like object, with
-    file-like objects being read and passed as strings and dictionaries being converted to JSON,
-    then passed as strings. If `data` is a sequence, each element will be individually processed
-    and separated by a null character in the bytestream.
+    `data` is an optional file-like object containing additional binary content to be delivered with
+    the request. It is appended after the JSON header, delimited by a null character. It can also be
+    a string. Just sayin'.
     """
+    data = json.dumps(header)
     if data:
-        if type(data) in (list, tuple):
-            data = '\0'.join((_process_data(d) for d in data))
-        else:
-            data = _process_data(data)
-            
+        data += '\0' + (type(data) in types.StringTypes and data or data.read())
+        
     return urllib2.Request(
      url=destination,
      headers=headers,
@@ -63,8 +67,22 @@ def send_request(request, output=None, timeout=10.0):
     """
     try:
         response = urllib2.urlopen(request, timeout=timeout)
-    except Exception as e:
-        #TODO: Add exceptions for cases from which recovery is possible, like 404 and 503
+    except urllib2.HTTPError as e:
+        if e.code == 404:
+            raise NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined")
+        elif e.core == 412:
+            raise InvalidHeadersError("One or more of the headers supplied (likely Content-Length) was rejected by the server")
+        elif e.core == 503:
+            raise TemporaryFailureError("The server was unable to process the request")
+        else:
+            raise HTTPError("Unable to send message; code: %(code)i" % {
+             'code': e.code,
+            })
+    except urllib2.URLError as e:
+        raise URLError("Unable to send message: %(error)s" % {
+         'error': str(e),
+        })
+    except Exception:
         raise
     else:
         properties = {
@@ -72,13 +90,38 @@ def send_request(request, output=None, timeout=10.0):
          PROPERTY_CONTENT_TYPE: response.headers.get(HEADER_CONTENT_TYPE),
         }
         if output:
-            while True:
-                chunk = response.read(_CHUNK_SIZE)
-                if not chunk:
-                    break
-                output.write(chunk)
-                output.flush()
-            output.seek(0)
+            transfer_data(source, output)
             return properties
         return (properties, response.read())
         
+
+class Error(Exception):
+    """
+    The base class from which all errors native to this package inherit.
+    """
+    
+class HTTPError(Error):
+    """
+    Indicates a problem with the HTTP exchange.
+    """
+    
+class NotFoundError(HTTPError):
+    """
+    The server returned a 404.
+    """
+    
+class InvalidHeadersError(HTTPError):
+    """
+    The server returned a 412.
+    """
+    
+class TemporaryFailureError(HTTPError):
+    """
+    The server returned a 503.
+    """
+    
+class URLError(Error):
+    """
+    Indicates an error with URL resolution.
+    """
+    
