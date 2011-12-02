@@ -24,6 +24,8 @@ class Client(interfaces.ControlConstruct):
      timeout=10.0
     ):
         """
+        Stores data on a server.
+        
         `data` is a string or file-like object containing the payload to be stored and `mime` is the
         MIME-type of the data.
         
@@ -178,7 +180,38 @@ class Client(interfaces.ControlConstruct):
      deletion_policy=None, compression_policy=None,
      timeout=2.5
     ):
-        raise NotImplementedError("update_meta() must be overridden in child classes")
+        """
+        Updates attributes of an existing record on a server.
+        
+        `uid` and `write_key` are used to access the requested data.
+        
+        `new` is a dictionary of meta-data that will be used to update (add and replace) existing
+        meta-data. `removed` is a collection of meta-data keys to be dropped. By default, both are
+        empty.
+        
+        `deletion_policy` is either `None`, which effects no change (the default) or a dictionary,
+        of the same form as in `put()`, that replaces the current policy. `compression_policy` is
+        the same.
+        
+        `timeout` defaults to 2.5s, but should be adjusted depending on your needs.
+        """
+        update = {
+         'uid': uid,
+         'keys': {
+          'write': write_key,
+         },
+         'policy': {
+          'delete': deletion_policy,
+          'compress': compression_policy,
+         },
+         'meta': {
+          'new': new,
+          'removed': removed,
+         },
+        }
+        
+        request = common.assemble_request(self._server + common.SERVER_UODATE, update)
+        (properties, response) = common.send_request(request, timeout=timeout)
         
     def query(self, timeout=5.0):
         raise NotImplementedError("query() must be overridden in child classes")
