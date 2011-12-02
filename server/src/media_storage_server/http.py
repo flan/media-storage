@@ -487,7 +487,6 @@ class QueryHandler(BaseHandler):
             records = []
             for record in database.enumerate_where(query):
                 del record['physical']['minRes']
-                del record['keys']
                 records.append(record)
             return {
              'records': records,
