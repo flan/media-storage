@@ -90,7 +90,7 @@ def send_request(request, output=None, timeout=10.0):
          PROPERTY_CONTENT_TYPE: response.headers.get(HEADER_CONTENT_TYPE),
         }
         if output:
-            transfer_data(source, output)
+            transfer_data(response, output)
             return properties
         return (properties, response.read())
         
