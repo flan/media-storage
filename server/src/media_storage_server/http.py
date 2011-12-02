@@ -418,7 +418,8 @@ class QueryHandler(BaseHandler):
         request = _get_json(self.request.body)
         
         query = {}
-        if not _get_trust(None, None, self.request.remote_ip).read:
+        trust = _get_trust(None, None, self.request.remote_ip)
+        if not trust.read:
             query['keys.read'] = None #Anonymous records only
             
         and_block = []
@@ -486,6 +487,10 @@ class QueryHandler(BaseHandler):
             
             records = []
             for record in database.enumerate_where(query):
+                if not trust.read:
+                    del record['keys']
+                else:
+                    record['physical']['path'] = filesystem.resolve_path(record)
                 del record['physical']['minRes']
                 records.append(record)
             return {
