@@ -27,8 +27,6 @@ class StorageConstruct(object):
 class RetrievalConstruct(object):
     __metaclass__ = ABCMeta
     
-    #describe will be implemented as a pass-through on the proxy
-    
     @abstractmethod
     def get(self, uid, read_key, output_file=None, decompress_on_server=False, timeout=5.0):
         raise NotImplementedError("get() must be overridden in child classes")
