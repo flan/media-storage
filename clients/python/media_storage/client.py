@@ -2,7 +2,9 @@
 Provides an implementation for the main client.
 """
 import json
+import StringIO
 import tempfile
+import types
 
 import common
 import compression
@@ -88,6 +90,8 @@ class Client(interfaces.ControlConstruct):
         if comp:
             if not compress_on_server:
                 try:
+                    if type(data) in types.StringTypes: #The compressors expect file-like objects
+                        data = StringIO.StringIO(data)
                     data = compression.get_compressor(comp)(data)
                 except ValueError:
                     headers[common.HEADER_COMPRESS_ON_SERVER] = common.HEADER_COMPRESS_ON_SERVER_TRUE
