@@ -99,13 +99,14 @@ def decompress_gzip(data):
     decompressor = zlib.decompressobj()
     return _process(data, decompressor.decompress, decompressor.flush)
     
-def compress_lzma(data):
-    _logger.debug("Compressing data with lzma...")
-    compressor = lzma.LZMACompressor()
-    return _process(data, compressor.compress, compressor.flush)
-    
-def decompress_lzma(data):
-    _logger.debug("Decompressing data with lzma...")
-    decompressor = lzma.LZMADecompressor()
-    return _process(data, decompressor.decompress, decompressor.flush)
-    
+if lzma: #If the module is unavailable, don't even define the functions
+    def compress_lzma(data):
+        _logger.debug("Compressing data with lzma...")
+        compressor = lzma.LZMACompressor()
+        return _process(data, compressor.compress, compressor.flush)
+        
+    def decompress_lzma(data):
+        _logger.debug("Decompressing data with lzma...")
+        decompressor = lzma.LZMADecompressor()
+        return _process(data, decompressor.decompress, decompressor.flush)
+        
