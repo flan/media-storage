@@ -4,6 +4,7 @@ Provides an implementation for the caching proxy client.
 import json
 
 import interfaces
+import compression
 
 class CachingProxyClient(interfaces.RetrievalConstruct):
     #When a proxy first gets a get or describe for an uncached record, it performs both actions,

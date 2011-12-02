@@ -4,6 +4,7 @@ Provides an implementation for the proxy client.
 import json
 
 import interfaces
+import compression
 
 class StorageProxyClient(interfaces.StorageConstruct):
     def __init__(self, server, proxy):
