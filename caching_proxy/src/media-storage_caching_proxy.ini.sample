@@ -1,0 +1,42 @@
+[general]
+
+[http]
+port = 1236
+
+;Compression formats to handle locally; turn these off only if the host is underpowered
+[compression]
+bz2 = yes
+gzip = yes
+lzma = yes
+
+[storage]
+;The path used for cached files
+path = /home/flan/media-storage_cache/
+;Metadata file extension
+metadata_extension = .meta
+
+;Rules that can be used to keep bad metadata from impacting performance
+[rules]
+;Cached files will be held for no less than a few seconds
+min_cache_time = 10
+;Cached files will be held for no more than a considerably longer period of time
+max_cache_time = 7200
+
+[log]
+file_path = ./log
+file_history = 7
+file_verbosity = INFO
+console_verbosity = DEBUG ;If blank, console logging is disabled
+
+[email]
+;If enabled, critical failure notifications are sent to an e-mail address
+alert = no
+alert_subject = Critical failure in Media Storage caching proxy on some host
+alert_from = media-storage_cache@example.org
+alert_to = media-storage_cache@example.com
+alert_host = localhost
+alert_port = 25
+alert_tls = no
+alert_username = 
+alert_password = 
+
