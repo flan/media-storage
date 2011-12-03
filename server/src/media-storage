@@ -8,6 +8,7 @@ import time
 import traceback
 
 from media_storage_server.config import CONFIG
+import media_storage_server.compression as compression
 import media_storage_server.mail as mail
 import media_storage_server.maintainence as maintainence
 import media_storage_server.filesystem as filesystem
@@ -49,6 +50,10 @@ if __name__ == '__main__':
     _logger.setLevel(logging.DEBUG)
     _setup_logging(_logger)
     
+    if not compression.lzma:
+        _logger.critical("No LZMA compression support available; install the python-lzma package")
+        exit(1)
+        
     for i in range(4):
         _logger.info('=' * 40)
     _logger.info("Running version %(version)s" % {
