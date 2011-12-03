@@ -134,21 +134,26 @@ class BaseHandler(tornado.web.RequestHandler):
             summary = "Filesystem error; exception details follow:\n" + traceback.format_exc()
             _logger.critical(summary)
             mail.send_alert(summary)
-            raise
+            self.send_error(500)
         except pymongo.errors.AutoReconnect:
             summary = "Database unavailable; exception details follow:\n" + traceback.format_exc()
             _logger.error(summary)
             mail.send_alert(summary)
             self.send_error(503)
         except Exception as e:
-            _logger.error("Unknown error; exception details follow:\n" + traceback.format_exc())
-            raise
+            summary = "Unknown error; exception details follow:\n" + traceback.format_exc()
+            _logger.error(summary)
+            mail.send_alert(summary)
+            self.send_error(500)
         else:
             _logger.debug("Responding to request...")
-            if not output is None:
-                self.write(output)
-            self.finish()
-            
+            try:
+                if not output is None:
+                    self.write(output)
+                self.finish()
+            except Exception as e:
+                _logger.error("Unknown error when writing response; exception details follow:\n" + traceback.format_exc())
+                
     def _post(self):
         """
         Returns the current time; override this to do useful things.
