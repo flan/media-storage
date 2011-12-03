@@ -1,0 +1,41 @@
+[general]
+
+[http]
+port = 1236
+
+;Compression formats to handle locally; turn these off only if the host is underpowered
+[compression]
+bz2 = yes
+gzip = yes
+lzma = yes
+
+[storage]
+;The path used for buffered files
+path = /home/flan/media-storage_proxy/
+;Partially transferred file extension
+partial_extension = .part
+;Metadata file extension
+metadata_extension = .meta
+
+[upload]
+;The number of worker threads to use for uploading files
+threads = 5
+
+[log]
+file_path = ./log
+file_history = 7
+file_verbosity = INFO
+console_verbosity = DEBUG ;If blank, console logging is disabled
+
+[email]
+;If enabled, critical failure notifications are sent to an e-mail address
+alert = no
+alert_subject = Critical failure in Media Storage caching proxy on some host
+alert_from = media-storage_cache@example.org
+alert_to = media-storage_cache@example.com
+alert_host = localhost
+alert_port = 25
+alert_tls = no
+alert_username = 
+alert_password = 
+
