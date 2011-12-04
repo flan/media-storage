@@ -520,13 +520,6 @@ class HTTPService(threading.Thread):
         
         `handlers` is a collection of tuples that connect a string or regular expression object that
         represents a path and a subclass of "BaseHandler".
-        
-        If it becomes necessary to bind to a specific interface, the following function will resolve
-        names to IPs, which may (but hopefully will not) be necessary to traverse DNS entries that
-        span subnets:
-        #socket.gethostbyaddr('uguu.ca')
-        #('web102.webfaction.com', [], ['174.120.139.132'])
-        #Use this to resolve whatever IT puts in the config file; IPs and hostnames both resolve
         """
         threading.Thread.__init__(self)
         self.daemon = daemon
