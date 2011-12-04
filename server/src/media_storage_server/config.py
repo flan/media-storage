@@ -226,10 +226,6 @@ class _Settings(_Config):
         return self.get('email', 'alert_to', 'media-storage@example.org')
         
     @property    
-    def email_alert_from(self):
-        return self.get('email', 'alert_from', 'media-storage@example.com')
-        
-    @property    
     def email_alert_host(self):
         return self.get('email', 'alert_host', 'localhost')
         

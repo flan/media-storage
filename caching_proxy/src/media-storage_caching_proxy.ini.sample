@@ -18,9 +18,9 @@ metadata_extension = .meta
 ;Rules that can be used to keep bad metadata from impacting performance
 [rules]
 ;Cached files will be held for no less than a few seconds
-min_cache_time = 10
+min_cache_time = 10.0
 ;Cached files will be held for no more than a considerably longer period of time
-max_cache_time = 7200
+max_cache_time = 7200.0
 
 [log]
 file_path = ./log
