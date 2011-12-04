@@ -147,9 +147,41 @@ class _Settings(_Config):
         return self.get('log', 'console_verbosity', 'DEBUG')
         
         
+    @property
+    def email_timeout(self):
+        return self.getfloat('email', 'timeout', 2.0)
+        
+    @property
+    def email_timeout(self):
+        return self.getfloat('email', 'timeout', 2.0)
+        
+    @property
+    def email_host(self):
+        return self.get('email', 'host', 'localhost')
+        
+    @property
+    def email_port(self):
+        return self.getint('email', 'port', 25)
+        
+    @property
+    def email_tls(self):
+        return self.get('email', 'tls', False)
+        
+    @property
+    def email_username(self):
+        return self.get('email', 'username', None)
+        
+    @property
+    def email_password(self):
+        return self.get('email', 'password', None)
+        
     @property    
     def email_alert(self):
         return self.getboolean('email', 'alert', False)
+        
+    @property
+    def email_alert_cooldown(self):
+        return self.getfloat('email', 'alert_cooldown', 300.0)
         
     @property    
     def email_alert_subject(self):
@@ -162,26 +194,6 @@ class _Settings(_Config):
     @property    
     def email_alert_to(self):
         return self.get('email', 'alert_to', 'media-storage@example.org')
-        
-    @property    
-    def email_alert_host(self):
-        return self.get('email', 'alert_host', 'localhost')
-        
-    @property    
-    def email_alert_port(self):
-        return self.getint('email', 'alert_port', 25)
-        
-    @property    
-    def email_alert_tls(self):
-        return self.get('email', 'alert_tls', False)
-        
-    @property    
-    def email_alert_username(self):
-        return self.get('email', 'alert_username', None)
-        
-    @property    
-    def email_alert_password(self):
-        return self.get('email', 'alert_password', None)
         
         
 #Initialisation
