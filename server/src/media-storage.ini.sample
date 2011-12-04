@@ -57,14 +57,19 @@ file_verbosity = INFO
 console_verbosity = DEBUG ;If blank, console logging is disabled
 
 [email]
+;The number of seconds to wait for SMTP operations to complete
+timeout = 2.0
+host = localhost
+port = 25
+tls = no
+username = 
+password = 
+
 ;If enabled, critical failure notifications are sent to an e-mail address
 alert = no
+;The number of seconds to wait between alert messages
+alert_cooldown = 300.0
 alert_subject = Critical failure in Media Storage system on some host
 alert_from = media-storage@example.org
 alert_to = media-storage@example.com
-alert_host = localhost
-alert_port = 25
-alert_tls = no
-alert_username = 
-alert_password = 
 
