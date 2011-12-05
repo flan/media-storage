@@ -98,11 +98,10 @@ def _process(data, handler, flush_handler):
     """
     Iterates over the given `data`, reading a reasonable number of bytes, passing them through the
     given (de)compression `handler`, and writing the output to a temporary file, which is ultimately
-    returned (seeked to 0), along with its size, in a tuple.
+    returned (seeked to 0).
     
     If an exception occurs, it is raised directly.
     """
-    size = 0
     try:
         temp = tempfile.SpooledTemporaryFile(_MAX_SPOOLED_FILESIZE)
         while True:
@@ -110,18 +109,16 @@ def _process(data, handler, flush_handler):
             if chunk:
                 chunk = handler(chunk)
                 if chunk:
-                    size += len(chunk)
                     temp.write(chunk)
             else:
                 if flush_handler:
                     chunk = flush_handler()
                     if chunk:
-                        size += len(chunk)
                         temp.write()
                 break
         temp.flush()
         temp.seek(0)
-        return (temp, size)
+        return temp
     except Exception as e:
         _logger.error("A problem occurred during (de)compression: %(error)s" % {
          'error': str(e),

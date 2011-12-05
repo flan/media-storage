@@ -1,7 +1,7 @@
 import media_storage
 
 print "Storing file..."
-x = media_storage.Client('http://localhost:1234/')
+x = media_storage.Client('localhost', 1233)
 y = x.put(open('/home/flan/x.txt'), 'audio/x-wav')
 print(repr(y))
 print

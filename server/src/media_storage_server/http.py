@@ -181,7 +181,7 @@ class PutHandler(BaseHandler):
         target_compression = record['physical']['format'].get('comp')
         if target_compression and self.request.headers.get('Media-Storage-Compress-On-Server') == 'yes':
             _logger.info("Compressing file...")
-            (data, size) = compression.get_compressor(target_compression)(data)
+            data = compression.get_compressor(target_compression)(data)
             
         _logger.debug("Storing entity...")
         database.add_record(record)
@@ -196,22 +196,33 @@ class PutHandler(BaseHandler):
     def _get_payload(self):
         """
         Depending on whether the request came through an nginx proxy, this will determine the right
-        way to expose the received data. Regardless of path, the values returned will be a JSON
+        way to expose the received data. Regardless of method, the values returned will be a JSON
         object descriptor and a file-like object containing the submitted bytes.
         """
-        if False: #nginx proxy
+        header = _get_json(self.get_argument('header', ''))
+        content=None
+        if self.get_argument('nginx', None): #nginx proxy
             _logger.debug("Extracting payload from nginx proxy structure...")
-            return ({}, None)
+            filepath = self.get_argument('content', None)
+            if not filepath:
+                raise IOError("No file specified by nginx")
+            content = open(filepath, 'rb')
+            try:
+                _logger.debug("Unlinking nginx tempfile...")
+                os.unlink(filepath) #Reclaim space when the handle is closed
+            except Exception as e:
+                _logger.error("Unable to reclaim space used by nginx tempfile '%(path)s' (media-storage and nginx should run as the same user): %(error)s" % {
+                 'path': filepath,
+                 'error': str(e),
+                })
         else:
-            header = _get_json(self.get_argument('header', ''))
-            
+            _logger.debug("Extracting payload from Tornado structure...")
             content = tempfile.SpooledTemporaryFile(_TEMPFILE_THRESHOLD)
             content.write(self.request.files['content'][0]['body'])
             content.flush()
             content.seek(0)
-            
-            return (header, content)
-            
+        return (header, content)
+        
     def _build_key(self, header):
         header_key = header.get('keys')
         return {
@@ -310,7 +321,7 @@ class GetHandler(BaseHandler):
         
         fs = state.get_filesystem(record['physical']['family'])
         try:
-            (data, size) = fs.get(record)
+            data = fs.get(record)
         except filesystem.FileNotFoundError as e:
             _logger.error("Database record exists for '%(uid)s', but filesystem entry does not" % {
              'uid': uid,
@@ -322,12 +333,11 @@ class GetHandler(BaseHandler):
             applied_compression = record['physical']['format'].get('comp')
             supported_compressions = (c.strip() for c in (self.request.headers.get('Media-Storage-Supported-Compression') or '').split(';'))
             if applied_compression and not applied_compression in supported_compressions: #Must be decompressed first
-                (data, size) = compression.get_decompressor(applied_compression)(data)
+                data = compression.get_decompressor(applied_compression)(data)
                 applied_compression = None
                 
             _logger.debug("Returning entity...")
             self.set_header('Content-Type', record['physical']['format']['mime'])
-            self.set_header('Content-Length', str(size))
             if applied_compression:
                 self.set_header('Media-Storage-Applied-Compression', applied_compression)
             while True:
