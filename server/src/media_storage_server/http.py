@@ -72,12 +72,10 @@ def _get_payload(body):
         _logger.debug("Extracting payload from nginx proxy structure...")
         return ({}, None)
     else:
-        divider = body.find('\0')
-        
-        header = _get_json(body[:divider])
+        header = _get_json(self.get_argument('header', ''))
         
         content = tempfile.SpooledTemporaryFile(_TEMPFILE_THRESHOLD)
-        content.write(body[divider + 1:])
+        content.write(self.request.files['content'][0]['body'])
         content.flush()
         content.seek(0)
         
