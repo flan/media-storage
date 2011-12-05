@@ -2,7 +2,7 @@ import media_storage
 
 print "Storing file..."
 x = media_storage.Client('http://localhost:1234/')
-y = x.put(open('/home/flan/test.wav'), 'audio/x-wav')
+y = x.put(open('/home/flan/x.pcap'), 'audio/x-wav')
 print(repr(y))
 print
 
