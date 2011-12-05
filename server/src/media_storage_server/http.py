@@ -62,25 +62,6 @@ def _get_json(body):
         _logger.warn(str(e))
         raise
         
-def _get_payload(body):
-    """
-    Depending on whether the request came through an nginx proxy, this will determine the right
-    way to expose the received data. Regardless of path, the values returned will be a JSON
-    object descriptor and a file-like object containing the submitted bytes.
-    """
-    if False: #nginx proxy
-        _logger.debug("Extracting payload from nginx proxy structure...")
-        return ({}, None)
-    else:
-        header = _get_json(self.get_argument('header', ''))
-        
-        content = tempfile.SpooledTemporaryFile(_TEMPFILE_THRESHOLD)
-        content.write(self.request.files['content'][0]['body'])
-        content.flush()
-        content.seek(0)
-        
-        return (header, content)
-        
 def _unpack_policy(policy):
         new_policy = {}
         current_time = int(time.time())
@@ -240,11 +221,10 @@ class GetHandler(BaseHandler):
                     self.flush()
                 else:
                     break
-            self.finish()
-            
+                    
 class PutHandler(BaseHandler):
     def _post(self):
-        (header, data) = _get_payload(self.request.body)
+        (header, data) = self._get_payload()
         
         current_time = time.time()
         try:
@@ -292,6 +272,25 @@ class PutHandler(BaseHandler):
          'keys': record['keys'],
         }
         
+    def _get_payload(self):
+        """
+        Depending on whether the request came through an nginx proxy, this will determine the right
+        way to expose the received data. Regardless of path, the values returned will be a JSON
+        object descriptor and a file-like object containing the submitted bytes.
+        """
+        if False: #nginx proxy
+            _logger.debug("Extracting payload from nginx proxy structure...")
+            return ({}, None)
+        else:
+            header = _get_json(self.get_argument('header', ''))
+            
+            content = tempfile.SpooledTemporaryFile(_TEMPFILE_THRESHOLD)
+            content.write(self.request.files['content'][0]['body'])
+            content.flush()
+            content.seek(0)
+            
+            return (header, content)
+            
     def _build_key(self, header):
         header_key = header.get('keys')
         return {
