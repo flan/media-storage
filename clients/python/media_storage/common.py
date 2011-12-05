@@ -31,10 +31,10 @@ _FORM_SEP = '--'
 _FORM_BOUNDARY = '---...???,,,$$$RFC-1867-kOmPl1aNt-bOuNdArY$$$,,,???...---'
 _FORM_CRLF = '\r\n'
 _FORM_CONTENT_TYPE = 'multipart/form-data; boundary=' + _FORM_BOUNDARY
-_FORM_HEADER = _FORM_SEP + _FORM_BOUNDARY + _FORM_CRLF +
- 'Content-Disposition: form-data; name="header"' + _FORM_CRLF
-_FORM_PRE_CONTENT = _FORM_SEP + _FORM_BOUNDARY + _FORM_CRLF +
- 'Content-Disposition: form-data; name="content"; filename="payload"' + _FORM_CRLF
+_FORM_HEADER = (_FORM_SEP + _FORM_BOUNDARY + _FORM_CRLF +
+ 'Content-Disposition: form-data; name="header"' + _FORM_CRLF)
+_FORM_PRE_CONTENT = (_FORM_SEP + _FORM_BOUNDARY + _FORM_CRLF +
+ 'Content-Disposition: form-data; name="content"; filename="payload"' + _FORM_CRLF)
 _FORM_FOOTER = _FORM_SEP + _FORM_BOUNDARY + _FORM_SEP + _FORM_CRLF
 
 def _encode_multipart_formdata(header, content):
