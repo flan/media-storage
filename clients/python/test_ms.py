@@ -2,7 +2,7 @@ import media_storage
 
 print "Storing file..."
 x = media_storage.Client('http://localhost:1234/')
-y = x.put(open('/home/flan/x.pcap'), 'audio/x-wav')
+y = x.put(open('/home/flan/x.txt'), 'audio/x-wav')
 print(repr(y))
 print
 
@@ -13,7 +13,7 @@ print
 print "Retrieving content..."
 (mime, handle) = x.get(y['uid'], y['keys']['read'])
 print "Mime: " + mime
-print "Content: " + (open('/home/flan/test.wav').read() == handle.read() and 'match' or 'non-match')
+print "Content: " + (open('/home/flan/x.txt').read() == handle.read() and 'match' or 'non-match')
 print
 
 print "Updating metadata..."
