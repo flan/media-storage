@@ -61,8 +61,7 @@ def assemble_request(destination, header, headers={}, data=None):
     to any required by the protocol (new headers will overwrite base ones).
     
     `data` is an optional file-like object containing additional binary content to be delivered with
-    the request. It is appended after the JSON header, delimited by a null character. It can also be
-    a string. Just sayin'.
+    the request. It can also be a string, theoretically. Just sayin'.
     """
     base_headers = {
      'Content-Type': 'application/json',
