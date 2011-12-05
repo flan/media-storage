@@ -27,6 +27,19 @@ PROPERTY_APPLIED_COMPRESSION = 'applied-compression'
 
 _CHUNK_SIZE = 32 * 1024 #Transfer data in 32k chunks
 
+_FORM_SEP = '--'
+_FORM_BOUNDARY = '---...???,,,$$$RFC-1867-kOmPl1aNt-bOuNdArY$$$,,,???...---'
+_FORM_CRLF = '\r\n'
+_FORM_CONTENT_TYPE = 'multipart/form-data; boundary=' + _FORM_BOUNDARY
+_FORM_HEADER = _FORM_SEP + _FORM_BOUNDARY + _FORM_CRLF +
+ 'Content-Disposition: form-data; name="header"' + _FORM_CRLF
+_FORM_PRE_CONTENT = _FORM_SEP + _FORM_BOUNDARY + _FORM_CRLF +
+ 'Content-Disposition: form-data; name="content"; filename="payload"' + _FORM_CRLF
+_FORM_FOOTER = _FORM_SEP + _FORM_BOUNDARY + _FORM_SEP + _FORM_CRLF
+
+def _encode_multipart_formdata(header, content):
+    return _FORM_HEADER + header + _FORM_PRE_CONTENT + content + _FORM_FOOTER
+    
 def transfer_data(source, destination):
     while True:
         chunk = source.read(_CHUNK_SIZE)
@@ -49,13 +62,19 @@ def assemble_request(destination, header, headers={}, data=None):
     the request. It is appended after the JSON header, delimited by a null character. It can also be
     a string. Just sayin'.
     """
+    base_headers = {
+     'Content-Type': 'application/json',
+    }
+    base_headers.update(headers)
+    
     body = json.dumps(header)
     if data:
-        body += '\0' + (type(data) in types.StringTypes and data or data.read())
+        body = _encode_multipart_formdata(body, (type(data) in types.StringTypes and data or data.read()))
+        base_headers['Content-Type'] = _FORM_CONTENT_TYPE
         
     return urllib2.Request(
      url=destination,
-     headers=headers,
+     headers=base_headers,
      data=body,
     )
     
