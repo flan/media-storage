@@ -7,9 +7,12 @@ import interfaces
 import compression
 
 class StorageProxyClient(interfaces.StorageConstruct):
-    def __init__(self, server, proxy):
-        self._server = server
-        self._proxy = proxy
+    def __init__(self, server_host, server_port, proxy_port):
+        self._server_host = server_host
+        self._server_port = server_port
+        self._proxy = 'http://localhost:%(port)i/' % {
+         'port': proxy_port,
+        }
         
     def put(self, data, mime, family=None,
      extension=None, comp=compression.COMPRESS_NONE, compress_on_server=False,
@@ -78,7 +81,10 @@ class StorageProxyClient(interfaces.StorageConstruct):
          },
          'meta': meta,
          'proxy': {
-          'server': self._server,
+          'server': {
+           'host': self._server_host,
+           'port': self._server_port,
+          },
           'data': data,
          },
         }

@@ -15,8 +15,11 @@ _TEMPFILE_SIZE = 256 * 1024 #Keep reasonable-sized tempfiles in memory
 class Client(interfaces.ControlConstruct):
     _server = None #The server to which requests are sent
     
-    def __init__(self, server):
-        self._server = server
+    def __init__(self, server_host, server_port):
+        self._server = 'http://%(host)s:%(port)i/' % {
+         'host': server_host,
+         'port': server_port,
+        }
         
     def put(self, data, mime, family=None,
      extension=None, comp=compression.COMPRESS_NONE, compress_on_server=False,

@@ -13,9 +13,12 @@ class CachingProxyClient(interfaces.RetrievalConstruct):
     
     #Cached content must be separated into directories based on server name: whee.uguu.ca_8080/
     
-    def __init__(self, server, proxy):
-        self._server = server
-        self._proxy = proxy
+    def __init__(self, server_host, server_port, proxy_port):
+        self._server_host = server_host
+        self._server_port = server_port
+        self._proxy = 'http://localhost:%(port)i/' % {
+         'port': proxy_port,
+        }
         
     def get(self, uid, read_key, output_file=None, decompress_on_server=False, timeout=5.0):
         """
@@ -37,7 +40,10 @@ class CachingProxyClient(interfaces.RetrievalConstruct):
           'read': read_key,
          },
          'proxy': {
-          'server': self._server,
+          'server': {
+           'host': self._server_host,
+           'port': self._server_port,
+          },
          },
         })
         (properties, response) = common.send_request(request, timeout=timeout)
@@ -58,7 +64,10 @@ class CachingProxyClient(interfaces.RetrievalConstruct):
           'read': read_key,
          },
          'proxy': {
-          'server': self._server,
+          'server': {
+           'host': self._server_host,
+           'port': self._server_port,
+          },
          },
         })
         (properties, response) = common.send_request(request, timeout=timeout)
