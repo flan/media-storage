@@ -152,7 +152,7 @@ class PutHandler(BaseHandler):
             _logger.debug("Assembling database record...")
             record = {
              '_id': header.get('uid') or uuid.uuid1().hex,
-             'keys': self._build_key(header),
+             'keys': self._build_keys(header),
              'physical': {
               'family': header['physical'].get('family'),
               'ctime': current_time,
@@ -223,11 +223,11 @@ class PutHandler(BaseHandler):
             content.seek(0)
         return (header, content)
         
-    def _build_key(self, header):
-        header_key = header.get('keys')
+    def _build_keys(self, header):
+        keys = header.get('keys')
         return {
-         'read': header_key and header_key.get('read') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
-         'write': header_key and header_key.get('write') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
+         'read': keys and keys.get('read') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
+         'write': keys and keys.get('write') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
         }
         
     def _build_format(self, header):

@@ -1,6 +1,12 @@
 """
 Exposes implemented classes as the front-end for the library.
 """
+from common import (
+ Error,
+ HTTPError, NotFoundError, InvalidRecordError, InvalidHeadersError, TemporaryFailureError,
+ URLError,
+)
+
 from compression import (
  COMPRESS_NONE, COMPRESS_BZ2, COMPRESS_GZIP, COMPRESS_LZMA,
 )

@@ -7,6 +7,17 @@ from config import CONFIG
 import cache
 
 class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+    def address_string(self):
+        """
+        Disable reverse-lookups.
+        """
+        return self.client_address[0]
+        
+    def log_message(self):
+        """
+        Logging happens internally.
+        """
+        
     def do_POST(self):
         if path == '/get':
             self._get()
