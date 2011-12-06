@@ -509,7 +509,27 @@ class QueryHandler(BaseHandler):
              'records': records,
             }
             
-            
+class StatusHandler(BaseHandler):
+    def _post(self):
+        process = psutil.Process(os.getpid())
+        return {
+         'process': {
+          'cpu': {
+           'percent': process.get_cpu_percent() / 100.0,
+          },
+          'memory': {
+           'percent': process.get_memory_percent() / 100.0,
+           'rss': process.get_memory_info().rss,
+          },
+          'threads': process.get_num_threads(),
+         },
+         'system': {
+          'load': dict(zip(('t1', 't5', 't15'), os.getloadavg())),
+         },
+         'families': sorted(state.get_families()),
+        }
+        
+        
 class HTTPService(threading.Thread):
     """
     A threaded handler for HTTP requests, so that client interaction can happen in parallel with

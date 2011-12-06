@@ -93,6 +93,7 @@ if __name__ == '__main__':
          (r'/unlink', http.UnlinkHandler),
          (r'/query', http.QueryHandler),
          (r'/update', http.UpdateHandler),
+         (r'/status', http.StatusHandler),
         ], daemon=False)
         http_server.start()
         
