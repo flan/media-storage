@@ -47,10 +47,10 @@ except ImportError:
 #Compression type constants
 COMPRESS_NONE = None
 COMPRESS_BZ2 = 'bz2'
-COMPRESS_GZIP = 'gzip'
+COMPRESS_GZ = 'gz'
 COMPRESS_LZMA = 'lzma'
 
-SUPPORTED_FORMATS = [COMPRESS_GZIP, COMPRESS_BZ2]
+SUPPORTED_FORMATS = [COMPRESS_GZ, COMPRESS_BZ2]
 if lzma:
     SUPPORTED_FORMATS.append(COMPRESS_LZMA)
 SUPPORTED_FORMATS = tuple(SUPPORTED_FORMATS)
@@ -69,8 +69,8 @@ def get_compressor(format):
     """
     if format is COMPRESS_NONE:
         return (lambda x:x)
-    elif format == COMPRESS_GZIP:
-        return compress_gzip
+    elif format == COMPRESS_GZ:
+        return compress_gz
     elif format == COMPRESS_BZ2:
         return compress_bz2
     elif format == COMPRESS_LZMA and lzma:
@@ -86,8 +86,8 @@ def get_decompressor(format):
     """
     if format is COMPRESS_NONE:
         return (lambda x:x)
-    elif format == COMPRESS_GZIP:
-        return decompress_gzip
+    elif format == COMPRESS_GZ:
+        return decompress_gz
     elif format == COMPRESS_BZ2:
         return decompress_bz2
     elif format == COMPRESS_LZMA and lzma:
@@ -114,7 +114,7 @@ def _process(data, handler, flush_handler):
                 if flush_handler:
                     chunk = flush_handler()
                     if chunk:
-                        temp.write()
+                        temp.write(chunk)
                 break
         temp.flush()
         temp.seek(0)
@@ -147,25 +147,25 @@ def decompress_bz2(data):
     decompressor = bz2.BZ2Decompressor()
     return _process(data, decompressor.decompress, None)
     
-def compress_gzip(data):
+def compress_gz(data):
     """
-    Compresses the given file-like object `data` with the gzip algorithm, returning a file-like
+    Compresses the given file-like object `data` with the gz algorithm, returning a file-like
     object and its size in a tuple.
     
     Any exceptions are raised directly.
     """
-    _logger.debug("Compressing data with gzip...")
+    _logger.debug("Compressing data with gz...")
     compressor = zlib.compressobj()
     return _process(data, compressor.compress, compressor.flush)
     
-def decompress_gzip(data):
+def decompress_gz(data):
     """
-    Decompresses the given file-like object `data` with the gzip algorithm, returning a file-like
+    Decompresses the given file-like object `data` with the gz algorithm, returning a file-like
     object and its size in a tuple.
     
     Any exceptions are raised directly.
     """
-    _logger.debug("Decompressing data with gzip...")
+    _logger.debug("Decompressing data with gz...")
     decompressor = zlib.decompressobj()
     return _process(data, decompressor.decompress, decompressor.flush)
     
