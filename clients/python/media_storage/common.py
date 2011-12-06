@@ -90,6 +90,8 @@ def send_request(request, output=None, timeout=10.0):
     except urllib2.HTTPError as e:
         if e.code == 404:
             raise NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined")
+        elif e.code == 409:
+            raise InvalidRecordError("The uploaded request is structurally flawed and cannot be processed")
         elif e.code == 412:
             raise InvalidHeadersError("One or more of the headers supplied (likely Content-Length) was rejected by the server")
         elif e.code == 503:
@@ -128,6 +130,11 @@ class HTTPError(Error):
 class NotFoundError(HTTPError):
     """
     The server returned a 404.
+    """
+    
+class InvalidRecordError(HTTPError):
+    """
+    The server returned a 409, meaning that the request is flawed.
     """
     
 class InvalidHeadersError(HTTPError):

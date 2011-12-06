@@ -1,27 +1,77 @@
+import base64
 import BaseHTTPServer
 import json
+import logging
+import os
 import SocketServer
 import threading
+import uuid
 
 from config import CONFIG
 import filesystem
 
+_logger = logging.getLogger('media_storage.http')
+
 class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+    def address_string(self):
+        """
+        Disable reverse-lookups.
+        """
+        return self.client_address[0]
+        
+    def log_message(self):
+        """
+        Logging happens internally.
+        """
+        
     def do_POST(self):
-        if not path == '/put':
+        if not self.path == '/put':
+            _logger.warn("Request received for unsupported path %(path)s from %(addr)s" % {
+             'path': self.path,
+             'addr': self.address_string(),
+            })
             self.send_response(404)
             self.end_headers()
             return
             
-        #Generate UID and keys
-        #Copy file
-        #Write meta
-        #Add record to queue
+        _logger.info("Storage request received from %(addr)s" % {
+         'path': self.path,
+         'addr': self.self.address_string(),
+        })
+        
+        request = json.loads(self.rfile.read())
+        
+        record = {
+         'uid': request.get('uid') or uuid.uuid1().hex,
+         'keys': self._build_keys(request),
+         'physical': request['family'],
+         'policy': request['policy'],
+         'meta': request['meta'],
+        }
+        
+        _logger.info("Writing files for '%(uid)s'..." % {
+         'uid': record['uid'],
+        })
+        filesystem.add_entity(request['proxy']['server'], request['data'], record)
+        
+        _logger.info("Stored '%(uid)s'" % {
+         'uid': record['uid'],
+        })
         
         self.send_response(200)
-        #Set content type
+        self.send_header('Content-Type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps(_____uid/keys_____))
+        self.wfile.write(json.dumps({
+         'uid': record['uid'],
+         'keys': record['keys'],
+        }))
+        
+    def _build_keys(self, request):
+        keys = request.get('keys')
+        return {
+         'read': keys and keys.get('read') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
+         'write': keys and keys.get('write') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
+        }
         
 class _ThreadedHTTPServer(ThreadingMixIn.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     """
