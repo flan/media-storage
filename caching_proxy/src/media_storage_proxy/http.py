@@ -32,19 +32,36 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             
     def _get(self):
-        _logger.info("Retrieval request received from %(addr)s" % {
+        _logger.debug("Retrieval request received from %(addr)s" % {
+         'addr': self.self.address_string(),
+        })
+        request = json.loads(self.rfile.read())
+        _logger.info("Attempting to serve request for content of '%(uid)s' from %(addr)s..." % {
+         'uid': request['uid'],
          'addr': self.self.address_string(),
         })
         
-        self.send_response(200)
-        self.send_header('Content-Type', ???)
-        self.end_headers()
-        self.wfile.write(json.dumps(_____content_____))
+        content = cache.get(
+         request['proxy']['server']['host'], request['proxy']['server']['port'],
+         request['uid'], request['keys']['read']
+        )
         
+        if not content:
+            self.send_response(404)
+            self.end_headers()
+        else:
+            self.send_response(200)
+            self.send_header('Content-Type', content[0])
+            self.end_headers()
+            self.wfile.write(content[1])
+            
     def _describe(self):
-        _logger.info("Description request received from %(addr)s" % {
+        _logger.debug("Description request received from %(addr)s" % {
          'addr': self.self.address_string(),
         })
+        request = json.loads(self.rfile.read())
+        
+        
         
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
