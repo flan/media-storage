@@ -1,0 +1,46 @@
+[general]
+
+[http]
+port = 1235
+
+;Compression formats to handle locally; turn these off only if the host is underpowered
+[compression]
+bz2 = yes
+gzip = yes
+lzma = yes
+
+[storage]
+;The path used for buffered files
+path = /home/flan/media-storage_proxy/
+;Partially transferred file extension
+partial_extension = .part
+;Metadata file extension
+metadata_extension = .meta
+
+[upload]
+;The number of worker threads to use for uploading files
+threads = 5
+
+[log]
+file_path = ./log
+file_history = 7
+file_verbosity = INFO
+console_verbosity = DEBUG ;If blank, console logging is disabled
+
+[email]
+;The number of seconds to wait for SMTP operations to complete
+timeout = 2.0
+host = localhost
+port = 25
+tls = no
+username = 
+password = 
+
+;If enabled, critical failure notifications are sent to an e-mail address
+alert = no
+;The number of seconds to wait between alert messages
+alert_cooldown = 300.0
+alert_subject = Critical failure in Media Storage proxy on some host
+alert_from = media-storage_proxy@example.org
+alert_to = media-storage_proxy@example.com
+
