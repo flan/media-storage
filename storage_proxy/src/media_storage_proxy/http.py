@@ -34,37 +34,42 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             return
             
-        _logger.info("Storage request received from %(addr)s" % {
-         'addr': self.self.address_string(),
-        })
-        
-        request = json.loads(self.rfile.read())
-        
-        record = {
-         'uid': request.get('uid') or uuid.uuid1().hex,
-         'keys': self._build_keys(request),
-         'physical': request['family'],
-         'policy': request['policy'],
-         'meta': request['meta'],
-        }
-        
-        _logger.info("Writing files for '%(uid)s'..." % {
-         'uid': record['uid'],
-        })
-        filesystem.add_entity(request['proxy']['server']['host'], request['proxy']['server']['port'], request['data'], record)
-        
-        _logger.info("Stored '%(uid)s'" % {
-         'uid': record['uid'],
-        })
-        
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({
-         'uid': record['uid'],
-         'keys': record['keys'],
-        }))
-        
+        try:
+            _logger.info("Storage request received from %(addr)s" % {
+             'addr': self.address_string(),
+            })
+            
+            request = json.loads(self.rfile.read())
+            
+            record = {
+             'uid': request.get('uid') or uuid.uuid1().hex,
+             'keys': self._build_keys(request),
+             'physical': request['family'],
+             'policy': request['policy'],
+             'meta': request['meta'],
+            }
+            
+            _logger.info("Writing files for '%(uid)s'..." % {
+             'uid': record['uid'],
+            })
+            filesystem.add_entity(request['proxy']['server']['host'], request['proxy']['server']['port'], request['data'], record)
+            
+            _logger.info("Stored '%(uid)s'" % {
+             'uid': record['uid'],
+            })
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+             'uid': record['uid'],
+             'keys': record['keys'],
+            }))
+        except Exception as e:
+            _logger.error("An unhandled exception occurred; strack trace follows:\n" + traceback.format_exc())
+            self.send_response(500)
+            self.end_headers()
+            
     def _build_keys(self, request):
         keys = request.get('keys')
         return {

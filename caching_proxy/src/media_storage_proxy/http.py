@@ -2,6 +2,7 @@ import BaseHTTPServer
 import json
 import SocketServer
 import threading
+import traceback
 
 from config import CONFIG
 import cache
@@ -19,21 +20,33 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         
     def do_POST(self):
-        if path == '/get':
-            self._get()
-        elif path == '/describe':
-            self._describe()
-        else:
-            _logger.warn("Request received for unsupported path %(path)s from %(addr)s" % {
-             'path': self.path,
+        try:
+            if path == '/get':
+                self._get()
+            elif path == '/describe':
+                self._describe()
+            else:
+                _logger.warn("Request received for unsupported path %(path)s from %(addr)s" % {
+                 'path': self.path,
+                 'addr': self.address_string(),
+                })
+                self.send_response(404)
+                self.end_headers()
+        except cache.PermissionsError as e:
+            _logger.warn("Request received from %(addr)s had the wrong key: %(error)s" % {
              'addr': self.address_string(),
+             'error': str(e),
             })
-            self.send_response(404)
+            self.send_response(403)
+            self.end_headers()
+        except Exception as e:
+            _logger.error("An unhandled exception occurred; strack trace follows:\n" + traceback.format_exc())
+            self.send_response(500)
             self.end_headers()
             
     def _get(self):
         _logger.debug("Retrieval request received from %(addr)s" % {
-         'addr': self.self.address_string(),
+         'addr': self.address_string(),
         })
         request = json.loads(self.rfile.read())
         _logger.info("Attempting to serve request for content of '%(uid)s' from %(addr)s..." % {
@@ -57,7 +70,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             
     def _describe(self):
         _logger.debug("Description request received from %(addr)s" % {
-         'addr': self.self.address_string(),
+         'addr': self.address_string(),
         })
         request = json.loads(self.rfile.read())
          _logger.info("Attempting to serve request for description of '%(uid)s' from %(addr)s..." % {
