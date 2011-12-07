@@ -119,6 +119,10 @@ class _Settings(_Config):
     @property
     def storage_metadata_extension(self):
         return self.get('storage', 'metadata_extension', '.meta')
+        
+    @property
+    def storage_purge_interval(self):
+        return self.getfloat('storage', 'purge_interval', 5.0)
 
 
     @property

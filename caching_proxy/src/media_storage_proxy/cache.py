@@ -49,7 +49,7 @@ class _Purger(threading.Thread):
                     else:
                         cache = cache[i+1:]
                         break
-            time.sleep(5)
+            time.sleep(CONFIG.storage_purge_interval)
             
 def _download(host, port, uid, read_key, contentfile, metafile):
     client = media_storage.Client(host, port)
