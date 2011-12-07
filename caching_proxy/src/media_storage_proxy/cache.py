@@ -60,11 +60,12 @@ def _download(host, port, uid, read_key, contentfile, metafile):
         meta['keys']['read'] = read_key
         mf.write(json.dumps(meta))
         
-    _cache.append((
-     min(CONFIG.rules_cache_max_time, max(CONFIG.rules_cache_min_time, meta['meta'].get('_cache:ttl', 0))),
-     (contentfile, metafile)
-    ))
-    
+    with _cache_lock as lock:
+        _cache.append((
+         min(CONFIG.rules_cache_max_time, max(CONFIG.rules_cache_min_time, meta['meta'].get('_cache:ttl', 0))),
+         (contentfile, metafile)
+        ))
+        
 def _retrieve(host, port, uid, read_key):
     target_path = "%(base)s%(host)s_%(port)i%(sep)s" % {
      'base': CONFIG.storage_path,
@@ -113,23 +114,21 @@ def _retrieve(host, port, uid, read_key):
     return (None, None)
     
 def get(host, port, uid, read_key):
-    with _cache_lock as lock:
-        (file, meta) = _retrieve(host, port, uid, read_key)
-        if file:
-            try:
-                with open(file, 'rb') as content:
-                    return (meta['physical']['format']['mime'], content.read())
-            except Exception as e:
-                summary = "Unable to read files from disk; stack trace follows:\n" + traceback.format_exc()
-                _logger.critical(summary)
-                mail.send_alert(summary)
-        return None
-        
+    (file, meta) = _retrieve(host, port, uid, read_key)
+    if file:
+        try:
+            with open(file, 'rb') as content:
+                return (meta['physical']['format']['mime'], content.read())
+        except Exception as e:
+            summary = "Unable to read files from disk; stack trace follows:\n" + traceback.format_exc()
+            _logger.critical(summary)
+            mail.send_alert(summary)
+    return None
+    
 def describe(host, port, uid, read_key):
-    with _cache_lock as lock:
-        (file, meta) = _retrieve(host, port, uid, read_key)
-        return meta
-        
+    (file, meta) = _retrieve(host, port, uid, read_key)
+    return meta
+    
 def _clear_pool(self):
     """
     Removes all cached files on startup.
