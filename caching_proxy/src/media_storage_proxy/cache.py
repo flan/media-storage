@@ -117,11 +117,19 @@ def _retrieve(host, port, uid, read_key, content):
                     return (content, meta)
                 else:
                     return meta
+            else:
+                raise PermissionsError("Invalid read key provided for '%(uid)s'" % {
+                 'uid': uid,
+                })
         finally:
             try:
                 _cache_lock.release()
             except Exception: #Lock alredy released
                 pass
+    except media_storage.NotAuthorisedError:
+        raise PermissionsError("Invalid read key provided for '%(uid)s'" % {
+         'uid': uid,
+        })
     except (OSError, IOError):
         summary = "Unable to access files on disk; stack trace follows:\n" + traceback.format_exc()
         _logger.critical(summary)
@@ -148,3 +156,9 @@ def _clear_pool(self):
 _purger = _Purger()
 _purger.start()
 
+
+class PermissionsError(Exception):
+    """
+    Indicates that the given key does not grant permission to access the requested content.
+    """
+    
