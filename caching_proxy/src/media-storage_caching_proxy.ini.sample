@@ -10,7 +10,7 @@ gzip = yes
 lzma = yes
 
 [storage]
-;The path used for cached files
+;The path used for cached files; must end with separator
 path = /home/flan/media-storage_cache/
 ;Metadata file extension
 metadata_extension = .meta
@@ -21,6 +21,7 @@ metadata_extension = .meta
 min_cache_time = 10.0
 ;Cached files will be held for no more than a considerably longer period of time
 max_cache_time = 7200.0
+timeout = 60.0
 
 [log]
 file_path = ./log

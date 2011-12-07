@@ -10,7 +10,7 @@ gzip = yes
 lzma = yes
 
 [storage]
-;The path used for buffered files
+;The path used for buffered files; must end with separator
 path = /home/flan/media-storage_proxy/
 ;Partially transferred file extension
 partial_extension = .part
@@ -20,6 +20,7 @@ metadata_extension = .meta
 [upload]
 ;The number of worker threads to use for uploading files
 threads = 5
+timeout = 120.0
 
 [log]
 file_path = ./log

@@ -70,7 +70,7 @@ class _Uploader(threading.Thread):
              deletion_policy=metadata['policy']['delete'], compression_policy=metadata['policy']['compress'],
              meta=metadata['meta'],
              uid=metadata['uid'], keys=metadata['keys'],
-             timeout=120.0
+             timeout=CONFIG.upload_timeout
             )
         except media_storage.InvalidRecordError:
             _close_data()
@@ -92,17 +92,15 @@ class _Uploader(threading.Thread):
             })
             _upload_success(entity)
             
-def add_entity(server, path, meta):
+def add_entity(host, port, path, meta):
     """
     Copies the file at the given path to the appropriate local path and adds a
     '.meta' file. On completion, the entity is added to the runtime upload pool.
     
     The entity is '.part'-cycled.
     """
-    host = server['host']
-    port = server['port']
     target_path = "%(base)s%(host)s_%(port)i%(sep)s" % {
-     'base': CONFIG.storage_path.endswith(('/', '\\')) and CONFIG.storage_path or CONFIG.storage_path + os.path.sep,
+     'base': CONFIG.storage_path,
      'host': host,
      'port': port,
      'sep': os.path.sep,
@@ -136,9 +134,8 @@ def add_entity(server, path, meta):
         })
         shutil.copyfile(path, tempfile)
         
-        metafile = "%(path)s%(name)s%(ext)s" % {
-         'path': target_path,
-         'name': meta['uid'],
+        metafile = "%(permfile)s%(ext)s" % {
+         'permfile': permfile,
          'ext': _EXTENSION_METADATA,
         }
         _logger.debug("Writing metadata to %(destination)s..." % {

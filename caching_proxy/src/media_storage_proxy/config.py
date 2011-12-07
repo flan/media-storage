@@ -129,6 +129,10 @@ class _Settings(_Config):
     def rules_max_cache_time(self):
         return self.getfloat('rules', 'max_cache_time', 7200.0)
         
+    @property
+    def rules_timeout(self):
+        return self.getfloat('rules', 'timeout', 60.0)
+        
         
     @property
     def log_file_path(self):
