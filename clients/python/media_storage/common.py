@@ -88,7 +88,9 @@ def send_request(request, output=None, timeout=10.0):
     try:
         response = urllib2.urlopen(request, timeout=timeout)
     except urllib2.HTTPError as e:
-        if e.code == 404:
+        if e.code == 403:
+            raise NotAuthorisedError("The requested operation could not be performed because an invalid key was provided")
+        elif e.code == 404:
             raise NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined")
         elif e.code == 409:
             raise InvalidRecordError("The uploaded request is structurally flawed and cannot be processed")
@@ -125,6 +127,11 @@ class Error(Exception):
 class HTTPError(Error):
     """
     Indicates a problem with the HTTP exchange.
+    """
+    
+class NotAuthorisedError(HTTPError):
+    """
+    The server returned a 403.
     """
     
 class NotFoundError(HTTPError):

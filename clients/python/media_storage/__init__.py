@@ -3,7 +3,8 @@ Exposes implemented classes as the front-end for the library.
 """
 from common import (
  Error,
- HTTPError, NotFoundError, InvalidRecordError, InvalidHeadersError, TemporaryFailureError,
+ HTTPError, NotAuthorisedError, NotFoundError, InvalidRecordError, InvalidHeadersError,
+ TemporaryFailureError,
  URLError,
 )
 
