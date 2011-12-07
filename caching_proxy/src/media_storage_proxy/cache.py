@@ -4,10 +4,17 @@ Manages cache resources.
 import os
 import threading
 import time
+import traceback
 
 import media_storage
 
 from config import CONFIG
+import mail
+
+#Apply compression algorithm limiting
+import media_storage.compression as compression
+compression.SUPPORTED_FORMATS = tuple(config.compression_formats.intersection(compression.SUPPORTED_FORMATS))
+del compression
 
 _cache_lock = threading.Lock()
 _cache = set() #Contains tuples of expiration times and paths; when an expiration is extended, the tuple is re-added
@@ -58,11 +65,6 @@ def _clear_pool(self):
     
 #Module setup
 ####################################################################################################
-_pool = Queue.Queue() #A queue of files to be uploaded
-_threads = tuple((_Uploader(self) for i in range(CONFIG.upload_threads)))
+_purger = _Purger()
+_purger.start()
 
-_clear_pool()
-
-for thread in self._threads:
-    thread.start()
-    

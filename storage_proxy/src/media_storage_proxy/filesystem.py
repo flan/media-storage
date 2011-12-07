@@ -15,6 +15,11 @@ import media_storage
 from config import CONFIG
 import mail
 
+#Apply compression algorithm limiting
+import media_storage.compression as compression
+compression.SUPPORTED_FORMATS = tuple(config.compression_formats.intersection(compression.SUPPORTED_FORMATS))
+del compression
+
 _EXTENSION_PARTIAL = '.' + CONFIG.storage_partial_extension
 _EXTENSION_METADATA = '.' + CONFIG.storage_metadata_extension
 
@@ -102,52 +107,57 @@ def add_entity(server, path, meta):
      'port': port,
      'sep': os.path.sep,
     }
-    if not os.path.isdir(target_path):
-        _logger.info("Creating directory %(path)s..." % {
+    try:
+        if not os.path.isdir(target_path):
+            _logger.info("Creating directory %(path)s..." % {
+             'path': target_path,
+            })
+            try:
+                os.path.makedirs(target_path, 0700)
+            except OSError as e:
+                if e.errno == 17:
+                    _logger.debug("Directory %(path)s already exists" % {
+                     'path': target_path,
+                    })
+                else:
+                    raise
+                    
+        permfile = "%(path)s%(name)s" % {
          'path': target_path,
+         'name': meta['uid'],
+        }
+        tempfile = "%(permfile)s%(ext)s" % {
+         'permfile': permfile,
+         'ext': _EXTENSION_PARTIAL,
+        }
+        _logger.debug("Copying data from %(source)s to %(destination)s..." % {
+         'source': path,
+         'destination': tempfile,
         })
-        try:
-            os.path.makedirs(target_path, 0700)
-        except OSError as e:
-            if e.errno == 17:
-                _logger.debug("Directory %(path)s already exists" % {
-                 'path': target_path,
-                })
-            else:
-                raise
-                
-    permfile = "%(path)s%(name)s" % {
-     'path': target_path,
-     'name': meta['uid'],
-    }
-    tempfile = "%(permfile)s%(ext)s" % {
-     'permfile': permfile,
-     'ext': _EXTENSION_PARTIAL,
-    }
-    _logger.debug("Copying data from %(source)s to %(destination)s..." % {
-     'source': path,
-     'destination': tempfile,
-    })
-    shutil.copyfile(path, tempfile)
-    
-    metafile = "%(path)s%(name)s%(ext)s" % {
-     'path': target_path,
-     'name': meta['uid'],
-     'ext': _EXTENSION_METADATA,
-    }
-    _logger.debug("Writing metadata to %(destination)s..." % {
-     'destination': metafile,
-    })
-    metafile = open(metafile, 'wb')
-    metafile.write(json.dumps(meta))
-    metafile.close()
-    
-    _logger.debug("Renaming data from %(source)s to %(destination)s..." % {
-     'source': tempfile,
-     'destination': permfile,
-    })
-    os.rename(tempfile, permfile)
-    
+        shutil.copyfile(path, tempfile)
+        
+        metafile = "%(path)s%(name)s%(ext)s" % {
+         'path': target_path,
+         'name': meta['uid'],
+         'ext': _EXTENSION_METADATA,
+        }
+        _logger.debug("Writing metadata to %(destination)s..." % {
+         'destination': metafile,
+        })
+        metafile = open(metafile, 'wb')
+        metafile.write(json.dumps(meta))
+        metafile.close()
+        
+        _logger.debug("Renaming data from %(source)s to %(destination)s..." % {
+         'source': tempfile,
+         'destination': permfile,
+        })
+        os.rename(tempfile, permfile)
+    except (OSError, IOError):
+        summary = "Unable to write files to disk; stack trace follows:\n" + trceback.format_exc()
+        _logger.critical(summary)
+        mail.send_alert(summary)
+        
     _pool.put(((host, port), permfile, metafile))
     
 def _upload_success(entity):
