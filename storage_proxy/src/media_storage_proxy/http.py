@@ -35,7 +35,6 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
             
         _logger.info("Storage request received from %(addr)s" % {
-         'path': self.path,
          'addr': self.self.address_string(),
         })
         

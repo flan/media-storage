@@ -24,18 +24,30 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         elif path == '/describe':
             self._describe()
         else:
+            _logger.warn("Request received for unsupported path %(path)s from %(addr)s" % {
+             'path': self.path,
+             'addr': self.address_string(),
+            })
             self.send_response(404)
             self.end_headers()
             
     def _get(self):
+        _logger.info("Retrieval request received from %(addr)s" % {
+         'addr': self.self.address_string(),
+        })
+        
         self.send_response(200)
-        #Set content type
+        self.send_header('Content-Type', ???)
         self.end_headers()
         self.wfile.write(json.dumps(_____content_____))
         
     def _describe(self):
+        _logger.info("Description request received from %(addr)s" % {
+         'addr': self.self.address_string(),
+        })
+        
         self.send_response(200)
-        #Set content type
+        self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps(_____meta_____))
         
