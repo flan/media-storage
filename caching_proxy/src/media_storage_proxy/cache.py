@@ -28,6 +28,8 @@ class _Purger(threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
         
+        _logger.info("Set up cache-purging thread")
+        
     def run(self):
         """
         Iterates over `_cache`, removing any files that have expired.
@@ -39,6 +41,9 @@ class _Purger(threading.Thread):
                 for (i, (expiration, (contentfile, metafile))) in enumerate(_cache):
                     if expiration <= current_time:
                         for file in (contentfile, metafile):
+                            _logger.info("Unlinking expired cached file %(path)s..." % {
+                             'path': path,
+                            })
                             try:
                                 os.unlink(file)
                             except Exception as e:
@@ -47,7 +52,7 @@ class _Purger(threading.Thread):
                                  'error': str(e),
                                 })
                     else:
-                        cache = cache[i+1:]
+                        cache = cache[i + 1:]
                         break
             time.sleep(CONFIG.storage_purge_interval)
             
@@ -164,10 +169,11 @@ def _clear_pool(self):
                 
 #Module setup
 ####################################################################################################
-_purger = _Purger()
-_purger.start()
-
-
+def setup():
+    _clear_pool()
+    _Purger().start()
+    
+    
 class PermissionsError(Exception):
     """
     Indicates that the given key does not grant permission to access the requested content.
