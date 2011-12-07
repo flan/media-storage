@@ -47,7 +47,14 @@ class _Uploader(threading.Thread):
          'f': contentfile,
         })
         data = open(contentfile, 'rb')
-        
+        def _close_data():
+            try:
+                data.close()
+            except Exception:
+                _logger.warn("Unable to close filehandle for %(file)s" % {
+                 'file': contentfile,
+                })
+                
         _logger.info("Uploading '%(uid)s'..." % {
          'uid': metadata['uid'],
         })
@@ -61,29 +68,25 @@ class _Uploader(threading.Thread):
              timeout=120.0
             )
         except media_storage.InvalidRecordError:
+            _close_data()
             _logger.error("The entity '%(uid)s' was submitted with invalid metadata and cannot be uploaded; its files will be unlinked" % {
              'uid': metadata['uid'],
             })
             _upload_success(entity)
         except Exception as e:
+            _close_data()
             _logger.error("An unexpected error occurred and the entity '%(uid)s' will be re-queued; traceback follows:\n%(traceback)s" % {
              'uid': metadata['uid'],
              'traceback': traceback.format_exc(),
             })
             _upload_failure(entity)
         else:
+            _close_data()
             _logger.info("The entity '%(uid)s' has been successfully uploaded and its files will be unlinked" % {
              'uid': metadata['uid'],
             })
             _upload_success(entity)
-        finally:
-            try:
-                data.close()
-            except Exception:
-                _logger.warn("Unable to close filehandle for %(file)s" % {
-                 'file': contentfile,
-                })
-                
+            
 def add_entity(server, path, meta):
     """
     Copies the file at the given path to the appropriate local path and adds a
