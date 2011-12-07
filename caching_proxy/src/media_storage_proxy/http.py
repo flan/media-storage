@@ -60,14 +60,25 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
          'addr': self.self.address_string(),
         })
         request = json.loads(self.rfile.read())
+         _logger.info("Attempting to serve request for description of '%(uid)s' from %(addr)s..." % {
+         'uid': request['uid'],
+         'addr': self.self.address_string(),
+        })
         
+        description = cache.describe(
+         request['proxy']['server']['host'], request['proxy']['server']['port'],
+         request['uid'], request['keys']['read']
+        )
         
-        
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps(_____meta_____))
-        
+        if not description:
+            self.send_response(404)
+            self.end_headers()
+        else:
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(description))
+            
 class _ThreadedHTTPServer(ThreadingMixIn.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     """
     Spawns new threads to handle inbound HTTP requests.
