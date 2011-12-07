@@ -32,66 +32,70 @@ class _Uploader(threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
         
+        _logger.info("Uploading thread created")
+        
     def run(self):
         """
         Gets the next entity from the queue and attempts to upload it,
         informing the controller of success (removing the files) or failure (re-queuing
         the entity).
         """
-        ((host, port), contentfile, metafile) = entity = _pool.get()
-        client = media_storage.Client(host, port)
-        
-        _logger.debug("Loading metadata from '%(f)s'..." % {
-         'f': metafile,
-        })
-        metafile = open(metafile, 'rb')
-        metadata = json.loads(metafile.read())
-        metafile.close()
-        
-        _logger.debug("Loading content from '%(f)s'..." % {
-         'f': contentfile,
-        })
-        data = open(contentfile, 'rb')
-        def _close_data():
-            try:
-                data.close()
-            except Exception:
-                _logger.warn("Unable to close filehandle for %(file)s" % {
-                 'file': contentfile,
-                })
-                
-        _logger.info("Uploading '%(uid)s'..." % {
-         'uid': metadata['uid'],
-        })
-        try:
-            client.put(
-             data, metadata['physical']['format']['mime'], family=metadata['physical']['family'],
-             extension=metadata['physical']['format']['ext'], comp=metadata['physical']['format']['comp'], compress_on_server=False,
-             deletion_policy=metadata['policy']['delete'], compression_policy=metadata['policy']['compress'],
-             meta=metadata['meta'],
-             uid=metadata['uid'], keys=metadata['keys'],
-             timeout=CONFIG.upload_timeout
-            )
-        except media_storage.InvalidRecordError:
-            _close_data()
-            _logger.error("The entity '%(uid)s' was submitted with invalid metadata and cannot be uploaded; its files will be unlinked" % {
-             'uid': metadata['uid'],
-            })
-            _upload_success(entity)
-        except Exception as e:
-            _close_data()
-            _logger.error("An unexpected error occurred and the entity '%(uid)s' will be re-queued; traceback follows:\n%(traceback)s" % {
-             'uid': metadata['uid'],
-             'traceback': traceback.format_exc(),
-            })
-            _upload_failure(entity)
-        else:
-            _close_data()
-            _logger.info("The entity '%(uid)s' has been successfully uploaded and its files will be unlinked" % {
-             'uid': metadata['uid'],
-            })
-            _upload_success(entity)
+        while True:
+            _logger.debug("Upload thread waiting for task...")
+            ((host, port), contentfile, metafile) = entity = _pool.get()
+            client = media_storage.Client(host, port)
             
+            try:
+                _logger.debug("Loading metadata from '%(f)s'..." % {
+                 'f': metafile,
+                })
+                metafile = open(metafile, 'rb')
+                metadata = json.loads(metafile.read())
+                metafile.close()
+                
+                _logger.debug("Loading content from '%(f)s'..." % {
+                 'f': contentfile,
+                })
+                data = open(contentfile, 'rb')
+                def _close_data():
+                    try:
+                        data.close()
+                    except Exception:
+                        _logger.warn("Unable to close filehandle for %(file)s" % {
+                         'file': contentfile,
+                        })
+                        
+                _logger.info("Uploading '%(uid)s'..." % {
+                 'uid': metadata['uid'],
+                })
+                client.put(
+                 data, metadata['physical']['format']['mime'], family=metadata['physical']['family'],
+                 extension=metadata['physical']['format']['ext'], comp=metadata['physical']['format']['comp'], compress_on_server=False,
+                 deletion_policy=metadata['policy']['delete'], compression_policy=metadata['policy']['compress'],
+                 meta=metadata['meta'],
+                 uid=metadata['uid'], keys=metadata['keys'],
+                 timeout=CONFIG.upload_timeout
+                )
+            except media_storage.InvalidRecordError:
+                _close_data()
+                _logger.error("The entity '%(uid)s' was submitted with invalid metadata and cannot be uploaded; its files will be unlinked" % {
+                 'uid': metadata['uid'],
+                })
+                _upload_success(entity)
+            except Exception as e:
+                _close_data()
+                _logger.error("An unexpected error occurred and the entity '%(uid)s' will be re-queued; traceback follows:\n%(traceback)s" % {
+                 'uid': metadata['uid'],
+                 'traceback': traceback.format_exc(),
+                })
+                _upload_failure(entity)
+            else:
+                _close_data()
+                _logger.info("The entity '%(uid)s' has been successfully uploaded and its files will be unlinked" % {
+                 'uid': metadata['uid'],
+                })
+                _upload_success(entity)
+                
 def add_entity(host, port, path, meta):
     """
     Copies the file at the given path to the appropriate local path and adds a
@@ -234,10 +238,9 @@ def _populate_pool():
         
 #Module setup
 ####################################################################################################
-_threads = tuple((_Uploader() for i in range(CONFIG.upload_threads)))
-
-_populate_pool()
-
-for thread in _threads:
-    thread.start()
+def setup():
+    _populate_pool()
     
+    for thread in (_Uploader() for i in range(CONFIG.upload_threads)):
+        thread.start()
+        
