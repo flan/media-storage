@@ -38,7 +38,7 @@ class _Purger(threading.Thread):
                 _cache.sort()
                 for (i, (expiration, (contentfile, metafile))) in enumerate(_cache):
                     if expiration <= current_time:
-                        for file in (contentfile, metafile,):
+                        for file in (contentfile, metafile):
                             try:
                                 os.unlink(file)
                             except Exception as e:
@@ -150,7 +150,18 @@ def _clear_pool(self):
     """
     Removes all cached files on startup.
     """
-    
+    for (basedir, dirnames, filenames) in os.walk(CONFIG.storage_path):
+        for filename in (basedir + f for f in filenames):
+            _logger.info("Unlinking old cached file %(filename)s..." % {
+             'filename': filename,
+            })
+            try:
+                os.unlink(filename)
+            except Exception as e:
+                _logger.error("Unable to unlink cached file %(filename)s" % {
+                 'filename': filename,
+                })
+                
 #Module setup
 ####################################################################################################
 _purger = _Purger()
