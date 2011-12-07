@@ -66,7 +66,7 @@ def _download(host, port, uid, read_key, contentfile, metafile):
          (contentfile, metafile)
         ))
         
-def _retrieve(host, port, uid, read_key):
+def _retrieve(host, port, uid, read_key, content):
     target_path = "%(base)s%(host)s_%(port)i%(sep)s" % {
      'base': CONFIG.storage_path,
      'host': host,
@@ -96,38 +96,47 @@ def _retrieve(host, port, uid, read_key):
          'contentfile': contentfile,
          'ext': _EXTENSION_METADATA,
         }
-        for file in (contentfile, metafile):
-            if not os.path.isfile(file):
-                _download(host, port, uid, read_key, contentfile, metafile)
-                break
-                
-        mf = open(metafile, 'rb')
-        meta = json.loads(mf.read())
-        mf.close()        
+        
+        _cache_lock.acquire()
+        try:
+            for file in (contentfile, metafile):
+                if not os.path.isfile(file):
+                    _cache_lock.release()
+                    _download(host, port, uid, read_key, contentfile, metafile)
+                    _cache_lock.acquire()
+                    break
+                    
+            mf = open(metafile, 'rb')
+            meta = json.loads(mf.read())
+            mf.close()
+            if meta['keys']['read'] == read_key:
+                if content:
+                    cf = open(contentfile, 'rb')
+                    content = cf.read()
+                    cf.close()
+                    return (content, meta)
+                else:
+                    return meta
+        finally:
+            try:
+                _cache_lock.release()
+            except Exception: #Lock alredy released
+                pass
     except (OSError, IOError):
-        summary = "Unable to write files to disk; stack trace follows:\n" + traceback.format_exc()
+        summary = "Unable to access files on disk; stack trace follows:\n" + traceback.format_exc()
         _logger.critical(summary)
         mail.send_alert(summary)
-    else:
-        if meta['keys']['read'] == read_key:
-            return (contentfile, meta)
-    return (None, None)
+    return None
     
 def get(host, port, uid, read_key):
-    (file, meta) = _retrieve(host, port, uid, read_key)
-    if file:
-        try:
-            with open(file, 'rb') as content:
-                return (meta['physical']['format']['mime'], content.read())
-        except Exception as e:
-            summary = "Unable to read files from disk; stack trace follows:\n" + traceback.format_exc()
-            _logger.critical(summary)
-            mail.send_alert(summary)
+    result = _retrieve(host, port, uid, read_key)
+    if result:
+        (content, meta) = result
+        return (meta['physical']['format']['mime'], content)
     return None
     
 def describe(host, port, uid, read_key):
-    (file, meta) = _retrieve(host, port, uid, read_key)
-    return meta
+    return _retrieve(host, port, uid, read_key)
     
 def _clear_pool(self):
     """
