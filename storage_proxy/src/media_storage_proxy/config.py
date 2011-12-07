@@ -129,6 +129,10 @@ class _Settings(_Config):
     def upload_threads(self):
         return self.getint('upload', 'threads', 5)
         
+    @property
+    def upload_timeout(self):
+        return self.getfloat('upload', 'timeout', 120.0)
+        
         
     @property
     def log_file_path(self):
