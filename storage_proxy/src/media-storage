@@ -7,8 +7,8 @@ import signal
 import time
 import traceback
 
-from media_storage.config import CONFIG
-import media_storage_server.mail as mail
+from media_storage_proxy.config import CONFIG
+import media_storage_proxy.mail as mail
 import media_storage_proxy.http as http
 
 _VERSION = '0.9.0-dev'
