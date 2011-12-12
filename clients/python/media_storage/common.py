@@ -1,10 +1,41 @@
 """
-Shared functions and stuff. Mostly just HTTP access methods.
+media_storage.common
+====================
+
+Defines shared methods, like HTTP accessors, and classes, like exceptions and
+data structures.
+
+Usage
+-----
+
+This module is not meant to be used externally; relevant objects are exported
+to the package level.
+
+Legal
+-----
+
+This file is part of the LGPLed Python client of the media-storage project.
+This package is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU General Public License and
+GNU Lesser General Public License along with this program. If not, see
+<http://www.gnu.org/licenses/>.
+ 
+(C) Neil Tallim, 2011
 """
 import json
 import types
 import urllib2
 
+#Server path constants
 SERVER_PUT = 'put'
 SERVER_GET = 'get'
 SERVER_DESCRIBE = 'describe'
@@ -27,6 +58,7 @@ PROPERTY_APPLIED_COMPRESSION = 'applied-compression'
 
 _CHUNK_SIZE = 32 * 1024 #Transfer data in 32k chunks
 
+#Constants to expedite construction of multipart/formdata packets
 _FORM_SEP = '--'
 _FORM_BOUNDARY = '---...???,,,$$$RFC-1867-kOmPl1aNt-bOuNdArY$$$,,,???...---'
 _FORM_CRLF = '\r\n'
@@ -40,17 +72,23 @@ _FORM_PRE_CONTENT = (_FORM_CRLF + _FORM_SEP + _FORM_BOUNDARY + _FORM_CRLF +
 _FORM_FOOTER = _FORM_CRLF + _FORM_SEP + _FORM_BOUNDARY + _FORM_SEP + _FORM_CRLF
 
 def _encode_multipart_formdata(header, content):
+    """
+    Assembles a multipart/formdata request, needed for some transfer methods.
+    """
     return _FORM_HEADER + header + _FORM_PRE_CONTENT + content + _FORM_FOOTER
     
 def transfer_data(source, destination):
+    """
+    Reads every byte, in reasonable-sized chunks, from the file-like object `source` into the
+    file-like object `destination`. No seeking occurs after the transfer is complete.
+    """
     while True:
         chunk = source.read(_CHUNK_SIZE)
         if not chunk:
             break
         destination.write(chunk)
         destination.flush()
-    destination.seek(0)
-
+        
 def assemble_request(destination, header, headers={}, data=None):
     """
     `destination` is the URI to which the request will be sent.
@@ -81,9 +119,13 @@ def assemble_request(destination, header, headers={}, data=None):
     
 def send_request(request, output=None, timeout=10.0):
     """
-    Sends the assembled `request` and returns any interesting properties and either adds the body as
+    Sends the assembled `request`, returning any interesting properties, and either adds the body as
     a string in a tuple or writes it to the specified `output` file-like object, seeking back to 0,
     returning only the properties.
+    
+    Default `timeout` is 10s.
+    
+    All ``HTTPError`` sub-types, ``URLError``, or general ``Exception``s may be raised, as needed.
     """
     try:
         response = urllib2.urlopen(request, timeout=timeout)
@@ -115,10 +157,77 @@ def send_request(request, output=None, timeout=10.0):
         }
         if output:
             transfer_data(response, output)
+            output.seek(0)
             return properties
         return (properties, response.read())
         
-
+        
+class QueryStruct(object):
+    """
+    The structure used to issue queries against a server.
+    
+    All attributes are meant to be set publically, though `meta` is a dictionary and should be
+    treated as such, being populated with keys to check and value to match on, of appropriate types.
+    Anything irrelevant should be left as `None`.
+    
+    To perform non-matching queries on metadata, the following filters may be used:
+     - ':range:<min>:<max>' : range queries over numeric types, inclusive on both ends
+     - ':lte:<number>'/':gte:<number>' : relative queries over numeric types
+     - ':re:<pcre>'/':re.i:<pcre>' : PCRE regular expression, with the second form being
+       case-insensitive
+     - ':like:<pattern>' : behaves like SQL 'LIKE', with '%' as wildcards
+     - ':ilike:<pattern>' : behaves like SQL 'ILIKE', with '%' as wildcards
+     - '::<whatever>' : Ignores the first colon and avoids parsing, in case a value actually starts
+       with a ':<filter>:' structure
+       
+    In addition to `meta`, the following fields are defined:
+     - `ctime_min`/`ctime_max` : if either is set, it serves as an <=/>= check against ctime
+     - `atime_min`/`atime_max` : if either is set, it serves as an <=/>= check against atime
+     - `accesses_min`/`accesses_max` : if either is set, it serves as an <=/>= check against
+       accesses
+     - `family` : if set, performs an explicit match against family
+     - `mime` : if set, if a '/' is present, performs an explicit match against MIME; otherwise,
+       performs a match against the super-type of MIME
+    """
+    ctime_min = None #The minimum ctime (float) of records to enumerate
+    ctime_max = None #The maximum ctime (float) of records to enumerate
+    atime_min = None #The minimum atime (int) of records to enumerate
+    atime_max = None #The maximum atime (int) of records to enumerate
+    accesses_min = None #The minimum access-count (int) of records to enumerate
+    accesses_max = None #The maximum access-count (int) of records to enumerate
+    family = None #The family (string) of records to enumerate
+    mime = None #The MIME-type (string; omitting '/' selects supertype) of records to enumerate
+    meta = None #A dictionary of metadata to match, either literally or using provided filters, encoded as strings
+    
+    def __init__(self):
+        """
+        Initialises instance variables.
+        """
+        self.meta = {}
+        
+    def to_dict(self):
+        """
+        Renders the structure's data as a dictionary.
+        """
+        return {
+         'ctime': {
+          'min': self.ctime_min,
+          'max': self.ctime_max,
+         },
+         'atime': {
+          'min': self.atime_min,
+          'max': self.atime_max,
+         },
+         'accesses': {
+          'min': self.accesses_min,
+          'max': self.accesses_max,
+         },
+         'family': self.family,
+         'mime': self.mime,
+         'meta': self.meta,
+        }
+        
+        
 class Error(Exception):
     """
     The base class from which all errors native to this package inherit.
