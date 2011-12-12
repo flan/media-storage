@@ -31,6 +31,8 @@ GNU Lesser General Public License along with this program. If not, see
  
 (C) Neil Tallim, 2011
 """
+VERSION = '0.9.0-dev'
+
 from common import (
  QueryStruct,
  Error,
