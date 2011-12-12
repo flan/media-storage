@@ -167,8 +167,8 @@ class QueryStruct(object):
     The structure used to issue queries against a server.
     
     All attributes are meant to be set publically, though `meta` is a dictionary and should be
-    treated as such, being populated with keys to check and value to match on, of appropriate types.
-    Anything irrelevant should be left as `None`.
+    treated as such, being populated with keys to check and values to match on, of appropriate
+    types. Anything irrelevant should be left as `None`.
     
     To perform non-matching queries on metadata, the following filters may be used:
      - ':range:<min>:<max>' : range queries over numeric types, inclusive on both ends
