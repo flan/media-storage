@@ -557,7 +557,7 @@ class HTTPService(threading.Thread):
         })
         self._http_server = tornado.ioloop.IOLoop.instance()
         self._http_application = tornado.web.Application(handlers, log_function=(lambda x:''), xheaders=True)
-        self._http_application.listen(port)
+        self._http_server.listen(port)
         
         _logger.info("Configured HTTP server")
         
