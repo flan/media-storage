@@ -16,6 +16,7 @@ import types
 import uuid
 
 import pymongo
+import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
@@ -539,6 +540,7 @@ class HTTPService(threading.Thread):
     """
     _http_application = None #The Tornado HTTP application code to be driven
     _http_server = None #The Tornado HTTP server instance
+    _http_loop = None #The Tornado IOLoop instance
     
     def __init__(self, port, handlers, daemon=True):
         """
@@ -555,8 +557,9 @@ class HTTPService(threading.Thread):
         _logger.info("Configuring HTTP server on port %(port)i..." % {
          'port': port,
         })
-        self._http_server = tornado.ioloop.IOLoop.instance()
+        self._http_loop = tornado.ioloop.IOLoop.instance()
         self._http_application = tornado.web.Application(handlers, log_function=(lambda x:''), xheaders=True)
+        self._http_server = tornado.httpserver.HTTPServer(self._http_application)
         self._http_server.listen(port)
         
         _logger.info("Configured HTTP server")
@@ -566,13 +569,13 @@ class HTTPService(threading.Thread):
         Ends execution of the HTTP server, allowing the thread to die.
         """
         _logger.info("HTTP server's kill-flag set")
-        self._http_server.stop()
+        self._http_loop.stop()
         
     def run(self):
         """
         Continuously accepts requests until killed; any exceptions that occur are logged.
         """
         _logger.info("Starting Tornado HTTP server engine...")
-        self._http_server.start()
+        self._http_loop.start()
         _logger.info("Tornado HTTP server engine terminated")
         
