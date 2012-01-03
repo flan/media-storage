@@ -1,0 +1,39 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          media-storage
+# Required-Start:    mongodb
+# Required-Stop:     mongodb
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts media-storage
+# Description:       starts the media-storage server
+### END INIT INFO
+
+SCRIPT_NAME=media-storage
+PIDFILE=/var/run/media-storage.pid
+
+#TODO: Revise this so it takes an array of config files and pidfiles (but one script) to start and
+#stop farms
+
+case "$1" in
+        start)
+                echo "Starting $SCRIPT_NAME"
+                /usr/local/bin/$SCRIPT_NAME &
+                ;;
+        stop)
+                echo "Stopping $SCRIPT_NAME"
+                /bin/kill `cat $PIDFILE`
+                ;;
+        restart)
+                echo "Restarting $SCRIPT_NAME"
+                /bin/kill `cat $PIDFILE`
+                /usr/local/bin/$SCRIPT_NAME &
+                ;;
+        *)
+                echo "Only the operations 'start', 'stop', and 'restart' are supported"
+                exit 1
+                ;;
+esac
+exit 0
+
