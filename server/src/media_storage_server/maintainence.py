@@ -101,9 +101,9 @@ class _PolicyMaintainer(_Maintainer):
                     _logger.info("Discovered candidate record: %(uid)s" % {
                      'uid': record['_id'],
                     })
-                    records_processed = True
-                    self._process_record(record)
-                if not records_processed:
+                    #Some records may fail to be processed for a variety of reasons; they shouldn't be considered active
+                    records_processed = self._process_record(record) or records_processed
+                if not records_processed: #Nothing left to do
                     break
                     
             _logger.debug("All records processed; sleeping")
@@ -129,9 +129,10 @@ class DeletionMaintainer(_PolicyMaintainer):
             _logger.warn("Unable to unlink record: %(error)s" % {
              'error': str(e),
             })
-            return
+            return False
         else:
             database.drop_record(record['_id'])
+            return True
             
 class CompressionMaintainer(_PolicyMaintainer):
     """
@@ -152,8 +153,17 @@ class CompressionMaintainer(_PolicyMaintainer):
         target_compression = record['policy']['compress'].get('comp')
         if current_compression == target_compression:
             _logger.debug("File already compressed in target format")
-            return
-            
+            record['policy']['compress'].clear() #Drop the compression policy
+            try:
+                database.update_record(record)
+            except Exception as e:
+                _logger.error("Unable to update record; compression routine will retry later: %(error)s" % {
+                 'error': str(e),
+                })
+                return False
+            else:
+                return True
+                
         filesystem = state.get_filesystem(record['physical']['family'])
         data = filesystem.get(record)
         if current_compression: #Must be decompressed first
@@ -168,22 +178,28 @@ class CompressionMaintainer(_PolicyMaintainer):
             filesystem.put(record, data)
         except Exception as e: #Harmless backout point
             _logger.warn("Unable to write compressed file to disk; backing out with no consequences")
+            return False
         else:
             record['policy']['compress'].clear() #Drop the compression policy
             try:
                 database.update_record(record)
             except Exception as e: #Results in wasted space until the next attempt
-                _logger.error("Unable to update record; old file will be served, and new file will be replaced on subsequent compression attempt")
+                _logger.error("Unable to update record; old file will be served, and new file will be replaced on a subsequent compression attempt: %(error)s" % {
+                 'error': str(e),
+                })
+                return False
             else:
                 record['physical']['format'] = old_format
                 try:
                     filesystem.unlink(record)
                 except Exception as e: #Results in wasted space, but non-fatal
-                    _logger.error("Unable to unlink old file; space non-recoverable unless unlinked manually: %(family)r | %(file)s" % {
+                    _logger.error("Unable to unlink old file; space non-recoverable unless unlinked manually: %(family)r | %(file)s : %(error)s" % {
                      'family': record['physical']['family'],
                      'file': filesystem.resolve_path(record),
+                     'error': str(e),
                     })
-                    
+                return True
+                
 class DatabaseMaintainer(_Maintainer):
     """
     """
