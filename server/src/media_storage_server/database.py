@@ -40,6 +40,16 @@ def authenticate(f):
     return authenticated_f
     
 @authenticate
+def list_families():
+    try:
+        return _COLLECTION.distinct('physical.family')
+    except Exception as e:
+        _logger.error("Unable to enumerate families: %(error)s" % {
+         'error': str(e),
+        })
+        raise
+        
+@authenticate
 def enumerate_all(ctime):
     try:
         return _COLLECTION.find(

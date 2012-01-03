@@ -100,6 +100,8 @@ if __name__ == '__main__':
         _logger.info("Maintainence subsystems online")
         
         http_server = http.HTTPService(port=CONFIG.http_port, handlers=[
+         (r'/ping', http.PingHandler),
+         (r'/list/families', http.ListFamiliesHandler),
          (r'/describe', http.DescribeHandler),
          (r'/get', http.GetHandler),
          (r'/put', http.PutHandler),

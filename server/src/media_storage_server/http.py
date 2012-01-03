@@ -144,6 +144,18 @@ class BaseHandler(tornado.web.RequestHandler):
         }
         
         
+class PingHandler(BaseHandler):
+    def _post(self):
+        return {
+         'online': True,
+        }
+        
+class ListFamiliesHandler(BaseHandler):
+    def _post(self):
+        return {
+         'families': database.list_families(),
+        }
+        
 class PutHandler(BaseHandler):
     def _post(self):
         (header, data) = self._get_payload()
