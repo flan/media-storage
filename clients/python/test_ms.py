@@ -1,9 +1,19 @@
+import time
+
 import media_storage
 
 print "Storing file..."
-x = media_storage.Client('10.100.0.189', 1234)
+x = media_storage.Client('localhost', 43001)
 #y = x.put(open('/home/flan/x.wav'), 'audio/x-wav')
-y = x.put(open('/home/flan/Music/Gust Sound Team - Ar tonelico III (hymmnos blue)/04_EXEC_FLIP_ARPHAGE-..ogg'), 'application/ogg', extension='ogg')
+y = x.put(open('/home/flan/Music/Gust Sound Team - Ar tonelico III (hymmnos blue)/04_EXEC_FLIP_ARPHAGE-..ogg'), 'application/ogg', extension='ogg',
+ compression_policy={
+  'stale': 5,
+  'comp': 'bz2',
+ },
+ deletion_policy={
+  'fixed': 300,
+ },
+)
 print(repr(y))
 print
 
