@@ -119,11 +119,11 @@ class _Settings(_Config):
         
     @property
     def storage_partial_extension(self):
-        return self.get('storage', 'partial_extension', '.part')
+        return self.get('storage', 'partial_extension', 'part')
         
     @property
     def storage_metadata_extension(self):
-        return self.get('storage', 'metadata_extension', '.meta')
+        return self.get('storage', 'metadata_extension', 'meta')
 
 
     @property

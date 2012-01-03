@@ -8,6 +8,7 @@ import Queue
 import random
 import shutil
 import threading
+import time
 import traceback
 
 import media_storage
@@ -24,6 +25,9 @@ _EXTENSION_PARTIAL = '.' + CONFIG.storage_partial_extension
 _EXTENSION_METADATA = '.' + CONFIG.storage_metadata_extension
 
 _pool = Queue.Queue() #A queue of files to be uploaded
+_flood_lock = threading.Lock() #A lock used to prevent concurrent accesses to the flooded-server collection
+_flooded_servers = {} #A dictionary of servers considered overloaded, along with the time at which they'll be retried
+_FLOOD_TIMEOUT = 2.5 #The amount of time to wait before re-attempting uploads against a flooded server, in seconds
 
 _logger = logging.getLogger('media_storage.filesystem')
 
@@ -34,6 +38,14 @@ class _Uploader(threading.Thread):
         
         _logger.info("Uploading thread created")
         
+    def _close_file(self, data, path):
+        try:
+            data.close()
+        except Exception:
+            _logger.warn("Unable to close filehandle for %(file)s" % {
+             'file': path,
+            })
+            
     def run(self):
         """
         Gets the next entity from the queue and attempts to upload it,
@@ -43,6 +55,16 @@ class _Uploader(threading.Thread):
         while True:
             _logger.debug("Upload thread waiting for task...")
             ((host, port), contentfile, metafile) = entity = _pool.get()
+            with _flood_lock:
+                server = (host, port)
+                timeout = _flooded_servers.get(server)
+                if timeout:
+                    if timeout < time.time():
+                        del _flooded_servers[server]
+                    else:
+                        _logger.debug("Record retrieved is associated with a flooded server and wil be re-queued")
+                        _upload_failure(entity)
+                        continue
             client = media_storage.Client(host, port)
             
             try:
@@ -57,14 +79,7 @@ class _Uploader(threading.Thread):
                  'f': contentfile,
                 })
                 data = open(contentfile, 'rb')
-                def _close_data():
-                    try:
-                        data.close()
-                    except Exception:
-                        _logger.warn("Unable to close filehandle for %(file)s" % {
-                         'file': contentfile,
-                        })
-                        
+                
                 _logger.info("Uploading '%(uid)s'..." % {
                  'uid': metadata['uid'],
                 })
@@ -77,20 +92,22 @@ class _Uploader(threading.Thread):
                  timeout=CONFIG.upload_timeout
                 )
             except media_storage.InvalidRecordError:
-                _close_data()
+                self._close_file(data, contentfile) #Must be done here, since Microsoft filesystems don't support unlinking open files
                 _logger.error("The entity '%(uid)s' was submitted with invalid metadata and cannot be uploaded; its files will be unlinked" % {
                  'uid': metadata['uid'],
                 })
                 _upload_success(entity)
             except Exception as e:
-                _close_data()
+                self._close_file(data, contentfile) #Done here for consistency, since Microsoft filesystems don't support unlinking open files
                 _logger.error("An unexpected error occurred and the entity '%(uid)s' will be re-queued; traceback follows:\n%(traceback)s" % {
                  'uid': metadata['uid'],
                  'traceback': traceback.format_exc(),
                 })
                 _upload_failure(entity)
+                with _flood_lock:
+                    _flooded_servers[(host, port)] = time.time() + _FLOOD_TIMEOUT
             else:
-                _close_data()
+                self._close_file(data, contentfile) #Must be done here, since Microsoft filesystems don't support unlinking open files
                 _logger.info("The entity '%(uid)s' has been successfully uploaded and its files will be unlinked" % {
                  'uid': metadata['uid'],
                 })
@@ -115,7 +132,7 @@ def add_entity(host, port, path, meta):
              'path': target_path,
             })
             try:
-                os.path.makedirs(target_path, 0700)
+                os.makedirs(target_path, 0700)
             except OSError as e:
                 if e.errno == 17:
                     _logger.debug("Directory %(path)s already exists" % {
@@ -145,9 +162,9 @@ def add_entity(host, port, path, meta):
         _logger.debug("Writing metadata to %(destination)s..." % {
          'destination': metafile,
         })
-        metafile = open(metafile, 'wb')
-        metafile.write(json.dumps(meta))
-        metafile.close()
+        metafile_fp = open(metafile, 'wb')
+        metafile_fp.write(json.dumps(meta))
+        metafile_fp.close()
         
         _logger.debug("Renaming data from %(source)s to %(destination)s..." % {
          'source': tempfile,
@@ -158,9 +175,9 @@ def add_entity(host, port, path, meta):
         summary = "Unable to write files to disk; stack trace follows:\n" + trceback.format_exc()
         _logger.critical(summary)
         mail.send_alert(summary)
+    else:
+        _pool.put(((host.encode('utf-8'), port), permfile.encode('utf-8'), metafile.encode('utf-8')))
         
-    _pool.put(((host, port), permfile, metafile))
-    
 def _upload_success(entity):
     ((host, port), contentfile, metafile) = entity
     for filename in (contentfile, metafile):
@@ -168,7 +185,7 @@ def _upload_success(entity):
          'f': filename,
         })
         try:
-            os.unlink(file)
+            os.unlink(filename)
         except Exception as e:
             _logger.warn("Unable to unlink %(f)s: %(error)s" % {
              'f': filename,
@@ -187,11 +204,11 @@ def _populate_pool():
     '.meta' file, is removed because it was not fully transferred before a crash.
     """
     entities = []
-    for directory in (d for d in os.listdir(CONFIG.storage_path) if os.path.isdir(d)):
+    for directory in (d for d in os.listdir(CONFIG.storage_path) if os.path.isdir(os.path.join(CONFIG.storage_path, d))):
         try:
             (host, port) = directory.rsplit('_', 1)
             port = int(port)
-            directory = CONFIG.storage_path + os.path.sep + directory + os.path.sep
+            directory = os.path.join(CONFIG.storage_path, directory) + os.path.sep
         except Exception as e:
             _logger.warn("Invalid directory; does not imply a server address: %(root)s/%(dirname)s" % {
              'root': CONFIG.storage_path,
@@ -212,7 +229,7 @@ def _populate_pool():
                     })
                     
             for filename in (directory + f for f in os.listdir(directory) if not '.' in f):
-                if not os.path.isfile("%(base)s%(ext)" % {
+                if not os.path.isfile("%(base)s%(ext)s" % {
                  'base': filename,
                  'ext': _EXTENSION_METADATA,
                 }):
