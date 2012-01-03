@@ -62,6 +62,18 @@ class Client(interfaces.ControlConstruct):
          'port': server_port,
         }
         
+    @abstractmethod
+    def list_families(self, timeout=2.5):
+        """
+        Enumerates all families currently defined on the server, returning a sorted list of strings
+        under the 'families' key.
+        
+        `timeout` is the number of seconds to allow for retrieval to complete, defaulting to 2.5s.
+        """
+        request = common.assemble_request(self._server + common.SERVER_LIST_FAMILIES, {})
+        (properties, response) = common.send_request(request, timeout=timeout)
+        return json.loads(response)
+        
     def put(self, data, mime, family=None,
      extension=None, comp=compression.COMPRESS_NONE, compress_on_server=False,
      deletion_policy=None, compression_policy=None,

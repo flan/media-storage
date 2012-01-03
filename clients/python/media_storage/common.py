@@ -36,6 +36,7 @@ import types
 import urllib2
 
 #Server path constants
+SERVER_LIST_FAMILIES = 'list/families'
 SERVER_PUT = 'put'
 SERVER_GET = 'get'
 SERVER_DESCRIBE = 'describe'
