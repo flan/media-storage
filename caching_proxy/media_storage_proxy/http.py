@@ -14,7 +14,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         return self.client_address[0]
         
-    def log_message(self):
+    def log_message(self, *args):
         """
         Logging happens internally.
         """
@@ -48,7 +48,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         _logger.debug("Retrieval request received from %(addr)s" % {
          'addr': self.address_string(),
         })
-        request = json.loads(self.rfile.read())
+        request = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
         _logger.info("Attempting to serve request for content of '%(uid)s' from %(addr)s..." % {
          'uid': request['uid'],
          'addr': self.self.address_string(),
@@ -72,7 +72,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         _logger.debug("Description request received from %(addr)s" % {
          'addr': self.address_string(),
         })
-        request = json.loads(self.rfile.read())
+        request = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
          _logger.info("Attempting to serve request for description of '%(uid)s' from %(addr)s..." % {
          'uid': request['uid'],
          'addr': self.self.address_string(),

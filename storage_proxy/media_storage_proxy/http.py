@@ -3,8 +3,10 @@ import BaseHTTPServer
 import json
 import logging
 import os
+import random
 import SocketServer
 import threading
+import traceback
 import uuid
 
 from config import CONFIG
@@ -19,7 +21,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         return self.client_address[0]
         
-    def log_message(self):
+    def log_message(self, *args):
         """
         Logging happens internally.
         """
@@ -39,7 +41,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
              'addr': self.address_string(),
             })
             
-            request = json.loads(self.rfile.read())
+            request = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
             
             record = {
              'uid': request.get('uid') or uuid.uuid1().hex,

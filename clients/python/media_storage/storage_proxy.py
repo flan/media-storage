@@ -37,6 +37,7 @@ Provides an implementation for the proxy client.
 import json
 
 import interfaces
+import common
 import compression
 
 class StorageProxyClient(interfaces.StorageConstruct):

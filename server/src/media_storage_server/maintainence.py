@@ -95,7 +95,7 @@ class _PolicyMaintainer(_Maintainer):
                 for record in database.enumerate_where({
                  '$or': [
                   {self._fixed_field: {'$lt': int(time.time())}},
-                  {self._stale_field: {'$lt': int(time.time())}},
+                  {self._stale_query: {'$lt': int(time.time())}},
                  ],
                 }):
                     _logger.info("Discovered candidate record: %(uid)s" % {
