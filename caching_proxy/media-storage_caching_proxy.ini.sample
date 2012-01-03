@@ -13,7 +13,7 @@ lzma = yes
 ;The path used for cached files; must end with separator
 path = /home/flan/media-storage_cache/
 ;Metadata file extension
-metadata_extension = .meta
+metadata_extension = meta
 ;The number of seconds to wait between purge cycles
 purge_interval = 5.0
 

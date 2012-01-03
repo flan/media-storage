@@ -46,7 +46,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             record = {
              'uid': request.get('uid') or uuid.uuid1().hex,
              'keys': self._build_keys(request),
-             'physical': request['family'],
+             'physical': request['physical'],
              'policy': request['policy'],
              'meta': request['meta'],
             }
@@ -54,7 +54,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             _logger.info("Writing files for '%(uid)s'..." % {
              'uid': record['uid'],
             })
-            filesystem.add_entity(request['proxy']['server']['host'], request['proxy']['server']['port'], request['data'], record)
+            filesystem.add_entity(request['proxy']['server']['host'], request['proxy']['server']['port'], request['proxy']['data'], record)
             
             _logger.info("Stored '%(uid)s'" % {
              'uid': record['uid'],
