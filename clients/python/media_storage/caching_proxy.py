@@ -33,7 +33,11 @@ GNU Lesser General Public License along with this program. If not, see
 import json
 
 import interfaces
+import common
 import compression
+import tempfile
+
+_TEMPFILE_SIZE = 256 * 1024 #Keep reasonable-sized tempfiles in memory
 
 class CachingProxyClient(interfaces.RetrievalConstruct):
     """
@@ -64,9 +68,10 @@ class CachingProxyClient(interfaces.RetrievalConstruct):
     def get(self, uid, read_key, output_file=None, decompress_on_server=False, timeout=5.0):
         """
         Retrieves the requested data from the local proxy, returning its MIME and the decompressed
-        content as an open filehandle to an on-disk file in a tuple.
+        content as an open filehandle in a tuple.
         
-        `output_file` is ignored.
+        `output_file` is the path of the file to which the response is written; an anonymous
+        tempfile is used by default. If supplied, the caller is responsble for cleaning it up.
         
         `decompress_on_server` is ignored; the caching proxy is responsible for that.
         
@@ -87,8 +92,15 @@ class CachingProxyClient(interfaces.RetrievalConstruct):
          },
         })
         (properties, response) = common.send_request(request, timeout=timeout)
-        response = json.loads(response)
-        return (properties.get(common.PROPERTY_CONTENT_TYPE), open(response['filePath'], 'rb'))
+        
+        if not output_file:
+            output = tempfile.SpooledTemporaryFile(_TEMPFILE_SIZE)
+        else:
+            output = open(output_file, 'wb')
+        output.write(response)
+        output.seek(0)
+        
+        return (properties.get(common.PROPERTY_CONTENT_TYPE), output)
         
     def describe(self, uid, read_key, timeout=2.5):
         """

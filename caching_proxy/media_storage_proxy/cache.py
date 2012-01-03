@@ -2,6 +2,7 @@
 Manages cache resources.
 """
 import json
+import logging
 import os
 import threading
 import time
@@ -14,14 +15,15 @@ import mail
 
 #Apply compression algorithm limiting
 import media_storage.compression as compression
-compression.SUPPORTED_FORMATS = tuple(config.compression_formats.intersection(compression.SUPPORTED_FORMATS))
+compression.SUPPORTED_FORMATS = tuple(CONFIG.compression_formats.intersection(compression.SUPPORTED_FORMATS))
 del compression
 
-_EXTENSION_PARTIAL = '.' + CONFIG.storage_partial_extension
 _EXTENSION_METADATA = '.' + CONFIG.storage_metadata_extension
 
 _cache_lock = threading.Lock()
 _cache = [] #Contains tuples of expiration times and paths
+
+_logger = logging.getLogger('media_storage.cache')
 
 class _Purger(threading.Thread):
     def __init__(self):
@@ -34,26 +36,29 @@ class _Purger(threading.Thread):
         """
         Iterates over `_cache`, removing any files that have expired.
         """
+        global _cache
         while True:
             current_time = int(time.time())
-            with _cache_lock as lock:
+            with _cache_lock:
                 _cache.sort()
                 for (i, (expiration, (contentfile, metafile))) in enumerate(_cache):
                     if expiration <= current_time:
-                        for file in (contentfile, metafile):
+                        for path in (contentfile, metafile):
                             _logger.info("Unlinking expired cached file %(path)s..." % {
                              'path': path,
                             })
                             try:
-                                os.unlink(file)
+                                os.unlink(path)
                             except Exception as e:
                                 _logger.error("Unable to unlink %(path)s: %(error)s" % {
                                  'path': path,
                                  'error': str(e),
                                 })
                     else:
-                        cache = cache[i + 1:]
+                        _cache = _cache[i + 1:]
                         break
+                else: #Everything was expired
+                    _cache = _cache[:0]
             time.sleep(CONFIG.storage_purge_interval)
             
 def _download(host, port, uid, read_key, contentfile, metafile):
@@ -62,12 +67,12 @@ def _download(host, port, uid, read_key, contentfile, metafile):
         client.get(uid, read_key, output_file=cf, decompress_on_server=False, timeout=CONFIG.rules_timeout)
     with open(metafile, 'wb') as mf:
         meta = client.describe(uid, read_key, timeout=CONFIG.rules_timeout)
-        meta['keys']['read'] = read_key
+        meta['keys'] = {'read': read_key,}
         mf.write(json.dumps(meta))
         
-    with _cache_lock as lock:
+    with _cache_lock:
         _cache.append((
-         min(CONFIG.rules_cache_max_time, max(CONFIG.rules_cache_min_time, meta['meta'].get('_cache:ttl', 0))),
+         min(CONFIG.rules_max_cache_time, max(CONFIG.rules_min_cache_time, meta['meta'].get('_cache:ttl', 0))),
          (contentfile, metafile)
         ))
         
@@ -84,7 +89,7 @@ def _retrieve(host, port, uid, read_key, content):
              'path': target_path,
             })
             try:
-                os.path.makedirs(target_path, 0700)
+                os.makedirs(target_path, 0700)
             except OSError as e:
                 if e.errno == 17:
                     _logger.debug("Directory %(path)s already exists" % {
@@ -95,7 +100,7 @@ def _retrieve(host, port, uid, read_key, content):
                     
         contentfile = "%(path)s%(name)s" % {
          'path': target_path,
-         'name': meta['uid'],
+         'name': uid,
         }
         metafile = "%(contentfile)s%(ext)s" % {
          'contentfile': contentfile,
@@ -142,21 +147,21 @@ def _retrieve(host, port, uid, read_key, content):
     return None
     
 def get(host, port, uid, read_key):
-    result = _retrieve(host, port, uid, read_key)
+    result = _retrieve(host, port, uid, read_key, True)
     if result:
         (content, meta) = result
         return (meta['physical']['format']['mime'], content)
     return None
     
 def describe(host, port, uid, read_key):
-    return _retrieve(host, port, uid, read_key)
+    return _retrieve(host, port, uid, read_key, False)
     
-def _clear_pool(self):
+def _clear_pool():
     """
     Removes all cached files on startup.
     """
     for (basedir, dirnames, filenames) in os.walk(CONFIG.storage_path):
-        for filename in (basedir + f for f in filenames):
+        for filename in (basedir + os.path.sep + f for f in filenames):
             _logger.info("Unlinking old cached file %(filename)s..." % {
              'filename': filename,
             })

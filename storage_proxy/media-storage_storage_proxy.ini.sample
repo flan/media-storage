@@ -11,7 +11,7 @@ lzma = yes
 
 [storage]
 ;The path used for buffered files; must end with separator
-path = /home/flan/media-storage_proxy/
+path = /home/flan/media-storage_storage/
 ;Partially transferred file extension
 partial_extension = part
 ;Metadata file extension
