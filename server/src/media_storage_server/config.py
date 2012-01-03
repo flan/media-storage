@@ -103,6 +103,15 @@ class _Settings(_Config):
     For details on what these attributes mean, please see the sample config file.
     """
     @property
+    def run_as_daemon(self):
+        return self.getboolean('general', 'run_as_daemon', True)
+        
+    @property
+    def pidfile(self):
+        return self.get('general', 'pidfile', '/var/run/media-storage.pid')
+        
+        
+    @property
     def http_port(self):
         return self.getint('http', 'port', 1234)
         

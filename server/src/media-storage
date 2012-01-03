@@ -7,6 +7,9 @@ import signal
 import time
 import traceback
 
+import daemon
+import lockfile
+
 from media_storage_server.config import CONFIG
 import media_storage_server.compression as compression
 import media_storage_server.mail as mail
@@ -36,15 +39,25 @@ def _setup_logging(logger):
         ))
         logger.addHandler(file_logger)
         
-    if CONFIG.log_console_verbosity: #Determine whether console-based logging is desired.
-        console_logger = logging.StreamHandler()
-        console_logger.setLevel(getattr(logging, CONFIG.log_console_verbosity))
-        console_logger.setFormatter(logging.Formatter(
-         "%(asctime)s : %(levelname)s : %(name)s:%(lineno)d[%(threadName)s] : %(message)s"
-        ))
-        logger.addHandler(console_logger)
-
+    if not CONFIG.run_as_daemon: #Daemon-style execution disables console-based logging
+        if CONFIG.log_console_verbosity: #Determine whether console-based logging is desired.
+            console_logger = logging.StreamHandler()
+            console_logger.setLevel(getattr(logging, CONFIG.log_console_verbosity))
+            console_logger.setFormatter(logging.Formatter(
+             "%(asctime)s : %(levelname)s : %(name)s:%(lineno)d[%(threadName)s] : %(message)s"
+            ))
+            logger.addHandler(console_logger)
+            
 if __name__ == '__main__':
+    if CONFIG.run_as_daemon:
+        daemon_context = daemon.DaemonContext(
+         pidfile=lockfile.FileLock(CONFIG.pidfile),
+        )
+        daemon_context.open()
+    pidfile = open(CONFIG.pidfile, 'wb')
+    pidfile.write(str(os.getpid()))
+    pidfile.close()
+    
     #Set up logging
     _logger = logging.getLogger('')
     _logger.setLevel(logging.DEBUG)

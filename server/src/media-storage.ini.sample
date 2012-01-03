@@ -1,4 +1,7 @@
 [general]
+;Must be disabled to get console output, but enabled for proper behaviour in daemonised contexts
+run_as_daemon = yes
+pidfile = /home/flan/.media-storage.pid
 
 [http]
 port = 1234
