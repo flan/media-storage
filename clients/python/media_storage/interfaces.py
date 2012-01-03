@@ -35,7 +35,21 @@ from abc import ABCMeta, abstractmethod
 
 import compression
 
-class StorageConstruct(object):
+class BaseConstruct(object):
+    """
+    Defines methods that must be implemented by all clients.
+    """
+    __metaclass__ = ABCMeta
+    
+    @abstractmethod
+    def ping(self, timeout=1.0):
+        """
+        Pings the server to indicate whether it is alive or not; an exception is raised on error.
+        
+        `timeout` is the number of seconds to wait for a response.
+        """
+        
+class StorageConstruct(BaseConstruct):
     """
     Defines methods that must be implemented to allow data to be stored by a client.
     """
@@ -90,7 +104,7 @@ class StorageConstruct(object):
         of seconds to wait for a response.
         """
         
-class RetrievalConstruct(object):
+class RetrievalConstruct(BaseConstruct):
     """
     Defines methods that must be implemented to allow data to be retrieved by a client.
     """
@@ -125,7 +139,7 @@ class RetrievalConstruct(object):
         """
         
         
-class ControlConstruct(StorageConstruct, RetrievalConstruct):
+class ControlConstruct(BaseConstruct, StorageConstruct, RetrievalConstruct):
     """
     Defines methods that must be implemented to allow data to be manipulated by a client.
     
