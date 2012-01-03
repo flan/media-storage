@@ -126,7 +126,10 @@ class DeletionMaintainer(_PolicyMaintainer):
         try:
             filesystem.unlink(record)
         except Exception as e:
-            _logger.warn("Unable to unlink record")
+            _logger.warn("Unable to unlink record: %(error)s" % {
+             'error': str(e),
+            })
+            return
         else:
             database.drop_record(record['_id'])
             
