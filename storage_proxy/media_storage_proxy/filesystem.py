@@ -17,7 +17,7 @@ import mail
 
 #Apply compression algorithm limiting
 import media_storage.compression as compression
-compression.SUPPORTED_FORMATS = tuple(config.compression_formats.intersection(compression.SUPPORTED_FORMATS))
+compression.SUPPORTED_FORMATS = tuple(CONFIG.compression_formats.intersection(compression.SUPPORTED_FORMATS))
 del compression
 
 _EXTENSION_PARTIAL = '.' + CONFIG.storage_partial_extension

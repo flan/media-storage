@@ -77,7 +77,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
          'write': keys and keys.get('write') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
         }
         
-class _ThreadedHTTPServer(ThreadingMixIn.ThreadingMixIn, BaseHTTPServer.HTTPServer):
+class _ThreadedHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     """
     Spawns new threads to handle inbound HTTP requests.
     """

@@ -109,7 +109,9 @@ class _Settings(_Config):
         
     @property
     def compression_formats(self):
-        return ((key for (key, value) in self.items('compression') if key.lower() == 'yes'))
+        if self.has_section('compression'):
+            return set((key for (key, value) in self.items('compression') if key.lower() == 'yes'))
+        return set()
         
         
     @property
