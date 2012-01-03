@@ -38,13 +38,13 @@ query_size = 100
 ;If no window values are specified, the thread won't be instantiated at all
 ;Sleep times cause the thread to wait for that many seconds, after completing a sweep, before
 ;starting again
-deletion_windows = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
+deletion_windows = mo[16:00..23:59] tu[16:00..23:59] we[16:00..23:59] th[16:00..23:59] fr[16:00..23:59] sa[16:00..23:59] su[16:00..23:59]
 deletion_sleep = 300
 
-compression_windows = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
+compression_windows = mo[0:00..3:59] tu[0:00..3:59] we[0:00..3:59] th[0:00..3:59] fr[0:00..3:59] sa[0:00..3:59] su[00:00..3:59]
 compression_sleep = 1800
 
-database_windows = sa[22:00..23:59] su[0:00..2:00,2:30..4:30]
+database_windows = fr[20:00..23:59] sa[0:00..6:00,20:00..23:59] su[0:00..6:00,20:00..23:59] mo[0:00..6:00]
 database_sleep = 43200
 
 filesystem_windows = 
