@@ -345,7 +345,6 @@ class GetHandler(BaseHandler):
                 chunk = data.read(_CHUNK_SIZE)
                 if chunk:
                     self.write(chunk)
-                    self.flush()
                 else:
                     break
                     
