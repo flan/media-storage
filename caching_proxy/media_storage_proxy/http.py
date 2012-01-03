@@ -23,6 +23,14 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         
     def do_POST(self):
+        if self.path == '/ping':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+             'online': True,
+            }))
+            
         try:
             if self.path == '/get':
                 self._get()

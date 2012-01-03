@@ -27,6 +27,14 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         
     def do_POST(self):
+        if self.path == '/ping':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+             'online': True,
+            }))
+            
         if not self.path == '/put':
             _logger.warn("Request received for unsupported path %(path)s from %(addr)s" % {
              'path': self.path,
