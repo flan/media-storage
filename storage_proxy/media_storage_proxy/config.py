@@ -109,8 +109,9 @@ class _Settings(_Config):
         
     @property
     def compression_formats(self):
-        return ((key for (key, value) in self.items('compression') if key.lower() == 'yes'))
-        
+        if self.has_section('compression'):
+            return set((key for (key, value) in self.items('compression') if key.lower() == 'yes'))
+        return set()
         
     @property
     def storage_path(self):
@@ -204,9 +205,9 @@ class _Settings(_Config):
 ####################################################################################################
 CONFIG = _Settings()
 CONFIG.read([
- '/etc/media-storage/media-storage_caching_proxy.ini',
- os.path.expanduser('~/.media-storage/media-storage_caching_proxy.ini'),
- './media-storage_caching_proxy.ini',
+ '/etc/media-storage/media-storage_storage_proxy.ini',
+ os.path.expanduser('~/.media-storage/media-storage_storage_proxy.ini'),
+ './media-storage_storage_proxy.ini',
 ]) #Load config data in Linux-standard order
 if len(sys.argv) > 1:
    CONFIG.read(sys.argv[1]) 
