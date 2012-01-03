@@ -62,7 +62,6 @@ class Client(interfaces.ControlConstruct):
          'port': server_port,
         }
         
-    @abstractmethod
     def ping(self, timeout=1.0):
         """
         Indicates whether the server is online or not, raising an exception in case of failure.
@@ -73,7 +72,6 @@ class Client(interfaces.ControlConstruct):
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)
         
-    @abstractmethod
     def list_families(self, timeout=2.5):
         """
         Enumerates all families currently defined on the server, returning a sorted list of strings
