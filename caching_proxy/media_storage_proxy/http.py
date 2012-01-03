@@ -1,11 +1,14 @@
 import BaseHTTPServer
 import json
+import logging
 import SocketServer
 import threading
 import traceback
 
 from config import CONFIG
 import cache
+
+_logger = logging.getLogger('media_storage.http')
 
 class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     def address_string(self):
@@ -21,9 +24,9 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         
     def do_POST(self):
         try:
-            if path == '/get':
+            if self.path == '/get':
                 self._get()
-            elif path == '/describe':
+            elif self.path == '/describe':
                 self._describe()
             else:
                 _logger.warn("Request received for unsupported path %(path)s from %(addr)s" % {
@@ -51,7 +54,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         request = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
         _logger.info("Attempting to serve request for content of '%(uid)s' from %(addr)s..." % {
          'uid': request['uid'],
-         'addr': self.self.address_string(),
+         'addr': self.address_string(),
         })
         
         content = cache.get(
@@ -73,9 +76,9 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
          'addr': self.address_string(),
         })
         request = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-         _logger.info("Attempting to serve request for description of '%(uid)s' from %(addr)s..." % {
+        _logger.info("Attempting to serve request for description of '%(uid)s' from %(addr)s..." % {
          'uid': request['uid'],
-         'addr': self.self.address_string(),
+         'addr': self.address_string(),
         })
         
         description = cache.describe(
