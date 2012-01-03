@@ -135,6 +135,15 @@ class ControlConstruct(StorageConstruct, RetrievalConstruct):
     __metaclass__ = ABCMeta
     
     @abstractmethod
+    def list_families(self, timeout=2.5):
+        """
+        Enumerates all families currently defined on the server, returning a sorted list of strings
+        under the 'families' key.
+        
+        `timeout` is the number of seconds to allow for retrieval to complete.
+        """
+        
+    @abstractmethod
     def unlink(self, uid, write_key, timeout=2.5):
         """
         Unlinks the identified data from the environment.
