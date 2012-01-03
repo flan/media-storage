@@ -139,7 +139,7 @@ class RetrievalConstruct(BaseConstruct):
         """
         
         
-class ControlConstruct(BaseConstruct, StorageConstruct, RetrievalConstruct):
+class ControlConstruct(StorageConstruct, RetrievalConstruct):
     """
     Defines methods that must be implemented to allow data to be manipulated by a client.
     

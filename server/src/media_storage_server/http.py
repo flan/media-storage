@@ -152,8 +152,10 @@ class PingHandler(BaseHandler):
         
 class ListFamiliesHandler(BaseHandler):
     def _post(self):
+        families = set(database.list_families()).union(state.get_families())
+        families.discard(None)
         return {
-         'families': sorted(set(database.list_families()).union(state.get_families())),
+         'families': sorted(families),
         }
         
 class PutHandler(BaseHandler):
