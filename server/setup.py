@@ -29,7 +29,7 @@ setup(
    'src/media-storage.ini.sample',
   ]),
   ('/etc/init.d', [
-   'src/init/media-storage',
+   'init/media-storage',
   ]),
  ],
  scripts = [
