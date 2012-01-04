@@ -511,18 +511,18 @@ class QueryHandler(BaseHandler):
                             })
             query[key] = value
             
-            records = []
-            for record in database.enumerate_where(query):
-                if not trust.read:
-                    del record['keys']
-                else:
-                    record['physical']['path'] = filesystem.resolve_path(record)
-                del record['physical']['minRes']
-                records.append(record)
-            return {
-             'records': records,
-            }
-            
+        records = []
+        for record in database.enumerate_where(query):
+            if not trust.read:
+                del record['keys']
+            else:
+                record['physical']['path'] = filesystem.resolve_path(record)
+            del record['physical']['minRes']
+            records.append(record)
+        return {
+         'records': records,
+        }
+        
 class StatusHandler(BaseHandler):
     def _post(self):
         process = psutil.Process(os.getpid())
