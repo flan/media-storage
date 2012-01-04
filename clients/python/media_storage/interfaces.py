@@ -151,8 +151,7 @@ class ControlConstruct(StorageConstruct, RetrievalConstruct):
     @abstractmethod
     def list_families(self, timeout=2.5):
         """
-        Enumerates all families currently defined on the server, returning a sorted list of strings
-        under the 'families' key.
+        Enumerates all families currently defined on the server, returning a sorted list of strings.
         
         `timeout` is the number of seconds to allow for retrieval to complete.
         """
