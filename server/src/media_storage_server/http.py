@@ -448,23 +448,21 @@ class QueryHandler(BaseHandler):
         if not trust.read:
             query['keys.read'] = None #Anonymous records only
             
-        and_block = []
         def _assemble_block(name, attribute):
+            attribute_block = {}
             _min = request[name]['min']
             _max = request[name]['max']
             _block = {}
             if _min:
-                _block['$gte'] = _min
+                attribute_block['$gte'] = _min
             if _max:
-                _block['$lte'] = _max
-            if _block:
-                and_block.append({attribute: _block})
+                attribute_block['$lte'] = _max
+            if attribute_block:
+                query[attribute] = attribute_block
         _assemble_block('ctime', 'physical.ctime')
         _assemble_block('atime', 'physical.atime')
         _assemble_block('accesses', 'stats.accesses')
-        if and_block:
-            query['$and'] = and_block
-            
+        
         query['physical.family'] = request['family']
         
         mime = request['mime']
