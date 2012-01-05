@@ -1,5 +1,30 @@
 #!/usr/bin/env python
 """
+media-storage
+=============
+
+As the entry-point of the media-storage architecture's server-component, this runs a daemon
+instance, using system-location-standard config files, but also permitting a custom config file to
+be explicitly specified as the first argument on the command line, meant for cases where multiple
+daemons will co-exist on a single server.
+ 
+Legal
++++++
+ This file is part of media-storage.
+ media-storage is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+ (C) Neil Tallim, 2012 <flan@uguu.ca>
 """
 import logging
 import logging.handlers
