@@ -1,3 +1,27 @@
+"""
+media-storage_server.backends.directory
+=======================================
+
+Provides an abstraction and partial implementation of directory-oriented backends.
+
+Legal
++++++
+ This file is part of media-storage.
+ media-storage is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+ (C) Neil Tallim, 2012 <flan@uguu.ca>
+"""
 from abc import ABCMeta, abstractmethod
 import logging
 
@@ -15,9 +39,12 @@ class DirectoryBackend(common.BaseBackend):
     A backend base-class for directory-based filesystems.
     """
     __metaclass__ = ABCMeta
-    _last_accessed_directory = None #A TLB-like placeholder
+    _last_accessed_directory = None #A TLB-like placeholder, preventing unnecessary directory-creation requests
     
     def get(self, path):
+        """
+        See ``common.BaseBackend.get()``.
+        """
         _logger.debug("Retrieving filesystem entity at %(path)s..." % {
          'path': path,
         })
@@ -28,6 +55,12 @@ class DirectoryBackend(common.BaseBackend):
         raise NotImplementedError("'_get()' needs to be overridden in a subclass")
         
     def put(self, path, data):
+        """
+        See ``common.BaseBackend.put()``.
+        
+        If the required directory structure does not yet exist, it is created before the data is
+        written.
+        """
         _logger.info("Setting filesystem entity at %(path)s..." % {
          'path': path,
         })
@@ -46,7 +79,10 @@ class DirectoryBackend(common.BaseBackend):
         
     def unlink(self, path, rmcontainer=False):
         """
-        If `rmcontainer` is set, empty directories will be removed recursively.
+        See ``common.BaseBackend.unlink()``.
+        
+        If `rmcontainer` is set, directories are recursively unlinked until the root level is
+        reached, so long as they are empty.
         """
         _logger.info("Unlinking filesystem entity at %(path)s..." % {
          'path': path,
@@ -77,6 +113,9 @@ class DirectoryBackend(common.BaseBackend):
         raise NotImplementedError("'_unlink()' needs to be overridden in a subclass")
         
     def mkdir(self, path):
+        """
+        Creates a directory-chain on the filesystem, until `path` is reached.
+        """
         _logger.info("Creating directory at %(path)s..." % {
          'path': path,
         })
@@ -87,6 +126,9 @@ class DirectoryBackend(common.BaseBackend):
         raise NotImplementedError("'_mkdir()' needs to be overridden in a subclass")
         
     def rmdir(self, path):
+        """
+        Removes the directory identified as `path` from the filesystem.
+        """
         _logger.debug("Unlinking directory at %(path)s..." % {
          'path': path,
         })
@@ -97,6 +139,9 @@ class DirectoryBackend(common.BaseBackend):
         raise NotImplementedError("'_rmdir()' needs to be overridden in a subclass")
         
     def file_exists(self, path):
+        """
+        See ``common.BaseBackend.file_exists()``.
+        """
         _logger.debug("Testing existence of filesystem entity at %(path)s..." % {
          'path': path,
         })
@@ -107,6 +152,9 @@ class DirectoryBackend(common.BaseBackend):
         raise NotImplementedError("'_file_exists()' needs to be overridden in a subclass")
         
     def walk(self):
+        """
+        See ``common.BaseBackend.walk()``.
+        """
         _logger.debug("Walking filesystem...")
         return self._walk(path)
         

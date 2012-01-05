@@ -353,6 +353,11 @@ class GetHandler(BaseHandler):
                 
             _logger.debug("Returning entity...")
             self.set_header('Content-Type', record['physical']['format']['mime'])
+            if 'ext' in record['physical']['format']:
+                self.set_header('Ms-File_ext', record['physical']['format']['ext'])
+            for (key, value) in record['meta'].items():
+                if key.startswith('_file:'):
+                    self.set_header('Ms-File' + key[6:], value)
             if applied_compression:
                 self.set_header('Media-Storage-Applied-Compression', applied_compression)
             while True:

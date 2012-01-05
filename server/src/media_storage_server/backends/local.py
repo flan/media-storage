@@ -1,3 +1,27 @@
+"""
+media-storage_server.backends.directory
+=======================================
+
+Provides an abstraction and partial implementation of directory-oriented backends.
+
+Legal
++++++
+ This file is part of media-storage.
+ media-storage is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+ (C) Neil Tallim, 2012 <flan@uguu.ca>
+"""
 import logging
 import os
 
@@ -12,6 +36,10 @@ _CHUNK_SIZE = 32 * 1024 #Work with 32K chunks
 _logger = logging.getLogger("media_storage.backends.local")
 
 def _handle_error(e):
+    """
+    A generic error-handling construct that raises the appropriae exception depending on the problem
+    that occurred.
+    """
     if e.errno == 2:
         raise FileNotFoundError(str(e))
     elif e.errno == 13:
@@ -24,6 +52,9 @@ def _handle_error(e):
         raise NoSpaceError(str(e))
         
 class LocalBackend(directory.DirectoryBackend):
+    """
+    Defines a final implementation for local contemporary filesystems.
+    """
     _path = None #The path on which this backend operates
     
     def __init__(self, path):
