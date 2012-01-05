@@ -55,8 +55,10 @@ HEADER_SUPPORTED_COMPRESSION_DELIMITER = ';'
 HEADER_APPLIED_COMPRESSION = 'Media-Storage-Applied-Compression'
 HEADER_CONTENT_TYPE = 'Content-Type'
 #Response properties
+PROPERTY_CONTENT_LENGTH = 'content-length'
 PROPERTY_CONTENT_TYPE = 'content-type'
 PROPERTY_APPLIED_COMPRESSION = 'applied-compression'
+PROPERTY_FILE_ATTRIBUTES = 'file-attributes'
 
 _CHUNK_SIZE = 32 * 1024 #Transfer data in 32k chunks
 
@@ -83,14 +85,19 @@ def transfer_data(source, destination):
     """
     Reads every byte, in reasonable-sized chunks, from the file-like object `source` into the
     file-like object `destination`. No seeking occurs after the transfer is complete.
+    
+    The number of bytes transferred is returned.
     """
+    size = 0
     while True:
         chunk = source.read(_CHUNK_SIZE)
         if not chunk:
             break
         destination.write(chunk)
         destination.flush()
-        
+        size += len(chunk)
+    return size
+    
 def assemble_request(destination, header, headers={}, data=None):
     """
     `destination` is the URI to which the request will be sent.
@@ -156,9 +163,10 @@ def send_request(request, output=None, timeout=10.0):
         properties = {
          PROPERTY_APPLIED_COMPRESSION: response.headers.get(HEADER_APPLIED_COMPRESSION),
          PROPERTY_CONTENT_TYPE: response.headers.get(HEADER_CONTENT_TYPE),
+         PROPERTY_FILE_ATTRIBUTES: dict(((k[7:], v) for (k, v) in response.headers.items() if k.startswith('Ms-File'))),
         }
         if output:
-            transfer_data(response, output)
+            properties[PROPERTY_CONTENT_LENGTH] = transfer_data(response, output)
             output.seek(0)
             return properties
         return (properties, response.read())
