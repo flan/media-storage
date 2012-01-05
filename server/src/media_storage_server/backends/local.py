@@ -58,12 +58,18 @@ class LocalBackend(directory.DirectoryBackend):
     _path = None #The path on which this backend operates
     
     def __init__(self, path):
+        """
+        Ensures that `path` ends with a directory delimiter.
+        """
         if not path.endswith(('/', '\\')):
             self._path = path + os.path.sep
         else:
             self._path = path
             
     def _get(self, path):
+        """
+        Returns an open file handle for the requested file, or raises an exception.
+        """
         target_path = self._path + path
         try:
             return open(target_path, 'rb')
@@ -76,6 +82,12 @@ class LocalBackend(directory.DirectoryBackend):
             raise
             
     def _put(self, path, data):
+        """
+        Attempts to write all content from `data` to the location indicated by `path`, raising an
+        exception on error.
+        
+        `data` is not seeked back to the beginning after this operation completes.
+        """
         target_path = self._path + path
         try:
             target = open(target_path, 'wb')
@@ -125,6 +137,10 @@ class LocalBackend(directory.DirectoryBackend):
                     })
                     
     def _action(self, path, handler):
+        """
+        Performs a generic action, `handler`, which takes `path` as an argument. On error, an
+        exception is raised; on success, the result of invoking `handler` is returned.
+        """
         target_path = self._path + path
         try:
             return handler(target_path)
@@ -137,9 +153,15 @@ class LocalBackend(directory.DirectoryBackend):
             raise
             
     def _unlink(self, path):
+        """
+        Removes the file at `path`, raising an exception on failure.
+        """
         self._action(path, os.unlink)
         
     def _mkdir(self, path):
+        """
+        Creates the requested `path`, and all intermediate paths, raising an exception on failure.
+        """
         target_path = self._path + path
         try:
             os.makedirs(target_path, 0750)
@@ -152,12 +174,23 @@ class LocalBackend(directory.DirectoryBackend):
             raise
             
     def _rmdir(self, path):
+        """
+        Removes the requested `path`, which must be a terminal node and be empty.
+        """
         self._action(path, os.rmdir)
         
     def _file_exists(self, path):
+        """
+        Indicates, with a boolean value, whether a file exists at `path`. If the file cannot be
+        read for any reason, False is returned.
+        """
         return os.path.exists(self._path + path)
         
     def _walk(self):
+        """
+        Provides a generator that enumerates every file in the system, as tuples of (path:str,
+        [file:str]).
+        """
         for (root, dirnames, files) in os.walk(self.path):
             yield (root[len(self._path):], files)
             

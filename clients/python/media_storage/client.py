@@ -138,7 +138,8 @@ class Client(interfaces.ControlConstruct):
     def get(self, uid, read_key, output_file=None, decompress_on_server=False, timeout=5.0):
         """
         Retrieves the requested data from the server, returning its MIME and the decompressed
-        content as a file-like object (optionally that supplied as `output_file`) in a tuple.
+        content as a file-like object (optionally that supplied as `output_file`) in a tuple; the
+        file-like object has a ``length`` parameter that contains its length in bytes.
         
         `output_file` is an optional file-like object to which data should be written (a spooled
         tempfile is used by default).
