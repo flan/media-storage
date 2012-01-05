@@ -150,7 +150,15 @@ def get(host, port, uid, read_key):
     result = _retrieve(host, port, uid, read_key, True)
     if result:
         (content, meta) = result
-        return (meta['physical']['format']['mime'], content)
+        
+        attributes = {}
+        if 'ext' in meta['physical']['format']:
+            attributes['_ext'] = meta['physical']['format']['ext']
+        for (key, value) in meta['meta'].items():
+            if key.startswith('_file:'):
+                attributes[key[6:]] = value
+                
+        return (meta['physical']['format']['mime'], content, attributes)
     return None
     
 def describe(host, port, uid, read_key):

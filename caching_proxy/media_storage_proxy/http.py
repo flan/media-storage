@@ -76,6 +76,8 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.send_response(200)
             self.send_header('Content-Type', content[0])
+            for (key, value) in content[2]:
+                self.send_header('Ms-File' + key, value)
             self.end_headers()
             self.wfile.write(content[1])
             
