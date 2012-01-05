@@ -137,9 +137,8 @@ class Client(interfaces.ControlConstruct):
         
     def get(self, uid, read_key, output_file=None, decompress_on_server=False, timeout=5.0):
         """
-        Retrieves the requested data from the server, returning its MIME, the decompressed
-        content as a file-like object (optionally that supplied as `output_file`), and a dictionary
-        of all file-attribute metadata, in a tuple.
+        Retrieves the requested data from the server, returning its MIME and the decompressed
+        content as a file-like object (optionally that supplied as `output_file`) in a tuple.
         
         `output_file` is an optional file-like object to which data should be written (a spooled
         tempfile is used by default).
@@ -172,11 +171,9 @@ class Client(interfaces.ControlConstruct):
                 output_file.truncate()
                 length = common.transfer_data(output, output_file)
                 output = output_file
-                
-        file_attributes = properties.get(common.PROPERTY_FILE_ATTRIBUTES)
-        file_attributes['_length'] = length
         
-        return (properties.get(common.PROPERTY_CONTENT_TYPE), output, file_attributes)
+        output.length = length
+        return (properties.get(common.PROPERTY_CONTENT_TYPE), output)
         
     def describe(self, uid, read_key, timeout=2.5):
         """
