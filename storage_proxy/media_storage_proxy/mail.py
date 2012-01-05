@@ -46,7 +46,7 @@ def _send_message(message):
          'host': CONFIG.email_host,
          'port': CONFIG.email_port,
         })
-        smtp = smtplib.SMTP(CONFIG.email_host, CONFIG.email_port, timeout=config.email_timeout)
+        smtp = smtplib.SMTP(CONFIG.email_host, CONFIG.email_port, timeout=CONFIG.email_timeout)
         smtp.ehlo()
         if CONFIG.email_tls:
             _logger.info('Enabling TLS...')

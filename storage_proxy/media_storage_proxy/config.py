@@ -170,7 +170,7 @@ class _Settings(_Config):
         
     @property
     def email_tls(self):
-        return self.get('email', 'tls', False)
+        return self.getboolean('email', 'tls', False)
         
     @property
     def email_username(self):
