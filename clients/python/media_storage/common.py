@@ -163,7 +163,7 @@ def send_request(request, output=None, timeout=10.0):
         properties = {
          PROPERTY_APPLIED_COMPRESSION: response.headers.get(HEADER_APPLIED_COMPRESSION),
          PROPERTY_CONTENT_TYPE: response.headers.get(HEADER_CONTENT_TYPE),
-         PROPERTY_FILE_ATTRIBUTES: dict(((k[7:], v) for (k, v) in response.headers.items() if k.startswith('Ms-File'))),
+         PROPERTY_FILE_ATTRIBUTES: dict(((k[7:], v) for (k, v) in response.headers.items() if k.lower().startswith('ms-file'))),
         }
         if output:
             properties[PROPERTY_CONTENT_LENGTH] = transfer_data(response, output)
