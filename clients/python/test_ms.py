@@ -24,10 +24,9 @@ print(repr(x.describe(y['uid'], y['keys']['read'])))
 print
 
 print "Retrieving content..."
-(mime, handle, attribs) = x.get(y['uid'], y['keys']['read'])
+(mime, handle) = x.get(y['uid'], y['keys']['read'])
 print "Mime: " + mime
 print "Content: " + (open('/home/flan/x.wav').read() == handle.read() and 'match' or 'non-match')
-print attribs
 print
 
 print "Updating metadata..."
