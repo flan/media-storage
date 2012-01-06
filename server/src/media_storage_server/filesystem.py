@@ -14,21 +14,17 @@ from backends import (
 from config import CONFIG
 
 _logger = logging.getLogger('media_storage.filesystem')
-
-
-def assemble_filename(record):
-    filename_parts = (record['_id'], record['physical']['format'].get('ext'), record['physical']['format'].get('comp'))
-    return '.'.join((part for part in filename_parts if part))
     
 def resolve_path(record):
     ts = time.gmtime(record['physical']['ctime'])
-    return '%(year)i/%(month)i/%(day)i/%(hour)i/%(min)i/' % {
+    return '%(year)i/%(month)i/%(day)i/%(hour)i/%(min)i/%(uid)s' % {
      'year': ts.tm_year,
      'month': ts.tm_mon,
      'day': ts.tm_mday,
      'hour': ts.tm_hour,
      'min': ts.tm_min - ts.tm_min % record['physical']['minRes'],
-    } + assemble_filename(record)
+     'uid': record['_id'],
+    }
     
 
 class Filesystem(object):
