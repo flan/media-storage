@@ -254,10 +254,6 @@ class PutHandler(BaseHandler):
         if target_compression:
             format['comp'] = target_compression
             
-        extension = header['physical']['format'].get('ext')
-        if extension:
-            format['ext'] = extension
-            
         return format
         
     def _build_policy(self, header):
