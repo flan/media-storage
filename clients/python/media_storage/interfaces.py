@@ -57,7 +57,7 @@ class StorageConstruct(BaseConstruct):
     
     @abstractmethod
     def put(self, data, mime, family=None,
-     extension=None, comp=compression.COMPRESS_NONE, compress_on_server=False,
+     comp=compression.COMPRESS_NONE, compress_on_server=False,
      deletion_policy=None, compression_policy=None,
      meta=None,
      uid=None, keys=None,
@@ -72,7 +72,6 @@ class StorageConstruct(BaseConstruct):
         data in different filesystems or, more simply, as a means of logically separating data in
         queries.
         
-        `extension` is an optional extension to use when suggesting a filename on retrieval;
         `comp` is the type of compression to be applied, as one of the compression type
         constants (defaulting to uncompressed); `compress_on_server` indicates whether compression
         should happen locally (recommended in most cases) or on the server (which will require an
