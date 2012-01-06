@@ -1,6 +1,28 @@
 """
-Runs an asynchronous maintenance thread that handles deletions, compressions,
-and bidirectional orphan-purging.
+media-storage_server.maintenance
+================================
+
+Defines threads that handle system cleanup tasks, like compression and deletion policies, purging
+entries from the database if the corresponding file is manualy deleted, and deleting files if
+database entries are deleted.
+
+Legal
++++++
+ This file is part of media-storage.
+ media-storage is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+ (C) Neil Tallim, 2012 <flan@uguu.ca>
 """
 import logging
 import re
@@ -22,6 +44,10 @@ FILESYSTEM_WINDOWS = None
 _logger = logging.getLogger("media_storage.maintainence")
 
 def parse_windows():
+    """
+    Interprets the execution windows defined in the configuration file to determine when the threads
+    can actually operate.
+    """
     global DELETION_WINDOWS
     DELETION_WINDOWS = _parse_windows(CONFIG.maintainer_deletion_windows, 'deletion policy')
     global COMPRESSION_WINDOWS
@@ -32,6 +58,9 @@ def parse_windows():
     FILESYSTEM_WINDOWS = _parse_windows(CONFIG.maintainer_filesystem_windows, 'filesystem integrity')
     
 def _parse_windows(definition, name):
+    """
+    Provides the actual interpretation logic for thread-execution-windows.
+    """
     _DAY_MAP = {
      'mo': 0,
      'tu': 1,
@@ -64,11 +93,17 @@ def _parse_windows(definition, name):
     return windows
     
 class _Maintainer(threading.Thread):
+    """
+    Provides the foundation of all maintenance threads.
+    """
     def __init__(self):
         threading.Thread.__init__(self)
         self.daemon = True
         
     def _within_window(self, windows):
+        """
+        Provides a boolean value indicating whether the thread can execute or not.
+        """
         ts = time.localtime()
         tc = ts.tm_hour * 60 + ts.tm_min
         ranges = windows.get(ts.tm_wday)
@@ -81,10 +116,17 @@ class _Maintainer(threading.Thread):
         return False
         
 class _PolicyMaintainer(_Maintainer):
+    """
+    Provides an abstract definition of the policy-managing maintener threads.
+    """
     def __init__(self):
         _Maintainer.__init__(self)
         
     def run(self):
+        """
+        Queries the database, looking for any records that match policy criteria. If any matches are
+        found, they're processed, and the operation continues until no new records are discovered.
+        """
         while True:
             while not self._within_window(self._windows):
                 _logger.debug("Not in execution window; sleeping")
@@ -109,6 +151,12 @@ class _PolicyMaintainer(_Maintainer):
             _logger.debug("All records processed; sleeping")
             time.sleep(self._sleep_period)
             
+    def _process_record(self, record):
+        """
+        Performs any policy-specific actions on the given `record`.
+        """
+        raise NotImplementedError("_process_record() must be overridden in a subclass")
+        
 class DeletionMaintainer(_PolicyMaintainer):
     """
     """
