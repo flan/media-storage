@@ -83,7 +83,7 @@ class Client(interfaces.ControlConstruct):
         return json.loads(response)['families']
         
     def put(self, data, mime, family=None,
-     extension=None, comp=compression.COMPRESS_NONE, compress_on_server=False,
+     comp=compression.COMPRESS_NONE, compress_on_server=False,
      deletion_policy=None, compression_policy=None,
      meta=None,
      uid=None, keys=None,
@@ -108,7 +108,6 @@ class Client(interfaces.ControlConstruct):
           'family': family,
           'format': {
            'mime': mime,
-           'ext': extension,
            'comp': comp,
           },
          },
