@@ -43,12 +43,22 @@ class BaseBackend(object):
         raise NotImplementedError("'get()' needs to be overridden in a subclass")
         
     @abstractmethod
-    def put(self, path, data):
+    def put(self, path, data, tempfile):
         """
         Stores the given `data`, a file-like object, in the backend, given a backend-specific
         `path`.
+        
+        If `tempfile` is True, the file is written in a manner such that it will not be committed
+        until `make_permanent()` is called.
         """
         raise NotImplementedError("'put()' needs to be overridden in a subclass")
+        
+    @abstractmethod
+    def make_permanent(self, path):
+        """
+        Makes a file stored at `path` via `put(tempfile=True)` permanent.
+        """
+        raise NotImplementedError("'make_permanent()' needs to be overridden in a subclass")
         
     @abstractmethod
     def unlink(self, path, rmcontainer=False):

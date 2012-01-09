@@ -54,7 +54,7 @@ class DirectoryBackend(common.BaseBackend):
     def _get(self, path):
         raise NotImplementedError("'_get()' needs to be overridden in a subclass")
         
-    def put(self, path, data):
+    def put(self, path, data, tempfile):
         """
         See ``common.BaseBackend.put()``.
         
@@ -71,11 +71,21 @@ class DirectoryBackend(common.BaseBackend):
             except CollisionError: #Competition for directory ID
                 pass
             self._last_accessed_directory = directory
-        self._put(path, data)
+        self._put(path, data, tempfile)
         
     @abstractmethod
-    def _put(self, path, data):
+    def _put(self, path, data, tempfile):
         raise NotImplementedError("'_put()' needs to be overridden in a subclass")
+        
+    def make_permanent(self, path):
+        """
+        See ``common.BaseBackend.make_permanent()``.
+        """
+        self._make_permanent(path)
+        
+    @abstractmethod
+    def _make_permanent(self, path):
+        raise NotImplementedError("'_make_permanent()' needs to be overridden in a subclass")
         
     def unlink(self, path, rmcontainer=False):
         """
