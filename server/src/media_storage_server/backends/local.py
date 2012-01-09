@@ -158,6 +158,21 @@ class LocalBackend(directory.DirectoryBackend):
         """
         self._action(path, os.unlink)
         
+    def _lsdir(self, path):
+        """
+        Lists all files in the directory.
+        """
+        target_path = self._path + path
+        try:
+            return os.lsdir(target_path)
+        except (IOError, OSError) as e:
+            _logger.error("Unable to list directory at %(path)s: %(error)s" % {
+             'path': target_path,
+             'error': str(e),
+            })
+            _handle_error(e)
+            raise
+            
     def _mkdir(self, path):
         """
         Creates the requested `path`, and all intermediate paths, raising an exception on failure.

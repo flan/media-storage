@@ -159,6 +159,7 @@ class _PolicyMaintainer(_Maintainer):
         
 class DeletionMaintainer(_PolicyMaintainer):
     """
+    Removes records and files when their policy settings say they should be deleted.
     """
     def __init__(self):
         _PolicyMaintainer.__init__(self)
@@ -169,6 +170,10 @@ class DeletionMaintainer(_PolicyMaintainer):
         self._sleep_period = CONFIG.maintainer_deletion_sleep
         
     def _process_record(self, record):
+        """
+        Determines whether the given `record` is a candidate for deletion, removing it and the
+        associated file if it is.
+        """
         _logger.info("Unlinking record...")
         filesystem = state.get_filesystem(record['physical']['family'])
         try:
@@ -184,6 +189,7 @@ class DeletionMaintainer(_PolicyMaintainer):
             
 class CompressionMaintainer(_PolicyMaintainer):
     """
+    Compresses files when their policy settings say they should be compressed.
     """
     def __init__(self):
         _PolicyMaintainer.__init__(self)
@@ -194,6 +200,10 @@ class CompressionMaintainer(_PolicyMaintainer):
         self._windows = COMPRESSION_WINDOWS
         
     def _process_record(self, record):
+        """
+        Determines whether the given `record` is a candidate for compression, compressing the
+        associated file and updating the record if it is.
+        """
         _logger.info("Compressing record '%(uid)s'..." % {
          'uid': record['_id'],
         })
@@ -205,7 +215,7 @@ class CompressionMaintainer(_PolicyMaintainer):
             try:
                 database.update_record(record)
             except Exception as e:
-                _logger.error("Unable to update record; compression routine will retry later: %(error)s" % {
+                _logger.error("Unable to update record to reflect already-applied compression; compression routine will retry later: %(error)s" % {
                  'error': str(e),
                 })
                 return False
@@ -250,6 +260,7 @@ class CompressionMaintainer(_PolicyMaintainer):
                 
 class DatabaseMaintainer(_Maintainer):
     """
+    Iterates over the database and removes records that are not associated with filesystem entries.
     """
     def __init__(self):
         _Maintainer.__init__(self)
@@ -287,9 +298,11 @@ class DatabaseMaintainer(_Maintainer):
                 
 class FilesystemMaintainer(_Maintainer):
     """
-    This thread should be disabled by default, since it would allow for the deletion of
-    all data if the Mongo database is dropped for any reason, and, in smaller
-    data-centres, a full filesystem backup may not exist.
+    Iterates over the filesystem and removes files that are not associated with database records.
+    
+    This thread should be disabled by default, since it would allow for the deletion of all data if
+    the Mongo database is dropped for any reason, and, in smaller data-centres, a full filesystem
+    backup may not exist.
     """
     def __init__(self):
         _Maintainer.__init__(self)
@@ -312,6 +325,10 @@ class FilesystemMaintainer(_Maintainer):
             time.sleep(CONFIG.maintainer_filesystem_sleep)
             
     def _walk(self, walker):
+        """
+        Traverses the filesystem by iterating over `walker`, checking with the database to ensure
+        that every encountered file has a corresponding record. If not, the file is unlinked.
+        """
         try:
             for (path, files) in walker:
                 for filename in files:
@@ -336,6 +353,10 @@ class FilesystemMaintainer(_Maintainer):
             })
             
     def _keep_file(self, filename):
+        """
+        Determines, through a database query, whether the given `filename` has a corresponding
+        database record.
+        """
         while not self._within_window(FILESYSTEM_WINDOWS):
             _logger.debug("Not in execution window; sleeping")
             time.sleep(60)
