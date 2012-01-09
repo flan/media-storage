@@ -233,11 +233,12 @@ class CompressionMaintainer(_PolicyMaintainer):
         old_format = record['physical']['format'].copy()
         record['physical']['format']['comp'] = target_compression
         try:
-            filesystem.put(record, data)
+            filesystem.put(record, data, tempfile=True)
         except Exception as e: #Harmless backout point
             _logger.warn("Unable to write compressed file to disk; backing out with no consequences")
             return False
         else:
+            old_compression_policy = record['policy']['compress'].copy()
             record['policy']['compress'].clear() #Drop the compression policy
             try:
                 database.update_record(record)
@@ -247,13 +248,32 @@ class CompressionMaintainer(_PolicyMaintainer):
                 })
                 return False
             else:
+                try:
+                    filesystem.make_permanent(record)
+                except Exception as e:
+                    _logger.error("Unable to update on-disk file; rolling back database update: %(error)s" % {
+                     'error': str(e),
+                    })
+                    record['policy']['compress'] = old_compression_policy
+                    record['physical']['format'] = old_format
+                    try:
+                        database.update_record(record)
+                    except Exception as e:
+                        _logger.error("Unable to roll back database update; '%(uid)s' is inaccessible and must be manually decompressed from '%(comp)s' format: %(error)s" % {
+                         'error': str(e),
+                         'uid': record['_id'],
+                         'comp': target_compression,
+                        })
+                    return False
+                    
                 record['physical']['format'] = old_format
                 try:
                     filesystem.unlink(record)
                 except Exception as e: #Results in wasted space, but non-fatal
-                    _logger.error("Unable to unlink old file; space non-recoverable unless unlinked manually: %(family)r | %(file)s : %(error)s" % {
+                    _logger.error("Unable to unlink old file; space occupied by '%(uid)s' non-recoverable unless unlinked manually: %(family)r | %(file)s : %(error)s" % {
                      'family': record['physical']['family'],
                      'file': filesystem.resolve_path(record),
+                     'uid': record['_id'],
                      'error': str(e),
                     })
                 return True

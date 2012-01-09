@@ -39,11 +39,17 @@ class Filesystem(object):
         })
         return self._backend.get(resolve_path(record))
         
-    def put(self, record, data):
+    def put(self, record, data, tempfile=False):
         _logger.info("Setting filesystem entity for %(uid)s..." % {
          'uid': record['_id'],
         })
-        self._backend.put(resolve_path(record), data)
+        self._backend.put(resolve_path(record), data, tempfile)
+        
+    def make_permanent(record):
+        _logger.debug("Making filesystem entity for %(uid)s permanent..." % {
+         'uid': record['_id'],
+        })
+        self._backend.make_permanent(resolve_path(record))
         
     def unlink(self, record):
         """

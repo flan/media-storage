@@ -32,6 +32,7 @@ from common import (
 import directory
 
 _CHUNK_SIZE = 32 * 1024 #Work with 32K chunks
+_TEMPFILE_EXTENSION = '.temp'
 
 _logger = logging.getLogger("media_storage.backends.local")
 
@@ -81,14 +82,19 @@ class LocalBackend(directory.DirectoryBackend):
             _handle_error(e)
             raise
             
-    def _put(self, path, data):
+    def _put(self, path, data, tempfile):
         """
         Attempts to write all content from `data` to the location indicated by `path`, raising an
         exception on error.
         
         `data` is not seeked back to the beginning after this operation completes.
+        
+        `tempfile` indicates whether a special extension should be applied.
         """
         target_path = self._path + path
+        if tempfile:
+            target_path += _TEMPFILE_EXTENSION
+            
         try:
             target = open(target_path, 'wb')
         except IOError as e:
@@ -136,6 +142,23 @@ class LocalBackend(directory.DirectoryBackend):
                      'error': str(e),
                     })
                     
+    def _make_permanent(self, path):
+        """
+        Makes the tempfile at `path` permanent by removing its extension.
+        """
+        target_path = self._path + path
+        tempfile_path = target_path + _TEMPFILE_EXTENSION
+        
+        try:
+            os.rename(tempfile_path, target_path)
+        except IOError as e:
+            _logger.error("Unable to make file permanent at %(path)s: %(error)s" % {
+             'path': target_path,
+             'error': str(e),
+            })
+            _handle_error(e)
+            raise
+            
     def _action(self, path, handler):
         """
         Performs a generic action, `handler`, which takes `path` as an argument. On error, an
@@ -164,7 +187,7 @@ class LocalBackend(directory.DirectoryBackend):
         """
         target_path = self._path + path
         try:
-            return os.lsdir(target_path)
+            return os.listdir(target_path)
         except (IOError, OSError) as e:
             _logger.error("Unable to list directory at %(path)s: %(error)s" % {
              'path': target_path,
