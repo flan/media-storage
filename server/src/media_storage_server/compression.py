@@ -58,7 +58,7 @@ SUPPORTED_FORMATS = tuple(SUPPORTED_FORMATS)
 _MAX_SPOOLED_FILESIZE = 1024 * 256 #Allow up to 256k in memory
 _BUFFER_SIZE = 1024 * 32 #Work with 32k chunks
 
-_logger = logging.getLogger('media_server-compression')
+_logger = logging.getLogger('media_storage-compression')
 
 def get_compressor(format):
     """

@@ -94,7 +94,7 @@ class DirectoryBackend(common.BaseBackend):
                 if not path: #Arrived at root
                     break
                     
-                if not self.lsdir(path): #Directory empty; remove
+                if not self._lsdir(path): #Directory empty; remove
                     _logger.info("Unlinking empty directory at %(path)s..." % {
                      'path': path,
                     })
