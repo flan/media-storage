@@ -1,6 +1,27 @@
 """
+media-storage.database
+======================
+
 Provides a means of resolving and accessing filesystem targets, regardless of
 backend.
+
+Legal
++++++
+ This file is part of media-storage.
+ media-storage is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+ (C) Neil Tallim, 2012 <flan@uguu.ca>
 """
 import logging
 import time
@@ -14,18 +35,6 @@ from backends import (
 from config import CONFIG
 
 _logger = logging.getLogger('media_storage.filesystem')
-    
-def resolve_path(record):
-    ts = time.gmtime(record['physical']['ctime'])
-    return '%(year)i/%(month)i/%(day)i/%(hour)i/%(min)i/%(uid)s' % {
-     'year': ts.tm_year,
-     'month': ts.tm_mon,
-     'day': ts.tm_mday,
-     'hour': ts.tm_hour,
-     'min': ts.tm_min - ts.tm_min % record['physical']['minRes'],
-     'uid': record['_id'],
-    }
-    
 
 class Filesystem(object):
     _backend = None #The backend used to manage files
@@ -33,23 +42,26 @@ class Filesystem(object):
     def __init__(self, uri):
         self._backend = backends.get_backend(uri)
         
+    def resolve_path(self, record):
+        return self._backend.resolve_path(record)
+        
     def get(self, record):
         _logger.debug("Retrieving filesystem entity for %(uid)s..." % {
          'uid': record['_id'],
         })
-        return self._backend.get(resolve_path(record))
+        return self._backend.get(self.resolve_path(record))
         
     def put(self, record, data, tempfile=False):
         _logger.info("Setting filesystem entity for %(uid)s..." % {
          'uid': record['_id'],
         })
-        self._backend.put(resolve_path(record), data, tempfile)
+        self._backend.put(self.resolve_path(record), data, tempfile)
         
     def make_permanent(record):
         _logger.debug("Making filesystem entity for %(uid)s permanent..." % {
          'uid': record['_id'],
         })
-        self._backend.make_permanent(resolve_path(record))
+        self._backend.make_permanent(self.resolve_path(record))
         
     def unlink(self, record):
         """
@@ -63,7 +75,7 @@ class Filesystem(object):
          'uid': record['_id'],
         })
         self._backend.unlink(
-         resolve_path(record),
+         self.resolve_path(record),
          rmcontainer=(time.time() - record['physical']['ctime'] > CONFIG.storage_minute_resolution * 120)
         )
         
@@ -71,7 +83,7 @@ class Filesystem(object):
         _logger.debug("Testing existence of filesystem entity for %(uid)s..." % {
          'uid': record['_id'],
         })
-        return self._backend.file_exists(resolve_path(record))
+        return self._backend.file_exists(self.resolve_path(record))
         
     def walk(self):
         """

@@ -35,6 +35,13 @@ class BaseBackend(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
+    def resolve_path(record):
+        """
+        Provides the path to a file, given its record.
+        """
+        raise NotImplementedError("'resolve_path()' needs to be overridden in a subclass")
+        
+    @abstractmethod
     def get(self, path):
         """
         Retrieves the requested file from the backend as a file-like object, given a

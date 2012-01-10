@@ -543,7 +543,7 @@ class QueryHandler(BaseHandler):
             if not trust.read:
                 del record['keys']
             else:
-                record['physical']['path'] = filesystem.resolve_path(record)
+                record['physical']['path'] = state.get_filesystem(request['family']).resolve_path(record)
             del record['physical']['minRes']
             records.append(record)
         return {
