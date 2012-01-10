@@ -24,6 +24,7 @@ Legal
 """
 from abc import ABCMeta, abstractmethod
 import logging
+import time
 
 import common
 from common import (
@@ -41,6 +42,20 @@ class DirectoryBackend(common.BaseBackend):
     __metaclass__ = ABCMeta
     _last_accessed_directory = None #A TLB-like placeholder, preventing unnecessary directory-creation requests
     
+    def resolve_path(record):
+        """
+        See ``common.BaseBackend.resolve_path()``.
+        """
+        ts = time.gmtime(record['physical']['ctime'])
+        return '%(year)i/%(month)i/%(day)i/%(hour)i/%(min)i/%(uid)s' % {
+         'year': ts.tm_year,
+         'month': ts.tm_mon,
+         'day': ts.tm_mday,
+         'hour': ts.tm_hour,
+         'min': ts.tm_min - ts.tm_min % record['physical']['minRes'],
+         'uid': record['_id'],
+        }
+        
     def get(self, path):
         """
         See ``common.BaseBackend.get()``.
