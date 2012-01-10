@@ -1,0 +1,171 @@
+#!/usr/bin/env python
+"""
+media-storage
+=============
+
+As the entry-point of the media-storage architecture's server-component, this runs a daemon
+instance, using system-location-standard config files, but also permitting a custom config file to
+be explicitly specified as the first argument on the command line, meant for cases where multiple
+daemons will co-exist on a single server.
+ 
+Legal
++++++
+ This file is part of media-storage.
+ media-storage is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+ (C) Neil Tallim, 2012 <flan@uguu.ca>
+"""
+import logging
+import logging.handlers
+import os
+import signal
+import time
+import traceback
+
+import daemon
+import lockfile
+
+from media_storage_server.config import CONFIG
+import media_storage_server.compression as compression
+import media_storage_server.mail as mail
+import media_storage_server.maintainence as maintainence
+import media_storage_server.filesystem as filesystem
+import media_storage_server.http as http
+import media_storage_server.state as state
+
+_VERSION = '0.1.0-dev'
+
+_kill_flag = False #True if system shutdown was requested
+
+def _handle_kill_signal(signum, stack):
+    """
+    Starts graceful shutdown when any kill-signal is received.
+    """
+    global _kill_flag
+    _kill_flag = True
+    
+def _setup_logging(logger):
+    """
+    Attaches handlers to the given logger, allowing for universal access to resources.
+    """
+    if CONFIG.log_file_path: #Determine whether disk-based logging is desired.
+        #Rolls over once per day
+        file_logger = logging.handlers.TimedRotatingFileHandler(CONFIG.log_file_path, 'D', 1, CONFIG.log_file_history)
+        file_logger.setLevel(getattr(logging, CONFIG.log_file_verbosity))
+        file_logger.setFormatter(logging.Formatter(
+         "%(asctime)s : %(levelname)s : %(name)s:%(lineno)d[%(threadName)s] : %(message)s"
+        ))
+        logger.addHandler(file_logger)
+        
+    if not CONFIG.run_as_daemon: #Daemon-style execution disables console-based logging
+        if CONFIG.log_console_verbosity: #Determine whether console-based logging is desired.
+            console_logger = logging.StreamHandler()
+            console_logger.setLevel(getattr(logging, CONFIG.log_console_verbosity))
+            console_logger.setFormatter(logging.Formatter(
+             "%(asctime)s : %(levelname)s : %(name)s:%(lineno)d[%(threadName)s] : %(message)s"
+            ))
+            logger.addHandler(console_logger)
+            
+if __name__ == '__main__':
+    #Daemon setup
+    #############
+    if CONFIG.run_as_daemon:
+        daemon_context = daemon.DaemonContext(
+         pidfile=lockfile.FileLock(CONFIG.pidfile),
+        )
+        daemon_context.open()
+    pidfile = open(CONFIG.pidfile, 'wb')
+    pidfile.write(str(os.getpid()))
+    pidfile.close()
+    
+    #Logging setup
+    ##############
+    _logger = logging.getLogger('')
+    _logger.setLevel(logging.DEBUG)
+    _setup_logging(_logger)
+    
+    if not compression.lzma:
+        _logger.critical("No LZMA compression support available; install the python-lzma package")
+        exit(1)
+        
+    for i in range(4):
+        _logger.info('=' * 40)
+    _logger.info("Running version %(version)s" % {
+     'version': _VERSION,
+    })
+    
+    try:
+        #Kill-signal registration
+        #########################
+        _logger.info("Registering kill-signal-handlers...")
+        for sig in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
+            signal.signal(sig, _handle_kill_signal)
+        _logger.info("Kill-signal-handlers registered")
+        
+        #Family registration
+        ####################
+        _logger.info("Registering filesystem families...")
+        state.register_family(None, filesystem.Filesystem(CONFIG.storage_generic_family))
+        for (name, uri) in CONFIG.families:
+            state.register_family(name, filesystem.Filesystem(uri))
+        _logger.info("Filesystem families registered")
+        
+        #Maintainers setup
+        ##################
+        _logger.info("Determining maintainence scheduling...")
+        maintainence.parse_windows()
+        for (windows, maintainer) in (
+         (maintainence.DELETION_WINDOWS, maintainence.DeletionMaintainer),
+         (maintainence.COMPRESSION_WINDOWS, maintainence.CompressionMaintainer),
+         (maintainence.DATABASE_WINDOWS, maintainence.DatabaseMaintainer),
+         (maintainence.FILESYSTEM_WINDOWS, maintainence.FilesystemMaintainer),
+        ):
+            if windows:
+                maintainer().start()
+        _logger.info("Maintainence subsystems online")
+        
+        #Web service setup
+        ##################
+        http_server = http.HTTPService(port=CONFIG.http_port, handlers=[
+         (r'/ping', http.PingHandler),
+         (r'/list/families', http.ListFamiliesHandler),
+         (r'/describe', http.DescribeHandler),
+         (r'/get', http.GetHandler),
+         (r'/put', http.PutHandler),
+         (r'/unlink', http.UnlinkHandler),
+         (r'/query', http.QueryHandler),
+         (r'/update', http.UpdateHandler),
+         (r'/status', http.StatusHandler),
+        ], daemon=False)
+        http_server.start()
+        
+        #Mainloop
+        #########
+        _logger.info("All subsystems online; commencing normal operation")
+        while not _kill_flag:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        _logger.warn("System shutdown requested by keyboard interrupt")
+    except SystemExit:
+        _logger.warn("System shutdown requested by system code")
+    except Exception as e:
+        summary = "System shutting down; unhandled exception details follow:\n" + traceback.format_exc()
+        _logger.critical(summary)
+        mail.send_alert(summary)
+    finally: #Ensure all non-daemon threads have been killed
+        try:
+            http_server.kill()
+        except Exception:
+            _logger.warn("Unable to stop webservice thread; subsystem may not have been started")
+            
