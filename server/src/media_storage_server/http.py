@@ -1,5 +1,26 @@
 """
-Provides all resources needed for the HTTP interface.
+media-storage.http
+==================
+
+Provides all logic needed to support the system's webservice interface.
+
+Legal
++++++
+ This file is part of media-storage.
+ media-storage is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+ (C) Neil Tallim, 2012 <flan@uguu.ca>
 """
 import base64
 import collections
@@ -38,9 +59,13 @@ _logger = logging.getLogger("media_storage.http")
 
 def _get_trust(record, keys, host):
     """
-    Record and keys can be None to skip that check.
-    Keys may be omitted by a requestor.
-    Either key may be omitted, too.
+    Determines which permissions to expose for a record, returning the result as a namedtuple with
+    ``read`` and ``write`` booleans.
+    
+    `record` is the record being evaluated and `keys` is a dictionary containing any of
+    ('read', 'write'), which may be omitted or ``None`` to force evaluation against anonymous
+    access. `host` is the address from which the client is connecting; if in the system-wide trust
+    list, all permissions are immediately granted.
     """
     for trusted in CONFIG.security_trusted_hosts.split():
         if host == trusted:
@@ -57,6 +82,9 @@ def _get_trust(record, keys, host):
     )
     
 def _get_json(body):
+    """
+    Converts the JSON `body` of a request into a Python data structure.
+    """
     try:
         return json.loads(body or 'null')
     except ValueError as e:
@@ -64,22 +92,27 @@ def _get_json(body):
         raise
         
 def _unpack_policy(policy):
-        new_policy = {}
-        current_time = int(time.time())
+    """
+    Given a `policy` section from a storage or update request, converts the data structure into
+    something sutiable for the database, adding appropriate timestamps and optimised fields as
+    needed.
+    """
+    new_policy = {}
+    current_time = int(time.time())
+    
+    expiration = policy.get('fixed')
+    if expiration:
+        new_policy['fixed'] = current_time + int(expiration)
         
-        expiration = policy.get('fixed')
-        if expiration:
-            new_policy['fixed'] = current_time + int(expiration)
-            
-        stale = policy.get('stale')
-        if stale:
-            stale = int(stale)
-            new_policy['stale'] = stale
-            new_policy['staleTime'] = current_time + stale
-            
-        return new_policy
+    stale = policy.get('stale')
+    if stale:
+        stale = int(stale)
+        new_policy['stale'] = stale
+        new_policy['staleTime'] = current_time + stale
         
-        
+    return new_policy
+    
+    
 class BaseHandler(tornado.web.RequestHandler):
     """
     A generalised request-handler for inbound communication.

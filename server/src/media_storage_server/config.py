@@ -10,9 +10,22 @@ Provides a static access-point for the system's configuration data, loaded from 
 Linux-standard locations and supplemented with sane defaults.
 
 Legal
------
++++++
+ This file is part of media-storage.
+ media-storage is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
 
-(C) Neil Tallim <flan@uguu.ca>, 2011
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+ (C) Neil Tallim, 2012 <flan@uguu.ca>
 """
 import ConfigParser
 import os
@@ -271,6 +284,6 @@ CONFIG.read([
  os.path.expanduser('~/.media-storage/media-storage.ini'),
  './media-storage.ini',
 ]) #Load config data in Linux-standard order
-if len(sys.argv) > 1:
+if len(sys.argv) > 1: #Load the first argument as a config file
    CONFIG.read(sys.argv[1]) 
    

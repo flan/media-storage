@@ -49,6 +49,9 @@ _VERSION = '0.1.0-dev'
 _kill_flag = False #True if system shutdown was requested
 
 def _handle_kill_signal(signum, stack):
+    """
+    Starts graceful shutdown when any kill-signal is received.
+    """
     global _kill_flag
     _kill_flag = True
     
@@ -75,6 +78,8 @@ def _setup_logging(logger):
             logger.addHandler(console_logger)
             
 if __name__ == '__main__':
+    #Daemon setup
+    #############
     if CONFIG.run_as_daemon:
         daemon_context = daemon.DaemonContext(
          pidfile=lockfile.FileLock(CONFIG.pidfile),
@@ -84,7 +89,8 @@ if __name__ == '__main__':
     pidfile.write(str(os.getpid()))
     pidfile.close()
     
-    #Set up logging
+    #Logging setup
+    ##############
     _logger = logging.getLogger('')
     _logger.setLevel(logging.DEBUG)
     _setup_logging(_logger)
@@ -100,19 +106,23 @@ if __name__ == '__main__':
     })
     
     try:
+        #Kill-signal registration
+        #########################
         _logger.info("Registering kill-signal-handlers...")
         for sig in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
             signal.signal(sig, _handle_kill_signal)
         _logger.info("Kill-signal-handlers registered")
         
         #Family registration
-        ################################################################################################
+        ####################
         _logger.info("Registering filesystem families...")
         state.register_family(None, filesystem.Filesystem(CONFIG.storage_generic_family))
         for (name, uri) in CONFIG.families:
             state.register_family(name, filesystem.Filesystem(uri))
         _logger.info("Filesystem families registered")
         
+        #Maintainers setup
+        ##################
         _logger.info("Determining maintainence scheduling...")
         maintainence.parse_windows()
         for (windows, maintainer) in (
@@ -125,6 +135,8 @@ if __name__ == '__main__':
                 maintainer().start()
         _logger.info("Maintainence subsystems online")
         
+        #Web service setup
+        ##################
         http_server = http.HTTPService(port=CONFIG.http_port, handlers=[
          (r'/ping', http.PingHandler),
          (r'/list/families', http.ListFamiliesHandler),
@@ -138,6 +150,8 @@ if __name__ == '__main__':
         ], daemon=False)
         http_server.start()
         
+        #Mainloop
+        #########
         _logger.info("All subsystems online; commencing normal operation")
         while not _kill_flag:
             time.sleep(1)
