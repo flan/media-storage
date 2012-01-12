@@ -95,7 +95,7 @@ def _unpack_policy(policy):
     """
     Given a `policy` section from a storage or update request, converts the data structure into
     something sutiable for the database, adding appropriate timestamps and optimised fields as
-    needed.
+    needed. The processed policy is returned.
     """
     new_policy = {}
     current_time = int(time.time())
@@ -126,6 +126,9 @@ class BaseHandler(tornado.web.RequestHandler):
     - 503 if a short-term problem occurred
     """
     def send_error(self, code, **kwargs):
+        """
+        Adds logging to the Tornado error-handling process.
+        """
         _logger.info("Request from %(address)s served with failure code %(code)i" % {
          'address': self.request.remote_ip,
          'code': code,
