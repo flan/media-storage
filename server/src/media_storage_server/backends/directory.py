@@ -42,7 +42,7 @@ class DirectoryBackend(common.BaseBackend):
     __metaclass__ = ABCMeta
     _last_accessed_directory = None #A TLB-like placeholder, preventing unnecessary directory-creation requests
     
-    def resolve_path(record):
+    def resolve_path(self, record):
         """
         See ``common.BaseBackend.resolve_path()``.
         """

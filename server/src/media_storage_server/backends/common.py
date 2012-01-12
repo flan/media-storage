@@ -35,7 +35,7 @@ class BaseBackend(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def resolve_path(record):
+    def resolve_path(self, record):
         """
         Provides the path to a file, given its record.
         """
