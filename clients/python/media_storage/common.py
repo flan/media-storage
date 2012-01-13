@@ -38,6 +38,7 @@ import urllib2
 #Server path constants
 SERVER_PING = 'ping'
 SERVER_LIST_FAMILIES = 'list/families'
+SERVER_STATUS = 'status'
 SERVER_PUT = 'put'
 SERVER_GET = 'get'
 SERVER_DESCRIBE = 'describe'
