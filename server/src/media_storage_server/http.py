@@ -181,12 +181,41 @@ class BaseHandler(tornado.web.RequestHandler):
         
         
 class PingHandler(BaseHandler):
+    """
+    Responds with ``{"online":true}`` if the server is online; doesn't even get called otherwise.
+    """
     def _post(self):
         return {
          'online': True,
         }
         
+class StatusHandler(BaseHandler):
+    """
+    Provides performance information about the system.
+    """
+    def _post(self):
+        process = psutil.Process(os.getpid())
+        return {
+         'process': {
+          'cpu': {
+           'percent': process.get_cpu_percent() / 100.0,
+          },
+          'memory': {
+           'percent': process.get_memory_percent() / 100.0,
+           'rss': process.get_memory_info().rss,
+          },
+          'threads': process.get_num_threads(),
+         },
+         'system': {
+          'load': dict(zip(('t1', 't5', 't15'), os.getloadavg())),
+         },
+        }
+        
 class ListFamiliesHandler(BaseHandler):
+    """
+    Enumerates, in alphabetic order, every named family defined in the system, including those
+    explicitly configured and those that were created by client request.
+    """
     def _post(self):
         families = set(database.list_families()).union(state.get_families())
         families.discard(None)
@@ -195,6 +224,12 @@ class ListFamiliesHandler(BaseHandler):
         }
         
 class PutHandler(BaseHandler):
+    """
+    Stores a file in the system.
+    
+    The received request must either be a proxied nginx request or a multi-part form with the file
+    included as binary data.
+    """
     def _post(self):
         (header, data) = self._get_payload()
         
@@ -275,6 +310,9 @@ class PutHandler(BaseHandler):
         return (header, content)
         
     def _build_keys(self, header):
+        """
+        Builds the keys block, using values supplied or generating random ones as needed.
+        """
         keys = header.get('keys')
         return {
          'read': keys and keys.get('read') or base64.urlsafe_b64encode(os.urandom(random.randint(5, 10)))[:-2],
@@ -282,6 +320,9 @@ class PutHandler(BaseHandler):
         }
         
     def _build_format(self, header):
+        """
+        Sets up the uploaded content's format descriptors.
+        """
         format = {
          'mime': header['physical']['format']['mime'],
         }
@@ -293,6 +334,9 @@ class PutHandler(BaseHandler):
         return format
         
     def _build_policy(self, header):
+        """
+        Sets up the initial policies for the uploaded content.
+        """
         policy = {
          'delete': {},
          'compress': {},
@@ -318,6 +362,9 @@ class PutHandler(BaseHandler):
         return policy
         
 class DescribeHandler(BaseHandler):
+    """
+    Provides, trust-permitting, all metadata surrounding a stored entity.
+    """
     def _post(self):
         request = _get_json(self.request.body)
         uid = request['uid']
@@ -341,6 +388,12 @@ class DescribeHandler(BaseHandler):
         return record
         
 class GetHandler(BaseHandler):
+    """
+    Provides, trust-permitting, the stored entity, decorated by MIME-type and possibly compression
+    format.
+    
+    Depending on the client's request and capabilities, decompression may occur locally.
+    """
     def _post(self):
         request = _get_json(self.request.body)
         uid = request['uid']
@@ -395,6 +448,9 @@ class GetHandler(BaseHandler):
                     break
                     
 class UnlinkHandler(BaseHandler):
+    """
+    Removes a stored entity from the system, permissions-depending.
+    """
     def _post(self):
         request = _get_json(self.request.body)
         uid = request['uid']
@@ -425,6 +481,9 @@ class UnlinkHandler(BaseHandler):
             database.drop_record(uid)
             
 class UpdateHandler(BaseHandler):
+    """
+    Updates the policies or metadata associated with a stored entity.
+    """
     def _post(self):
         request = _get_json(self.request.body)
         uid = request['uid']
@@ -452,6 +511,9 @@ class UpdateHandler(BaseHandler):
         database.update_record(record)
         
     def _update_policy(self, record, request):
+        """
+        Computes the new policy values and merges them with those that existed before.
+        """
         request_policy = request.get('policy')
         if request_policy:
             policy = record['policy']
@@ -472,6 +534,10 @@ class UpdateHandler(BaseHandler):
                     })
                     
 class QueryHandler(BaseHandler):
+    """
+    Processes a query received from a client, returning, permissions-depending, up to a
+    system-limit-bounded number of matching records' descriptions.
+    """
     def _post(self):
         request = _get_json(self.request.body)
         
@@ -480,7 +546,7 @@ class QueryHandler(BaseHandler):
         if not trust.read:
             query['keys.read'] = None #Anonymous records only
             
-        def _assemble_block(name, attribute):
+        def _assemble_range_block(name, attribute):
             attribute_block = {}
             _min = request[name]['min']
             _max = request[name]['max']
@@ -491,9 +557,9 @@ class QueryHandler(BaseHandler):
                 attribute_block['$lte'] = _max
             if attribute_block:
                 query[attribute] = attribute_block
-        _assemble_block('ctime', 'physical.ctime')
-        _assemble_block('atime', 'physical.atime')
-        _assemble_block('accesses', 'stats.accesses')
+        _assemble_range_block('ctime', 'physical.ctime')
+        _assemble_range_block('atime', 'physical.atime')
+        _assemble_range_block('accesses', 'stats.accesses')
         
         query['physical.family'] = request['family']
         
@@ -551,26 +617,6 @@ class QueryHandler(BaseHandler):
             records.append(record)
         return {
          'records': records,
-        }
-        
-class StatusHandler(BaseHandler):
-    def _post(self):
-        process = psutil.Process(os.getpid())
-        return {
-         'process': {
-          'cpu': {
-           'percent': process.get_cpu_percent() / 100.0,
-          },
-          'memory': {
-           'percent': process.get_memory_percent() / 100.0,
-           'rss': process.get_memory_info().rss,
-          },
-          'threads': process.get_num_threads(),
-         },
-         'system': {
-          'load': dict(zip(('t1', 't5', 't15'), os.getloadavg())),
-         },
-         'families': sorted(state.get_families()),
         }
         
         

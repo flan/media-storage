@@ -139,6 +139,7 @@ if __name__ == '__main__':
         ##################
         http_server = http.HTTPService(port=CONFIG.http_port, handlers=[
          (r'/ping', http.PingHandler),
+         (r'/status', http.StatusHandler),
          (r'/list/families', http.ListFamiliesHandler),
          (r'/describe', http.DescribeHandler),
          (r'/get', http.GetHandler),
@@ -146,7 +147,6 @@ if __name__ == '__main__':
          (r'/unlink', http.UnlinkHandler),
          (r'/query', http.QueryHandler),
          (r'/update', http.UpdateHandler),
-         (r'/status', http.StatusHandler),
         ], daemon=False)
         http_server.start()
         
