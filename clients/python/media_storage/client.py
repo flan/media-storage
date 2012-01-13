@@ -72,6 +72,26 @@ class Client(interfaces.ControlConstruct):
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)
         
+    @abstractmethod
+    def status(self, timeout=2.5):
+        """
+        Yields a dictionary of load data from the server::
+        
+            'process': {
+             'cpu': {'percent': 0.1,},
+             'memory': {'percent': 1.2, 'rss': 8220392,},
+             'threads': 4,
+            },
+            'system': {
+             'load': {'t1': 0.2, 't5': 0.5,'t15': 0.1,},
+            }
+            
+        `timeout` is the number of seconds to allow for retrieval to complete, defaulting to 2.5s.
+        """
+        request = common.assemble_request(self._server + common.SERVER_STATUS, {})
+        (properties, response) = common.send_request(request, timeout=timeout)
+        return json.loads(response)
+        
     def list_families(self, timeout=2.5):
         """
         Enumerates all families currently defined on the server, returning a sorted list of strings.
