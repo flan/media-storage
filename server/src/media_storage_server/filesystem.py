@@ -37,27 +37,45 @@ from config import CONFIG
 _logger = logging.getLogger('media_storage.filesystem')
 
 class Filesystem(object):
+    """
+    An abstract notion of a filesystem, which may wrap conventional directory systems,
+    BLOB-in-database systems, or most things that don't exist yet, as long as they support unique
+    identifiers of some sort.
+    """
     _backend = None #The backend used to manage files
     
     def __init__(self, uri):
         self._backend = backends.get_backend(uri)
         
     def resolve_path(self, record):
+        """
+        Determines the filesystem path of the file associated with `record`.
+        """
         return self._backend.resolve_path(record)
         
     def get(self, record):
+        """
+        Retrieves the data associated with `record`.
+        """
         _logger.debug("Retrieving filesystem entity for %(uid)s..." % {
          'uid': record['_id'],
         })
         return self._backend.get(self.resolve_path(record))
         
     def put(self, record, data, tempfile=False):
+        """
+        Stores `data` in a location identifiable through `record`. If `tempfile` is set, the file is
+        written with temporary markings.
+        """
         _logger.info("Setting filesystem entity for %(uid)s..." % {
          'uid': record['_id'],
         })
         self._backend.put(self.resolve_path(record), data, tempfile)
         
     def make_permanent(record):
+        """
+        Removes the "temporary" status of the file associated with `record`.
+        """
         _logger.debug("Making filesystem entity for %(uid)s permanent..." % {
          'uid': record['_id'],
         })
@@ -80,6 +98,9 @@ class Filesystem(object):
         )
         
     def file_exists(self, record):
+        """
+        Provides a boolean value that indicates whether the file associated with `record` exists.
+        """
         _logger.debug("Testing existence of filesystem entity for %(uid)s..." % {
          'uid': record['_id'],
         })
