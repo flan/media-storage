@@ -38,7 +38,7 @@ stop_ms () {
     else
         for((i=0; i<${#PIDFILES[@]}; i++)); do
             echo "Killing with pidfile at ${PIDFILES[$i]}"
-            /bin/kill `cat "${PIDFILES[$i]}"` &
+            /bin/kill `cat "${PIDFILES[$i]}"`
         done
     fi
 }
