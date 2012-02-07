@@ -97,7 +97,7 @@ if __name__ == '__main__':
     
     if not compression.lzma:
         _logger.critical("No LZMA compression support available; install the python-lzma package")
-        raise ImportError("Module 'lzma' not found")
+        raise ImportError("Module 'lzma' not found; install 'python-lzma'")
         
     for i in range(4):
         _logger.info('=' * 40)
