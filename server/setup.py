@@ -38,7 +38,8 @@ setup(
 )
 
 #Post-installation stuff
-print("Registering init-script to start on system boot...")
-subprocess.call(('/bin/chmod', 'a+x', '/etc/init.d/media-storage'))
-subprocess.check_call(('/usr/sbin/update-rc.d', 'media-storage', 'defaults',))
-
+if not os.path.isfile('/etc/init.d/media-storage'):
+    print("Registering init-script to start on system boot...")
+    subprocess.call(('/bin/chmod', 'a+x', '/etc/init.d/media-storage'))
+    subprocess.check_call(('/usr/sbin/update-rc.d', 'media-storage', 'defaults',))
+    
