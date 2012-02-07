@@ -11,7 +11,7 @@
 ### END INIT INFO
 
 #To run multiple instances, add one config file path and one pidfile path per process, separated by
-#spaces; use double-quotes if necessary to encapsulate every definition as a single token
+#spaces or lines; use double-quotes if necessary to encapsulate every definition as a single token
 CONFIGFILES=()
 PIDFILES=()
 
