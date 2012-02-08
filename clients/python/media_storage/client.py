@@ -72,7 +72,6 @@ class Client(interfaces.ControlConstruct):
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)
         
-    @abstractmethod
     def status(self, timeout=2.5):
         """
         Yields a dictionary of load data from the server::
