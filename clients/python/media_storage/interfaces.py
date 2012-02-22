@@ -148,14 +148,6 @@ class ControlConstruct(StorageConstruct, RetrievalConstruct):
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def status(self, timeout=2.5):
-        """
-        Yields a dictionary of load data from the server.
-        
-        `timeout` is the number of seconds to allow for retrieval to complete.
-        """
-        
-    @abstractmethod
     def list_families(self, timeout=2.5):
         """
         Enumerates all families currently defined on the server, returning a sorted list of strings.
