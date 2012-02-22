@@ -62,16 +62,6 @@ class Client(interfaces.ControlConstruct):
          'port': server_port,
         }
         
-    def ping(self, timeout=1.0):
-        """
-        Indicates whether the server is online or not, raising an exception in case of failure.
-        
-        `timeout` is the number of seconds to allow for pinging to complete, defaulting to 1.0s.
-        """
-        request = common.assemble_request(self._server + common.SERVER_PING, {})
-        (properties, response) = common.send_request(request, timeout=timeout)
-        return json.loads(response)
-        
     def status(self, timeout=2.5):
         """
         Yields a dictionary of load data from the server::
@@ -88,6 +78,16 @@ class Client(interfaces.ControlConstruct):
         `timeout` is the number of seconds to allow for retrieval to complete, defaulting to 2.5s.
         """
         request = common.assemble_request(self._server + common.SERVER_STATUS, {})
+        (properties, response) = common.send_request(request, timeout=timeout)
+        return json.loads(response)
+        
+    def ping(self, timeout=1.0):
+        """
+        Indicates whether the server is online or not, raising an exception in case of failure.
+        
+        `timeout` is the number of seconds to allow for pinging to complete, defaulting to 1.0s.
+        """
+        request = common.assemble_request(self._server + common.SERVER_PING, {})
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)
         
