@@ -49,8 +49,8 @@ namespace MediaStorage.Interfaces{
         /// <returns>
         /// A <see cref="Content"/>
         /// </returns>
-        Content Get(string uid, string read_key, System.IO.Stream output_file, bool decompress_on_server, float timeout);
+        Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f);
 
-        System.Collections.Generic.IDictionary<string, object> Describe(string uid, string read_key, float timeout);
+        System.Collections.Generic.IDictionary<string, object> Describe(string uid, string read_key, float timeout=2.5f);
     }
 }

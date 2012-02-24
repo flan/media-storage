@@ -24,19 +24,22 @@ namespace MediaStorage.Interfaces{
     public class Query{
         private static System.DateTime epoch = (new System.DateTime(1970, 1, 1, 0, 0, 0));
         
-        System.DateTime CtimeMin = System.DateTime.MinValue;
-        System.DateTime CtimeMax = System.DateTime.MaxValue;
-        System.DateTime AtimeMin = System.DateTime.MinValue;
-        System.DateTime AtimeMax = System.DateTime.MaxValue;
-        ulong AccessesMin = ulong.MinValue;
-        ulong AccessesMax = ulong.MaxValue;
+        System.DateTime? CtimeMin = null;
+        System.DateTime? CtimeMax = null;
+        System.DateTime? AtimeMin = null;
+        System.DateTime? AtimeMax = null;
+        ulong? AccessesMin = null;
+        ulong? AccessesMax = null;
         
         string Family = null;
         string Mime = null;
         System.Collections.Generic.IDictionary<string, object> Meta = new Jayrock.Json.JsonObject();
 
-        private static double ToUnixTimestamp(System.DateTime timestamp){
-            return (timestamp.ToUniversalTime() - Query.epoch).TotalSeconds;
+        private static double? ToUnixTimestamp(System.DateTime? timestamp){
+            if(timestamp == null){
+                return null;
+            }
+            return (timestamp.Value.ToUniversalTime() - Query.epoch).TotalSeconds;
         }
         
         internal System.Collections.Generic.IDictionary<string, object> ToDictionary(){
@@ -66,19 +69,19 @@ namespace MediaStorage.Interfaces{
     }
     
     public interface ControlConstruct : StorageConstruct, RetrievalConstruct{
-        System.Collections.Generic.IList<string> ListFamilies(float timeout);
+        System.Collections.Generic.IList<string> ListFamilies(float timeout=2.5f);
 
-        void Unlink(string uid, string write_key, float timeout);
+        void Unlink(string uid, string write_key, float timeout=2.5f);
 
         void Update(string uid, string write_key,
-         System.Collections.Generic.IDictionary<string, object> new_meta,
-         System.Collections.Generic.IList<string> removed_meta,
-         System.Collections.Generic.IDictionary<string, long> deletion_policy,
-         System.Collections.Generic.IDictionary<string, long> compression_policy,
-         COMPRESSION compression_policy_format,
-         float timeout
+         System.Collections.Generic.IDictionary<string, object> new_meta=null,
+         System.Collections.Generic.IList<string> removed_meta=null,
+         System.Collections.Generic.IDictionary<string, long> deletion_policy=null,
+         System.Collections.Generic.IDictionary<string, long> compression_policy=null,
+         COMPRESSION compression_policy_format=COMPRESSION.NONE,
+         float timeout=2.5f
         );
 
-        System.Collections.Generic.IDictionary<string, object> Query(Query query, float timeout);
+        System.Collections.Generic.IDictionary<string, object> Query(Query query, float timeout=5.0f);
     }
 }
