@@ -46,6 +46,7 @@
     <Compile Include="Client.cs" />
     <Compile Include="StorageProxy.cs" />
     <Compile Include="CachingProxy.cs" />
+    <Compile Include="Exceptions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
