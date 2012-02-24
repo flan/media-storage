@@ -19,12 +19,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 using System;
 
-namespace MediaStorage{
-    public class Client : Interfaces.ControlConstruct{
-        private string server;
-
-        public Client(string server_host, short server_port){
-            this.server = string.Format("http://{0}:{1}/", server_host, server_port);
-        }
+namespace MediaStorage.Libraries{
+    public static class Communication{
     }
 }
+
