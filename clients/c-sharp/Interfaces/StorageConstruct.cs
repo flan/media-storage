@@ -66,14 +66,14 @@ namespace MediaStorage.Interfaces{
         /// A <see cref="System.Collections.Generic.IDictionary"/>
         /// </returns>
         System.Collections.Generic.IDictionary<string, object> Put(
-         System.IO.Stream data, string mime, string family,
-         COMPRESSION compression, bool compress_on_server,
-         System.Collections.Generic.IDictionary<string, long> deletion_policy,
-         System.Collections.Generic.IDictionary<string, long> compression_policy,
-         COMPRESSION compression_policy_format,
-         System.Collections.Generic.IDictionary<string, object> meta,
-         string uid, System.Collections.Generic.IDictionary<string, string> keys,
-         float timeout
+         System.IO.Stream data, string mime, string family=null,
+         COMPRESSION compression=COMPRESSION.NONE, bool compress_on_server=false,
+         System.Collections.Generic.IDictionary<string, long> deletion_policy=null,
+         System.Collections.Generic.IDictionary<string, long> compression_policy=null,
+         COMPRESSION compression_policy_format=COMPRESSION.NONE,
+         System.Collections.Generic.IDictionary<string, object> meta=null,
+         string uid=null, System.Collections.Generic.IDictionary<string, string> keys=null,
+         float timeout=10.0f
         );
     }
 }

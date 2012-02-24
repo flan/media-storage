@@ -22,6 +22,6 @@ using System;
 
 namespace MediaStorage.Interfaces{
     public interface BaseConstruct{
-        bool Ping(float timeout);
+        bool Ping(float timeout=1.0f);
     }
 }
