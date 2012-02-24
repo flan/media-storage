@@ -23,7 +23,7 @@ namespace MediaStorage{
     public class Client : Interfaces.ControlConstruct{
         private string server;
 
-        public Client(string server_host, short server_port){
+        public Client(string server_host, ushort server_port){
             this.server = string.Format("http://{0}:{1}/", server_host, server_port);
         }
     }
