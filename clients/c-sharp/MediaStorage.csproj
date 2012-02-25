@@ -48,6 +48,7 @@
     <Compile Include="CachingProxy.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Libraries\Communication.cs" />
+    <Compile Include="Libraries\Streams.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

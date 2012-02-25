@@ -20,7 +20,161 @@
 using System;
 
 namespace MediaStorage.Libraries{
-    public static class Communication{
+    internal static class Communication{
+        //Constants to expedite construction of multipart/formdata packets
+        private const string FORM_SEP = "--";
+        private const string FORM_BOUNDARY = "---...???,,,$$$RFC-1867-kOmPl1aNt-bOuNdArY$$$,,,???...---";
+        private const string FORM_CRLF = "\r\n";
+        private const string FORM_CONTENT_TYPE = "multipart/form-data; boundary=" + FORM_BOUNDARY;
+        private static byte[] FORM_HEADER = (new System.Text.ASCIIEncoding()).GetBytes(FORM_SEP + FORM_BOUNDARY + FORM_CRLF +
+            "Content-Disposition: form-data; name=\"header\"" + FORM_CRLF + FORM_CRLF);
+        private static byte[] FORM_PRE_CONTENT = (new System.Text.ASCIIEncoding()).GetBytes(FORM_CRLF + FORM_SEP + FORM_BOUNDARY + FORM_CRLF +
+            "Content-Disposition: form-data; name=\"content\"; filename=\"payload\"" + FORM_CRLF +
+            "Content-Type: application/octet-stream" + FORM_CRLF +
+            "Content-Transfer-Encoding: binary" + FORM_CRLF + FORM_CRLF);
+        private static byte[] FORM_FOOTER = (new System.Text.ASCIIEncoding()).GetBytes(FORM_CRLF + FORM_SEP + FORM_BOUNDARY + FORM_SEP + FORM_CRLF);
+
+        //Request headers
+        internal const string HEADER_COMPRESS_ON_SERVER = "Media-Storage-Compress-On-Server";
+        internal const string HEADER_COMPRESS_ON_SERVER_TRUE = "yes";
+        internal const string HEADER_COMPRESS_ON_SERVER_FALSE = "no"; //Implied by omission
+        internal const string HEADER_SUPPORTED_COMPRESSION = "Media-Storage-Supported-Compression";
+        internal const char HEADER_SUPPORTED_COMPRESSION_DELIMITER = ';';
+
+        //Response headers
+        internal const string HEADER_APPLIED_COMPRESSION = "Media-Storage-Applied-Compression";
+
+        //Response properties
+        internal const string PROPERTY_CONTENT_LENGTH = "content-length";
+        internal const string PROPERTY_CONTENT_TYPE = "content-type";
+        internal const string PROPERTY_APPLIED_COMPRESSION = "applied-compression";
+        internal const string PROPERTY_FILE_ATTRIBUTES = "file-attributes";
+
+        internal struct Response{
+            System.Collections.Generic.Dictionary<string, object> properties;
+            System.IO.Stream Data;
+        }
+
+        private static void EncodeMultipartFormdata(byte[] header, System.IO.Stream content, System.IO.Stream output){
+            output.Write(Communication.FORM_HEADER, 0, Communication.FORM_HEADER.Length);
+            output.Write(header, 0, header.Length);
+            output.Write(Communication.FORM_PRE_CONTENT, 0, Communication.FORM_PRE_CONTENT.Length);
+            Streams.TransferData(content, output);
+            output.Write(Communication.FORM_FOOTER, 0, Communication.FORM_FOOTER.Length);
+        }
+
+        /// <summary>
+        /// Compiles and returns a media-storage-spec-compliant HTTP request.
+        /// </summary>
+        /// <returns>
+        /// A request, ready to be executed.
+        /// </returns>
+        /// <param name='destination'>
+        /// The URI to which the request will be sent.
+        /// </param>
+        /// <param name='header'>
+        /// The JSON structure that contains the semantics of the request.
+        /// </param>
+        /// <param name='headers'>
+        /// A dictionary containing any optional headers to be sent to the server, in addition to
+        /// any required by the protocol (new headers will overwrite base ones).
+        /// </param>
+        /// <param name='data'>
+        /// The binary payload to be delivered, if JSON dialogue isn't enough for the request.
+        /// </param>
+        internal static System.Net.HttpWebRequest AssembleRequest(
+         string destination,
+         System.Collections.IDictionary header,
+         System.Collections.Generic.IDictionary<string, string> headers=null,
+         System.IO.Stream data=null
+        ){
+            System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(destination);
+
+            request.ContentType = "application/json";
+            if(headers != null){
+                foreach(System.Collections.Generic.KeyValuePair<string, string> h in headers){
+                    request.Headers.Add(h.Key, h.Value);
+                }
+            }
+
+            byte[] body = (new System.Text.UTF8Encoding()).GetBytes(new Jayrock.Json.JsonObject(header).ToString());
+            if(data != null){
+                Communication.EncodeMultipartFormdata(body, data, request.GetRequestStream());
+                request.ContentType = Communication.FORM_CONTENT_TYPE;
+            }else{
+                request.GetRequestStream().Write(body, 0, body.Length);
+            }
+
+            return request;
+        }
+
+        /// <summary>
+        /// Sends an assembled <c>request</c>.
+        /// </summary>
+        /// <returns>
+        /// Any interesting properties and, depending on whether <c>output</c> is set, an attached stream.
+        /// If <c>output</c> is provided, it is used instead. the or writing the result to that
+        /// provided, seeking back to 0 in either case.
+        /// </returns>
+        /// <param name='request'>
+        /// Request.
+        /// </param>
+        /// <param name='output'>
+        /// Output.
+        /// </param>
+        /// <param name='timeout'>
+        /// Timeout.
+        /// </param>
+        internal Response SendRequest(System.Net.HttpWebRequest request, System.IO.Stream output=null, float timeout=10.0f){
+            try{
+                using(System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse()){
+                    using(System.IO.Stream stream = response.GetResponseStream()){
+                        //...
+                    }
+                }
+            }catch(System.Net.WebException e){
+                if(e.Status == System.Net.WebExceptionStatus.ProtocolError && e.Response != null){
+                    System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)e.Response;
+                    if(response.StatusCode == System.Net.HttpStatusCode.NotFound){
+                        // Do something
+                    }
+                    throw;
+                }
+            }
+
+            try:
+        response = urllib2.urlopen(request, timeout=timeout)
+    except urllib2.HTTPError as e:
+        if e.code == 403:
+            raise NotAuthorisedError("The requested operation could not be performed because an invalid key was provided")
+        elif e.code == 404:
+            raise NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined")
+        elif e.code == 409:
+            raise InvalidRecordError("The uploaded request is structurally flawed and cannot be processed")
+        elif e.code == 412:
+            raise InvalidHeadersError("One or more of the headers supplied (likely Content-Length) was rejected by the server")
+        elif e.code == 503:
+            raise TemporaryFailureError("The server was unable to process the request")
+        else:
+            raise HTTPError("Unable to send message; code: %(code)i" % {
+             'code': e.code,
+            })
+    except urllib2.URLError as e:
+        raise URLError("Unable to send message: %(error)s" % {
+         'error': str(e),
+        })
+    except Exception:
+        raise
+    else:
+        properties = {
+         PROPERTY_APPLIED_COMPRESSION: response.headers.get(HEADER_APPLIED_COMPRESSION),
+         PROPERTY_CONTENT_TYPE: response.headers.get(HEADER_CONTENT_TYPE),
+        }
+        if output:
+            properties[PROPERTY_CONTENT_LENGTH] = transfer_data(response, output)
+            output.seek(0)
+            return properties
+        return (properties, response.read())
+        }
     }
 }
-

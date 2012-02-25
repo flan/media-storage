@@ -20,11 +20,11 @@
 using System;
 
 namespace MediaStorage{
-    public class Client : Interfaces.ControlConstruct{
+    /*public class Client : Interfaces.ControlConstruct{
         private string server;
 
         public Client(string server_host, ushort server_port){
             this.server = string.Format("http://{0}:{1}/", server_host, server_port);
         }
-    }
+    }*/
 }
