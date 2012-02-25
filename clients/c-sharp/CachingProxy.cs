@@ -1,4 +1,4 @@
-// 
+//
 //  Author:
 //       Neil Tallim <flan@uguu.ca>
 // 
@@ -20,8 +20,8 @@
 using System;
 
 namespace MediaStorage{
-    public class CachingProxy : Interfaces.RetrievalConstruct{
+    /*public class CachingProxy : Interfaces.RetrievalConstruct{
         public CachingProxy(){
         }
-    }
+    }*/
 }

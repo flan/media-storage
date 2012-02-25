@@ -20,8 +20,8 @@
 using System;
 
 namespace MediaStorage{
-    public class StorageProxy : Interfaces.StorageConstruct{
+    /*public class StorageProxy : Interfaces.StorageConstruct{
         public StorageProxy(){
         }
-    }
+    }*/
 }
