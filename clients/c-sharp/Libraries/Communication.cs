@@ -51,8 +51,8 @@ namespace MediaStorage.Libraries{
         internal const string PROPERTY_FILE_ATTRIBUTES = "file-attributes";
 
         internal struct Response{
-            System.Collections.Generic.Dictionary<string, object> properties;
-            System.IO.Stream Data;
+            public System.Collections.Generic.IDictionary<string, object> Properties;
+            public System.IO.Stream Data;
         }
 
         private static void EncodeMultipartFormdata(byte[] header, System.IO.Stream content, System.IO.Stream output){
@@ -125,56 +125,44 @@ namespace MediaStorage.Libraries{
         /// <param name='timeout'>
         /// Timeout.
         /// </param>
-        internal Response SendRequest(System.Net.HttpWebRequest request, System.IO.Stream output=null, float timeout=10.0f){
+        internal static Response SendRequest(System.Net.HttpWebRequest request, System.IO.Stream output=null, float timeout=10.0f){
             try{
                 using(System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse()){
                     using(System.IO.Stream stream = response.GetResponseStream()){
-                        //...
+                        Response r = new Response();
+                        r.Properties = new System.Collections.Generic.Dictionary<string, object>();
+                        r.Properties.Add(Communication.PROPERTY_APPLIED_COMPRESSION, response.Headers.Get(Communication.HEADER_APPLIED_COMPRESSION));
+                        r.Properties.Add(Communication.PROPERTY_CONTENT_TYPE, response.ContentType);
+                        if(output != null){
+                            r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, Streams.TransferData(response.GetResponseStream(), output));
+                            output.Seek(0);
+                            r.Data = output;
+                        }else{
+                            r.Data = response.GetResponseStream();
+                        }
+                        return r;
                     }
                 }
             }catch(System.Net.WebException e){
                 if(e.Status == System.Net.WebExceptionStatus.ProtocolError && e.Response != null){
                     System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)e.Response;
-                    if(response.StatusCode == System.Net.HttpStatusCode.NotFound){
-                        // Do something
+                    if(response.StatusCode == System.Net.HttpStatusCode.Forbidden){
+                        throw new MediaStorage.NotAuthorisedError("The requested operation could not be performed because an invalid key was provided");
+                    }else if(response.StatusCode == System.Net.HttpStatusCode.NotFound){
+                        throw new MediaStorage.NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined");
+                    }else if(response.StatusCode == System.Net.HttpStatusCode.Conflict){
+                        throw new MediaStorage.InvalidRecordError("The uploaded request is structurally flawed and cannot be processed");
+                    }else if(response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed){
+                        throw new MediaStorage.InvalidHeadersError("One or more of the headers supplied (likely Content-Length) was rejected by the server");
+                    }else if(response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable){
+                        throw new MediaStorage.TemporaryFailureError("The server was unable to process the request");
                     }
-                    throw;
+                    throw new MediaStorage.HttpError("Unable to send message; code: " + response.StatusCode, e);
+                }else if(e.Status == System.Net.WebExceptionStatus.ConnectFailure || e.Status == System.Net.WebExceptionStatus.NameResolutionFailure){
+                    throw new MediaStorage.URLError("Unable to send message: " + e.Message, e);
                 }
+                throw;
             }
-
-            try:
-        response = urllib2.urlopen(request, timeout=timeout)
-    except urllib2.HTTPError as e:
-        if e.code == 403:
-            raise NotAuthorisedError("The requested operation could not be performed because an invalid key was provided")
-        elif e.code == 404:
-            raise NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined")
-        elif e.code == 409:
-            raise InvalidRecordError("The uploaded request is structurally flawed and cannot be processed")
-        elif e.code == 412:
-            raise InvalidHeadersError("One or more of the headers supplied (likely Content-Length) was rejected by the server")
-        elif e.code == 503:
-            raise TemporaryFailureError("The server was unable to process the request")
-        else:
-            raise HTTPError("Unable to send message; code: %(code)i" % {
-             'code': e.code,
-            })
-    except urllib2.URLError as e:
-        raise URLError("Unable to send message: %(error)s" % {
-         'error': str(e),
-        })
-    except Exception:
-        raise
-    else:
-        properties = {
-         PROPERTY_APPLIED_COMPRESSION: response.headers.get(HEADER_APPLIED_COMPRESSION),
-         PROPERTY_CONTENT_TYPE: response.headers.get(HEADER_CONTENT_TYPE),
-        }
-        if output:
-            properties[PROPERTY_CONTENT_LENGTH] = transfer_data(response, output)
-            output.seek(0)
-            return properties
-        return (properties, response.read())
         }
     }
 }
