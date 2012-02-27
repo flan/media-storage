@@ -135,7 +135,7 @@ namespace MediaStorage.Libraries{
                         r.Properties.Add(Communication.PROPERTY_CONTENT_TYPE, response.ContentType);
                         if(output != null){
                             r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, Streams.TransferData(response.GetResponseStream(), output));
-                            output.Seek(0);
+                            output.Seek(0, System.IO.SeekOrigin.Begin);
                             r.Data = output;
                         }else{
                             r.Data = response.GetResponseStream();
