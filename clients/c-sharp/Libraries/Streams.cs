@@ -22,10 +22,47 @@
 using System;
 
 namespace MediaStorage.Libraries{
+    internal class TempFileStream : System.IO.FileStream, System.IDisposable{
+        private bool disposed = false;
+
+        public TempFileStream() : base(
+         System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.Guid.NewGuid().ToString()),
+         System.IO.FileMode.CreateNew,
+         System.IO.FileAccess.ReadWrite
+        ){}
+
+        ~TempFileStream(){
+            try{
+                base.Dispose(true);
+            }catch{
+                //Nothing can be done
+            }
+            this.Unlink();
+        }
+
+        protected override void Dispose(bool disposing){
+            base.Dispose(disposing);
+            if(!this.disposed){
+                if(disposing){
+                    this.Unlink();
+                    this.disposed = true;
+                }
+            }
+        }
+
+        private void Unlink(){
+            try{
+                System.IO.File.Delete(this.Name);
+            }catch{
+                //Can't do anything, except maybe log a warning
+            }
+        }
+    }
+
     internal static class Streams{
         //Transfer data in 32k chunks
         private const uint CHUNK_SIZE = 32 * 1024;
-        
+
         /// <summary>
         /// Reads every byte, in reasonable-sized chunks, from <c>source</c> into
         /// <c>destination</c>. No seeking occurs after the transfer is complete.

@@ -46,10 +46,48 @@ namespace MediaStorage{
 
 namespace MediaStorage.Libraries{
     internal static class Compression{
-        internal const COMPRESSION[] supported_formats = new COMPRESSION[]{COMPRESSION.GZ};
+        internal static COMPRESSION[] supported_formats = new COMPRESSION[]{COMPRESSION.GZ};
 
-        void whee(){
-            System.IO.Path.GetTempFileName();
+        internal static System.Func<System.IO.Stream, System.IO.Stream> GetCompressor(COMPRESSION compression){
+            if(compression == COMPRESSION.NONE){
+                return Compression.NullHandler;
+            }else if(compression == COMPRESSION.GZ){
+                return Compression.CompressGz;
+            }
+            throw new System.ArgumentException(compression.ToString() + " is unsupported");
+        }
+
+        internal static System.Func<System.IO.Stream, System.IO.Stream> GetDecompressor(COMPRESSION compression){
+            if(compression == COMPRESSION.NONE){
+                return Compression.NullHandler;
+            }else if(compression == COMPRESSION.GZ){
+                return Compression.DecompressGz;
+            }
+            throw new System.ArgumentException(compression.ToString() + " is unsupported");
+        }
+
+        internal static System.IO.Stream NullHandler(System.IO.Stream data){
+            return data;
+        }
+
+        internal static System.IO.Stream CompressGz(System.IO.Stream data){
+            System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Compress);
+            TempFileStream tfs = new TempFileStream();
+
+            Streams.TransferData(gz, tfs);
+            tfs.Seek(0, System.IO.SeekOrigin.Begin);
+
+            return tfs;
+        }
+
+        internal static System.IO.Stream DecompressGz(System.IO.Stream data){
+            System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Decompress);
+            TempFileStream tfs = new TempFileStream();
+
+            Streams.TransferData(gz, tfs);
+            tfs.Seek(0, System.IO.SeekOrigin.Begin);
+
+            return tfs;
         }
     }
 }
