@@ -123,6 +123,39 @@ namespace MediaStorage{
         }
 
         /// <summary>
+        /// Retrieves the requested record from the server as a dictionary.
+        /// </summary>
+        /// <param name='uid'>
+        /// The UID of the record to be updated.
+        /// </param>
+        /// <param name='read_key'>
+        /// A token that grants permission to read the record.
+        /// </param>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 2.5.
+        /// </param>
+        /// <exception cref="System.Exception">
+        /// Some unknown problem occurred.
+        /// </exception>
+        /// <exception cref="MediaStorage.HttpError">
+        /// A problem occurred related to the transport protocol.
+        /// </exception>
+        /// <exception cref="MediaStorage.UrlError">
+        /// A problem occurred related to the network environment.
+        /// </exception>
+        public System.Collections.Generic.IDictionary<string, object> Describe(string uid, string read_key, float timeout=2.5f){
+            Jayrock.Json.JsonObject describe = new Jayrock.Json.JsonObject();
+            describe.Add("uid", uid);
+
+            Jayrock.Json.JsonObject keys = new Jayrock.Json.JsonObject();
+            keys.Add("read", read_key);
+            describe.Add("keys", keys);
+
+            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_DESCRIBE, describe);
+            return MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
+        }
+
+        /// <summary>
         /// Unlinks the identified data on the server.
         /// </summary>
         /// <param name='uid'>
