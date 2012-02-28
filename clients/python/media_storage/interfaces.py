@@ -79,7 +79,7 @@ class StorageConstruct(BaseConstruct):
         
         `deletion_policy` may either be `None` or an empty dictionary, which means the file is never
         deleted (default) or a dictionary containing one or both of the following:
-         - 'fixed': The number of seconds to retain the file from the time it is uploaded
+         - 'fixed': The number of seconds to retain the file from the time it was uploaded
          - 'stale': The number of seconds that must elapse after the file was last downloaded to
                     qualify it for deletion
                     
