@@ -21,6 +21,17 @@ using System;
 
 namespace MediaStorage.Libraries{
     internal static class Communication{
+        //Server path constants
+        internal const string SERVER_PING = "ping";
+        internal const string SERVER_LIST_FAMILIES = "list/families";
+        internal const string SERVER_STATUS = "status";
+        internal const string SERVER_PUT = "put";
+        internal const string SERVER_GET = "get";
+        internal const string SERVER_DESCRIBE = "describe";
+        internal const string SERVER_UNLINK = "unlink";
+        internal const string SERVER_UPDATE = "update";
+        internal const string SERVER_QUERY = "query";
+
         //Constants to expedite construction of multipart/formdata packets
         private const string FORM_SEP = "--";
         private const string FORM_BOUNDARY = "---...???,,,$$$RFC-1867-kOmPl1aNt-bOuNdArY$$$,,,???...---";
