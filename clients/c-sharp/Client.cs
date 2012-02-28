@@ -123,6 +123,39 @@ namespace MediaStorage{
         }
 
         /// <summary>
+        /// Unlinks the identified data on the server.
+        /// </summary>
+        /// <param name='uid'>
+        /// The UID of the record to be updated.
+        /// </param>
+        /// <param name='write_key'>
+        /// A token that grants permission to modify the record.
+        /// </param>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 2.5.
+        /// </param>
+        /// <exception cref="System.Exception">
+        /// Some unknown problem occurred.
+        /// </exception>
+        /// <exception cref="MediaStorage.HttpError">
+        /// A problem occurred related to the transport protocol.
+        /// </exception>
+        /// <exception cref="MediaStorage.UrlError">
+        /// A problem occurred related to the network environment.
+        /// </exception>
+        public void Unlink(string uid, string write_key, float timeout=2.5f){
+            Jayrock.Json.JsonObject unlink = new Jayrock.Json.JsonObject();
+            unlink.Add("uid", uid);
+
+            Jayrock.Json.JsonObject keys = new Jayrock.Json.JsonObject();
+            keys.Add("write", write_key);
+            unlink.Add("keys", keys);
+
+            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_UNLINK, unlink);
+            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout);
+        }
+
+        /// <summary>
         /// Updates attributes of an existing record on a server.
         /// </summary>
         /// <param name='uid'>
