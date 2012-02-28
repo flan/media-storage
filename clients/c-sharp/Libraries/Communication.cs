@@ -17,7 +17,6 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-using System;
 
 namespace MediaStorage.Libraries{
     internal static class Communication{
@@ -64,6 +63,13 @@ namespace MediaStorage.Libraries{
         internal struct Response{
             public System.Collections.Generic.IDictionary<string, object> Properties;
             public System.IO.Stream Data;
+
+            public Jayrock.Json.JsonObject ToJson(){
+                System.IO.StreamReader sr = new System.IO.StreamReader(this.Data, System.Text.Encoding.UTF8);
+                Jayrock.Json.JsonObject json = Jayrock.Json.Conversion.JsonConvert.Import<Jayrock.Json.JsonObject>(sr.ReadToEnd());
+                this.Data.Seek(0, System.IO.SeekOrigin.Begin);
+                return json;
+            }
         }
 
         private static void EncodeMultipartFormdata(byte[] header, System.IO.Stream content, System.IO.Stream output){

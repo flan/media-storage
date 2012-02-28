@@ -18,8 +18,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System;
-
 namespace MediaStorage{
     /// <summary>
     /// Specifies the type of compression to apply to the data while it's in storage
@@ -74,7 +72,7 @@ namespace MediaStorage.Libraries{
             System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Compress);
             TempFileStream tfs = new TempFileStream();
 
-            Streams.TransferData(gz, tfs);
+            Stream.TransferData(gz, tfs);
             tfs.Seek(0, System.IO.SeekOrigin.Begin);
 
             return tfs;
@@ -84,7 +82,7 @@ namespace MediaStorage.Libraries{
             System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Decompress);
             TempFileStream tfs = new TempFileStream();
 
-            Streams.TransferData(gz, tfs);
+            Stream.TransferData(gz, tfs);
             tfs.Seek(0, System.IO.SeekOrigin.Begin);
 
             return tfs;
