@@ -44,7 +44,7 @@ namespace MediaStorage{
 
 namespace MediaStorage.Libraries{
     internal static class Compression{
-        internal static COMPRESSION[] supported_formats = new COMPRESSION[]{COMPRESSION.GZ};
+        internal static System.Collections.Generic.IList<COMPRESSION> supported_formats = new System.Collections.Generic.List<COMPRESSION>(new COMPRESSION[]{COMPRESSION.GZ});
 
         internal static System.Func<System.IO.Stream, System.IO.Stream> GetCompressor(COMPRESSION compression){
             if(compression == COMPRESSION.NONE){
@@ -64,11 +64,11 @@ namespace MediaStorage.Libraries{
             throw new System.ArgumentException(compression.ToString() + " is unsupported");
         }
 
-        internal static System.IO.Stream NullHandler(System.IO.Stream data){
+        private static System.IO.Stream NullHandler(System.IO.Stream data){
             return data;
         }
 
-        internal static System.IO.Stream CompressGz(System.IO.Stream data){
+        private static System.IO.Stream CompressGz(System.IO.Stream data){
             System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Compress);
             TempFileStream tfs = new TempFileStream();
 
@@ -78,7 +78,7 @@ namespace MediaStorage.Libraries{
             return tfs;
         }
 
-        internal static System.IO.Stream DecompressGz(System.IO.Stream data){
+        private static System.IO.Stream DecompressGz(System.IO.Stream data){
             System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Decompress);
             TempFileStream tfs = new TempFileStream();
 
