@@ -175,7 +175,7 @@ class Client(interfaces.ControlConstruct):
          'keys': {
           'read': read_key,
          },
-        })
+        }, headers=headers)
         if not output_file:
             output = tempfile.SpooledTemporaryFile(_TEMPFILE_SIZE)
         else:
