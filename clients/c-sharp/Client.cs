@@ -94,5 +94,32 @@ namespace MediaStorage{
             MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
             return true;
         }
+
+        /// <summary>
+        /// Lists all known families.
+        /// </summary>
+        /// <returns>
+        /// A list of all known families, in alphabetical order.
+        /// </returns>
+        /// <exception cref="System.Exception">
+        /// Some unknown problem occurred.
+        /// </exception>
+        /// <exception cref="MediaStorage.HttpError">
+        /// A problem occurred related to the transport protocol.
+        /// </exception>
+        /// <exception cref="MediaStorage.UrlError">
+        /// A problem occurred related to the network environment.
+        /// </exception>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 2.5.
+        /// </param>
+        public System.Collections.Generic.IList<string> ListFamilies(float timeout=2.5f){
+            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_LIST_FAMILIES, new System.Collections.Generic.Dictionary<string, object>());
+            System.Collections.Generic.List<string> families = new System.Collections.Generic.List<string>();
+            foreach(object family in (System.Collections.Generic.IList<object>)MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson()["families"]){
+                families.Add(family.ToString());
+            }
+            return families;
+        }
     }
 }
