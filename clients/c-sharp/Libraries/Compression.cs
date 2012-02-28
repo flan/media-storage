@@ -46,6 +46,10 @@ namespace MediaStorage{
 
 namespace MediaStorage.Libraries{
     internal static class Compression{
-        
+        internal const COMPRESSION[] supported_formats = new COMPRESSION[]{COMPRESSION.GZ};
+
+        void whee(){
+            System.IO.Path.GetTempFileName();
+        }
     }
 }
