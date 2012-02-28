@@ -54,6 +54,9 @@ namespace MediaStorage{
         /// }
         /// </code>
         /// </returns>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 2.5.
+        /// </param>
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
@@ -63,9 +66,6 @@ namespace MediaStorage{
         /// <exception cref="MediaStorage.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        /// <param name='timeout'>
-        /// The number of seconds to wait for a response; defaults to 2.5.
-        /// </param>
         public System.Collections.Generic.IDictionary<string, object> Status(float timeout=2.5f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_STATUS, new System.Collections.Generic.Dictionary<string, object>());
             return MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
@@ -77,6 +77,9 @@ namespace MediaStorage{
         /// <returns>
         /// <c>true</c> if the server is up and responding normally.
         /// </returns>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 1.
+        /// </param>
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
@@ -86,9 +89,6 @@ namespace MediaStorage{
         /// <exception cref="MediaStorage.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        /// <param name='timeout'>
-        /// The number of seconds to wait for a response; defaults to 1.
-        /// </param>
         public bool Ping(float timeout=1.0f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PING, new System.Collections.Generic.Dictionary<string, object>());
             MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
@@ -101,6 +101,9 @@ namespace MediaStorage{
         /// <returns>
         /// A list of all known families, in alphabetical order.
         /// </returns>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 2.5.
+        /// </param>
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
@@ -110,9 +113,6 @@ namespace MediaStorage{
         /// <exception cref="MediaStorage.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        /// <param name='timeout'>
-        /// The number of seconds to wait for a response; defaults to 2.5.
-        /// </param>
         public System.Collections.Generic.IList<string> ListFamilies(float timeout=2.5f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_LIST_FAMILIES, new System.Collections.Generic.Dictionary<string, object>());
             System.Collections.Generic.List<string> families = new System.Collections.Generic.List<string>();
@@ -120,6 +120,98 @@ namespace MediaStorage{
                 families.Add(family.ToString());
             }
             return families;
+        }
+
+        /// <summary>
+        /// Updates attributes of an existing record on a server.
+        /// </summary>
+        /// <param name='uid'>
+        /// The UID of the record to be updated.
+        /// </param>
+        /// <param name='write_key'>
+        /// A token that grants permission to modify the record.
+        /// </param>
+        /// <param name='new_meta'>
+        /// Any newly added metadata; defaults to <c>null</c>.
+        /// </param>
+        /// <param name='removed_meta'>
+        /// A list of all metadata to be removed; defaults to <c>null</c>.
+        /// </param>
+        /// <param name='deletion_policy'>
+        /// Rules defining when the record should be deleted; defaults to <c>null</c>, meaning no change.
+        /// </param>
+        /// <param name='compression_policy'>
+        /// Rules describing when the record should be compressed; defaults to <c>null</c>, meaning no change.
+        /// </param>
+        /// <param name='compression_policy_format'>
+        /// The type of compression to apply upon compression; defaults to <c>COMPRESSION.NONE</c>.
+        /// </param>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 2.5.
+        /// </param>
+        /// <exception cref="System.Exception">
+        /// Some unknown problem occurred.
+        /// </exception>
+        /// <exception cref="MediaStorage.HttpError">
+        /// A problem occurred related to the transport protocol.
+        /// </exception>
+        /// <exception cref="MediaStorage.UrlError">
+        /// A problem occurred related to the network environment.
+        /// </exception>
+        public void Update(string uid, string write_key,
+         System.Collections.Generic.IDictionary<string, object> new_meta=null,
+         System.Collections.Generic.IList<string> removed_meta=null,
+         System.Collections.Generic.IDictionary<string, long> deletion_policy=null,
+         System.Collections.Generic.IDictionary<string, long> compression_policy=null,
+         COMPRESSION compression_policy_format=COMPRESSION.NONE,
+         float timeout=2.5f
+        ){
+            Jayrock.Json.JsonObject update = new Jayrock.Json.JsonObject();
+            update.Add("uid", uid);
+
+            Jayrock.Json.JsonObject keys = new Jayrock.Json.JsonObject();
+            keys.Add("write", write_key);
+            update.Add("keys", keys);
+
+            Jayrock.Json.JsonObject policy = new Jayrock.Json.JsonObject();
+            policy.Add("delete", deletion_policy);
+            System.Collections.Generic.Dictionary<string, object> comp_policy = (System.Collections.Generic.Dictionary<string, object>)compression_policy;
+            if(compression_policy != null){
+                comp_policy.Add("comp", compression_policy_format != COMPRESSION.NONE ? compression_policy_format.ToString().ToLower() : null);
+            }
+            policy.Add("compression", comp_policy);
+            update.Add("policy", policy);
+
+            Jayrock.Json.JsonObject meta = new Jayrock.Json.JsonObject();
+            meta.Add("new", new_meta != null ? new_meta : new System.Collections.Generic.Dictionary<string, object>());
+            meta.Add("removed", removed_meta != null ? removed_meta : new System.Collections.Generic.List<string>());
+            update.Add("meta", meta);
+
+            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_UPDATE, update);
+            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout);
+        }
+
+        /// <summary>
+        /// Returns a list of matching records, up to the server's limit.
+        /// </summary>
+        /// <param name='query'>
+        /// The query-structure to evaluate.
+        /// </param>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 5.
+        /// </param>
+        /// <exception cref="System.Exception">
+        /// Some unknown problem occurred.
+        /// </exception>
+        /// <exception cref="MediaStorage.HttpError">
+        /// A problem occurred related to the transport protocol.
+        /// </exception>
+        /// <exception cref="MediaStorage.UrlError">
+        /// A problem occurred related to the network environment.
+        /// </exception>
+        public System.Collections.Generic.IDictionary<string, object> Query(MediaStorage.Interfaces.Query query, float timeout=5.0f){
+            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_QUERY, query.ToDictionary());
+            return (System.Collections.Generic.IDictionary<string, object>)MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson()["records"];
         }
     }
 }

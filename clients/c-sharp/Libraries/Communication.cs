@@ -76,7 +76,7 @@ namespace MediaStorage.Libraries{
             output.Write(Communication.FORM_HEADER, 0, Communication.FORM_HEADER.Length);
             output.Write(header, 0, header.Length);
             output.Write(Communication.FORM_PRE_CONTENT, 0, Communication.FORM_PRE_CONTENT.Length);
-            Streams.TransferData(content, output);
+            Stream.TransferData(content, output);
             output.Write(Communication.FORM_FOOTER, 0, Communication.FORM_FOOTER.Length);
         }
 
@@ -101,7 +101,7 @@ namespace MediaStorage.Libraries{
         /// </param>
         internal static System.Net.HttpWebRequest AssembleRequest(
          string destination,
-         System.Collections.IDictionary header,
+         System.Collections.Generic.IDictionary<string, object> header,
          System.Collections.Generic.IDictionary<string, string> headers=null,
          System.IO.Stream data=null
         ){
@@ -114,7 +114,7 @@ namespace MediaStorage.Libraries{
                 }
             }
 
-            byte[] body = (new System.Text.UTF8Encoding()).GetBytes(new Jayrock.Json.JsonObject(header).ToString());
+            byte[] body = (new System.Text.UTF8Encoding()).GetBytes(new Jayrock.Json.JsonObject((System.Collections.IDictionary)header).ToString());
             if(data != null){
                 Communication.EncodeMultipartFormdata(body, data, request.GetRequestStream());
                 request.ContentType = Communication.FORM_CONTENT_TYPE;
@@ -151,7 +151,7 @@ namespace MediaStorage.Libraries{
                         r.Properties.Add(Communication.PROPERTY_APPLIED_COMPRESSION, response.Headers.Get(Communication.HEADER_APPLIED_COMPRESSION));
                         r.Properties.Add(Communication.PROPERTY_CONTENT_TYPE, response.ContentType);
                         if(output != null){
-                            r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, Streams.TransferData(response.GetResponseStream(), output));
+                            r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, Stream.TransferData(response.GetResponseStream(), output));
                             output.Seek(0, System.IO.SeekOrigin.Begin);
                             r.Data = output;
                         }else{
