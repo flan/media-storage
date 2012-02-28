@@ -240,7 +240,7 @@ class Client(interfaces.ControlConstruct):
         
         All other arguments are the same as in ``media_storage.interfaces.ControlConstruct.update``.
         """
-        update = {
+        request = common.assemble_request(self._server + common.SERVER_UPDATE, {
          'uid': uid,
          'keys': {
           'write': write_key,
@@ -253,9 +253,7 @@ class Client(interfaces.ControlConstruct):
           'new': new,
           'removed': removed,
          },
-        }
-        
-        request = common.assemble_request(self._server + common.SERVER_UPDATE, update)
+        })
         common.send_request(request, timeout=timeout)
         
     def query(self, query, timeout=5.0):
