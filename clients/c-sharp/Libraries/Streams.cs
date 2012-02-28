@@ -19,7 +19,6 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-using System;
 
 namespace MediaStorage.Libraries{
     internal class TempFileStream : System.IO.FileStream, System.IDisposable{
@@ -59,7 +58,7 @@ namespace MediaStorage.Libraries{
         }
     }
 
-    internal static class Streams{
+    public static class Stream{
         //Transfer data in 32k chunks
         private const uint CHUNK_SIZE = 32 * 1024;
 
@@ -76,10 +75,10 @@ namespace MediaStorage.Libraries{
         /// <param name='destination'>
         /// The destination to which data is written.
         /// </param>
-        internal static uint TransferData(System.IO.Stream source, System.IO.Stream destination){
+        public static uint TransferData(System.IO.Stream source, System.IO.Stream destination){
             uint size = 0;
             while(true){
-                byte[] chunk = new byte[Streams.CHUNK_SIZE];
+                byte[] chunk = new byte[Stream.CHUNK_SIZE];
                 int bytes_read = source.Read(chunk, 0, chunk.Length);
                 if(bytes_read == 0){
                     break;

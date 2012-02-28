@@ -17,14 +17,25 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-using System;
 
 namespace MediaStorage{
-    /*public class Client : Interfaces.ControlConstruct{
+    public class Client : Interfaces.ControlConstruct{
         private string server;
 
         public Client(string server_host, ushort server_port){
             this.server = string.Format("http://{0}:{1}/", server_host, server_port);
         }
-    }*/
+
+        /// <summary>
+        /// Pings the server, returning <c>true</c> if the server is up and responding normally or raising an exception otherwise.
+        /// </summary>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 1.
+        /// </param>
+        public bool Ping(float timeout=1.0f){
+            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server, new Jayrock.Json.JsonObject());
+            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
+            return true;
+        }
+    }
 }

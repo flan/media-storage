@@ -18,8 +18,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-using System;
-
 namespace MediaStorage.Interfaces{
     public class Query{
         private static System.DateTime epoch = (new System.DateTime(1970, 1, 1, 0, 0, 0));

@@ -20,8 +20,6 @@
 //  License along with this library{} if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-using System;
-
 namespace MediaStorage{
     /// <summary>
     /// The base class from which all errors native to this assembly inherit.
@@ -29,7 +27,7 @@ namespace MediaStorage{
     public class Error : System.Exception{
         public Error() : base(){}
         public Error(string message) : base(message){}
-        public Error(string message, Exception innerException) : base(message, innerException){}
+        public Error(string message, System.Exception innerException) : base(message, innerException){}
     }
 
     /// <summary>
@@ -38,7 +36,7 @@ namespace MediaStorage{
     public class HttpError : Error{
         public HttpError() : base(){}
         public HttpError(string message) : base(message){}
-        public HttpError(string message, Exception innerException) : base(message, innerException){}
+        public HttpError(string message, System.Exception innerException) : base(message, innerException){}
     }
 
     /// <summary>
@@ -47,7 +45,7 @@ namespace MediaStorage{
     public class NotAuthorisedError : HttpError{
         public NotAuthorisedError() : base(){}
         public NotAuthorisedError(string message) : base(message){}
-        public NotAuthorisedError(string message, Exception innerException) : base(message, innerException){}
+        public NotAuthorisedError(string message, System.Exception innerException) : base(message, innerException){}
     }
 
     /// <summary>
@@ -56,7 +54,7 @@ namespace MediaStorage{
     public class NotFoundError : HttpError{
         public NotFoundError() : base(){}
         public NotFoundError(string message) : base(message){}
-        public NotFoundError(string message, Exception innerException) : base(message, innerException){}
+        public NotFoundError(string message, System.Exception innerException) : base(message, innerException){}
     }
 
     /// <summary>
@@ -65,7 +63,7 @@ namespace MediaStorage{
     public class InvalidRecordError : HttpError{
         public InvalidRecordError() : base(){}
         public InvalidRecordError(string message) : base(message){}
-        public InvalidRecordError(string message, Exception innerException) : base(message, innerException){}
+        public InvalidRecordError(string message, System.Exception innerException) : base(message, innerException){}
     }
 
     /// <summary>
@@ -74,7 +72,7 @@ namespace MediaStorage{
     public class InvalidHeadersError : HttpError{
         public InvalidHeadersError() : base(){}
         public InvalidHeadersError(string message) : base(message){}
-        public InvalidHeadersError(string message, Exception innerException) : base(message, innerException){}
+        public InvalidHeadersError(string message, System.Exception innerException) : base(message, innerException){}
     }
 
     /// <summary>
@@ -83,7 +81,7 @@ namespace MediaStorage{
     public class TemporaryFailureError : HttpError{
         public TemporaryFailureError() : base(){}
         public TemporaryFailureError(string message) : base(message){}
-        public TemporaryFailureError(string message, Exception innerException) : base(message, innerException){}
+        public TemporaryFailureError(string message, System.Exception innerException) : base(message, innerException){}
     }
 
     /// <summary>
@@ -92,6 +90,6 @@ namespace MediaStorage{
     public class URLError : Error{
         public URLError() : base(){}
         public URLError(string message) : base(message){}
-        public URLError(string message, Exception innerException) : base(message, innerException){}
+        public URLError(string message, System.Exception innerException) : base(message, innerException){}
     }
 }
