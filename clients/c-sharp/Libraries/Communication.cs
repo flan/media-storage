@@ -64,7 +64,7 @@ namespace MediaStorage.Libraries{
             public System.Collections.Generic.IDictionary<string, object> Properties;
             public System.IO.Stream Data;
 
-            public Jayrock.Json.JsonObject ToJson(){
+            public System.Collections.Generic.IDictionary<string, object> ToJson(){
                 System.IO.StreamReader sr = new System.IO.StreamReader(this.Data, System.Text.Encoding.UTF8);
                 Jayrock.Json.JsonObject json = Jayrock.Json.Conversion.JsonConvert.Import<Jayrock.Json.JsonObject>(sr.ReadToEnd());
                 this.Data.Seek(0, System.IO.SeekOrigin.Begin);
