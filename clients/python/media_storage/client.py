@@ -72,7 +72,7 @@ class Client(interfaces.ControlConstruct):
              'threads': 4,
             },
             'system': {
-             'load': {'t1': 0.2, 't5': 0.5,'t15': 0.1,},
+             'load': {'t1': 0.2, 't5': 0.5, 't15': 0.1,},
             }
             
         `timeout` is the number of seconds to allow for retrieval to complete, defaulting to 2.5s.
