@@ -148,7 +148,12 @@ namespace MediaStorage.Libraries{
                     using(System.IO.Stream stream = response.GetResponseStream()){
                         Response r = new Response();
                         r.Properties = new System.Collections.Generic.Dictionary<string, object>();
-                        r.Properties.Add(Communication.PROPERTY_APPLIED_COMPRESSION, response.Headers.Get(Communication.HEADER_APPLIED_COMPRESSION));
+                        string applied_compression = response.Headers.Get(Communication.HEADER_APPLIED_COMPRESSION);
+                        if(applied_compression != null){
+                            r.Properties.Add(Communication.PROPERTY_APPLIED_COMPRESSION, Compression.ResolveCompressionFormat(applied_compression));
+                        }else{
+                            r.Properties.Add(Communication.PROPERTY_APPLIED_COMPRESSION, null);
+                        }
                         r.Properties.Add(Communication.PROPERTY_CONTENT_TYPE, response.ContentType);
                         if(output != null){
                             r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, Stream.TransferData(response.GetResponseStream(), output));

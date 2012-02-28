@@ -20,8 +20,9 @@
 
 namespace MediaStorage.Interfaces{
     public struct Content{
-        string Mime;
-        System.IO.Stream Data;
+        public string Mime;
+        public System.IO.Stream Data;
+        public uint Length;
     }
     
     public interface RetrievalConstruct : BaseConstruct{

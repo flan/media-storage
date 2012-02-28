@@ -238,6 +238,83 @@ namespace MediaStorage{
         }
 
         /// <summary>
+        /// Retrieves the requested data from the server.
+        /// </summary>
+        /// <returns>
+        /// Returns the content's MIME and the decompressed data as a stream (optionally that
+        /// supplied as <c>output_file</c>), along with the length of the content in bytes.
+        /// </returns>
+        /// <param name='uid'>
+        /// The UID of the record to be updated.
+        /// </param>
+        /// <param name='read_key'>
+        /// A token that grants permission to read the record.
+        /// </param>
+        /// <param name='output_file'>
+        /// An optional stream into which retrieved content may be written; if <c>null</c>, the
+        /// default, an on-disk, self-cleaning tempfile is used instead.
+        /// </param>
+        /// <param name='decompress_on_server'>
+        /// Favours decompression of content on the server; defaults to <c>false</c>.
+        /// </param>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 5.
+        /// </param>
+        /// <exception cref="System.Exception">
+        /// Some unknown problem occurred.
+        /// </exception>
+        /// <exception cref="MediaStorage.HttpError">
+        /// A problem occurred related to the transport protocol.
+        /// </exception>
+        /// <exception cref="MediaStorage.UrlError">
+        /// A problem occurred related to the network environment.
+        /// </exception>
+        public MediaStorage.Interfaces.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f){
+            Jayrock.Json.JsonObject get_json = new Jayrock.Json.JsonObject();
+            get_json.Add("uid", uid);
+
+            Jayrock.Json.JsonObject keys = new Jayrock.Json.JsonObject();
+            keys.Add("read", read_key);
+            get_json.Add("keys", keys);
+
+            System.Collections.Generic.Dictionary<string, string> headers = new System.Collections.Generic.Dictionary<string, string>();
+            if(!decompress_on_server){
+                headers.Add(Libraries.Communication.HEADER_SUPPORTED_COMPRESSION, string.Join(Libraries.Communication.HEADER_SUPPORTED_COMPRESSION_DELIMITER.ToString(), Libraries.Compression.supported_formats));
+            }
+
+            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_GET, get_json, headers:headers);
+
+            System.IO.Stream output;
+            if(output_file != null){
+                output = output_file;
+            }else{
+                output = new Libraries.TempFileStream();
+            }
+
+            MediaStorage.Libraries.Communication.Response response = MediaStorage.Libraries.Communication.SendRequest(request, output:output, timeout:timeout);
+
+            MediaStorage.Interfaces.Content content = new MediaStorage.Interfaces.Content();
+            content.Data = response.Data;
+            content.Mime = (string)response.Properties[Libraries.Communication.PROPERTY_CONTENT_TYPE];
+            content.Length = (uint)response.Properties[Libraries.Communication.PROPERTY_CONTENT_LENGTH];
+
+            //Evaluate decompression requirements
+            object applied_compression = response.Properties[Libraries.Communication.PROPERTY_APPLIED_COMPRESSION];
+            if(applied_compression != null){
+                System.IO.Stream decompressed_data = Libraries.Compression.GetDecompressor((COMPRESSION)applied_compression).Invoke(content.Data);
+                if(output_file != null){ //Write to the given stream, since the caller might expect to use that
+                    output_file.Seek(0, System.IO.SeekOrigin.Begin);
+                    output_file.SetLength(0); //Truncate the file
+                    content.Length = Libraries.Stream.TransferData(decompressed_data, output_file);
+                    output_file.Seek(0, System.IO.SeekOrigin.Begin);
+                    content.Data = output_file;
+                }
+            }
+
+            return content;
+        }
+
+        /// <summary>
         /// Retrieves the requested record from the server as a dictionary.
         /// </summary>
         /// <param name='uid'>

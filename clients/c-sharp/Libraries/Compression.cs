@@ -46,6 +46,19 @@ namespace MediaStorage.Libraries{
     internal static class Compression{
         internal static System.Collections.Generic.IList<COMPRESSION> supported_formats = new System.Collections.Generic.List<COMPRESSION>(new COMPRESSION[]{COMPRESSION.GZ});
 
+        internal static COMPRESSION ResolveCompressionFormat(string compression){
+            switch(compression.ToLower()){
+                case "gz":
+                    return COMPRESSION.GZ;
+                case "bz2":
+                    return COMPRESSION.BZ2;
+                case "lzma":
+                    return COMPRESSION.LZMA;
+                default:
+                    return COMPRESSION.NONE;
+            }
+        }
+
         internal static System.Func<System.IO.Stream, System.IO.Stream> GetCompressor(COMPRESSION compression){
             if(compression == COMPRESSION.NONE){
                 return Compression.NullHandler;
