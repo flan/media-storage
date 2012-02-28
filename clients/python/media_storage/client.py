@@ -189,6 +189,7 @@ class Client(interfaces.ControlConstruct):
                 output_file.seek(0)
                 output_file.truncate()
                 length = common.transfer_data(output, output_file)
+                output_file.seek(0)
                 output = output_file
         
         output.length = length
