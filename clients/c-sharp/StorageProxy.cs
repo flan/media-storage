@@ -19,7 +19,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 namespace MediaStorage{
-    /*public class StorageProxy : Interfaces.StorageConstruct{
+    /*public class StorageProxy : BaseClient, Interfaces.StorageConstruct{
         public StorageProxy(){
         }
     }*/
