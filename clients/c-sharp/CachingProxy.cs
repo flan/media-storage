@@ -135,11 +135,12 @@ namespace MediaStorage{
             describe.Add("keys", keys);
 
             Jayrock.Json.JsonObject proxy = new Jayrock.Json.JsonObject();
-            
+
             Jayrock.Json.JsonObject server = new Jayrock.Json.JsonObject();
             server.Add("host", this.media_server_host);
             server.Add("port", this.media_server_port);
             proxy.Add("server", server);
+            
             describe.Add("proxy", proxy);
 
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_DESCRIBE, describe);
