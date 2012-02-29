@@ -109,7 +109,7 @@ namespace MediaStorage{
         /// Retrieves the requested record from the server as a dictionary.
         /// </summary>
         /// <param name='uid'>
-        /// The UID of the record to be updated.
+        /// The UID of the record to be read.
         /// </param>
         /// <param name='read_key'>
         /// A token that grants permission to read the record.
