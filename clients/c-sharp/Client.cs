@@ -22,9 +22,7 @@ namespace MediaStorage{
     /// <summary>
     /// Provides direct access to a media-storage server; appropriate for most deployments.
     /// </summary>
-    public class Client : Interfaces.ControlConstruct{
-        private string server;
-
+    public class Client : BaseClient, Interfaces.ControlConstruct{
         /// <summary>
         /// Initializes a new instance of the <see cref="MediaStorage.Client"/> class.
         /// </summary>
@@ -69,30 +67,6 @@ namespace MediaStorage{
         public System.Collections.Generic.IDictionary<string, object> Status(float timeout=2.5f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_STATUS, new System.Collections.Generic.Dictionary<string, object>());
             return MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
-        }
-
-        /// <summary>
-        /// Pings the server.
-        /// </summary>
-        /// <returns>
-        /// <c>true</c> if the server is up and responding normally.
-        /// </returns>
-        /// <param name='timeout'>
-        /// The number of seconds to wait for a response; defaults to 1.
-        /// </param>
-        /// <exception cref="System.Exception">
-        /// Some unknown problem occurred.
-        /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
-        /// A problem occurred related to the transport protocol.
-        /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
-        /// A problem occurred related to the network environment.
-        /// </exception>
-        public bool Ping(float timeout=1.0f){
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PING, new System.Collections.Generic.Dictionary<string, object>());
-            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
-            return true;
         }
 
         /// <summary>
