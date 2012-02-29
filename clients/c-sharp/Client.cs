@@ -219,7 +219,7 @@ namespace MediaStorage{
         /// supplied as <c>output_file</c>), along with the length of the content in bytes.
         /// </returns>
         /// <param name='uid'>
-        /// The UID of the record to be updated.
+        /// The UID of the record to be retrieved.
         /// </param>
         /// <param name='read_key'>
         /// A token that grants permission to read the record.
