@@ -27,29 +27,42 @@ namespace MediaStorage.Interfaces{
     
     public interface RetrievalConstruct : BaseConstruct{
         /// <summary>
-        /// 
+        /// Retrieves the requested data from the server.
         /// </summary>
-        /// <param name="uid">
-        /// A <see cref="System.String"/>
-        /// </param>
-        /// <param name="read_key">
-        /// A <see cref="System.String"/>
-        /// </param>
-        /// <param name="output_file">
-        /// A <see cref="System.IO.Stream"/>, which is where retrieved content will be written; if <c>null</c>, an
-        /// in-memory buffer is used. The buffer is always seeked back to start after writing, but untouched before.
-        /// </param>
-        /// <param name="decompress_on_server">
-        /// A <see cref="System.Boolean"/>
-        /// </param>
-        /// <param name="timeout">
-        /// A <see cref="System.Single"/>
-        /// </param>
         /// <returns>
-        /// A <see cref="Content"/>
+        /// Returns the content's MIME and the decompressed data as a stream (optionally that
+        /// supplied as <c>output_file</c>), along with the length of the content in bytes.
         /// </returns>
+        /// <param name='uid'>
+        /// The UID of the record to be retrieved.
+        /// </param>
+        /// <param name='read_key'>
+        /// A token that grants permission to read the record.
+        /// </param>
+        /// <param name='output_file'>
+        /// An optional stream into which retrieved content may be written; if <c>null</c>, an
+        /// appropriate backing store will be chosen.
+        /// </param>
+        /// <param name='decompress_on_server'>
+        /// Favours decompression of content on the server; defaults to <c>false</c>.
+        /// </param>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 5.
+        /// </param>
         Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f);
 
+        /// <summary>
+        /// Retrieves the requested record from the server as a dictionary.
+        /// </summary>
+        /// <param name='uid'>
+        /// The UID of the record to be read.
+        /// </param>
+        /// <param name='read_key'>
+        /// A token that grants permission to read the record.
+        /// </param>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response; defaults to 2.5.
+        /// </param>
         System.Collections.Generic.IDictionary<string, object> Describe(string uid, string read_key, float timeout=2.5f);
     }
 }
