@@ -56,7 +56,7 @@ namespace MediaStorage{
         /// </param>
         /// <param name='output_file'>
         /// An optional stream into which retrieved content may be written; if <c>null</c>, the
-        /// default, an on-disk, self-cleaning tempfile is used instead.
+        /// default, an on-disk, self-cleaning tempfile, is used instead.
         /// </param>
         /// <param name='decompress_on_server'>
         /// Ignored, since this decision is up to the proxy.
@@ -140,7 +140,7 @@ namespace MediaStorage{
             server.Add("host", this.media_server_host);
             server.Add("port", this.media_server_port);
             proxy.Add("server", server);
-            
+
             describe.Add("proxy", proxy);
 
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_DESCRIBE, describe);
