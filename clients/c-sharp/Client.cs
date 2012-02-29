@@ -226,7 +226,7 @@ namespace MediaStorage{
         /// </param>
         /// <param name='output_file'>
         /// An optional stream into which retrieved content may be written; if <c>null</c>, the
-        /// default, an on-disk, self-cleaning tempfile is used instead.
+        /// default, an on-disk, self-cleaning tempfile, is used instead.
         /// </param>
         /// <param name='decompress_on_server'>
         /// Favours decompression of content on the server; defaults to <c>false</c>.
