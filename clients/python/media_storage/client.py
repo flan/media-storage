@@ -62,17 +62,6 @@ class Client(interfaces.ControlConstruct):
          'port': server_port,
         }
         
-    def ping(self, timeout=1.0):
-        """
-        Indicates whether the server is online or not, raising an exception in case of failure.
-        
-        `timeout` is the number of seconds to allow for pinging to complete, defaulting to 1.0s.
-        """
-        request = common.assemble_request(self._server + common.SERVER_PING, {})
-        (properties, response) = common.send_request(request, timeout=timeout)
-        return json.loads(response)
-        
-    @abstractmethod
     def status(self, timeout=2.5):
         """
         Yields a dictionary of load data from the server::
@@ -83,12 +72,22 @@ class Client(interfaces.ControlConstruct):
              'threads': 4,
             },
             'system': {
-             'load': {'t1': 0.2, 't5': 0.5,'t15': 0.1,},
+             'load': {'t1': 0.2, 't5': 0.5, 't15': 0.1,},
             }
             
         `timeout` is the number of seconds to allow for retrieval to complete, defaulting to 2.5s.
         """
         request = common.assemble_request(self._server + common.SERVER_STATUS, {})
+        (properties, response) = common.send_request(request, timeout=timeout)
+        return json.loads(response)
+        
+    def ping(self, timeout=1.0):
+        """
+        Indicates whether the server is online or not, raising an exception in case of failure.
+        
+        `timeout` is the number of seconds to allow for pinging to complete, defaulting to 1.0s.
+        """
+        request = common.assemble_request(self._server + common.SERVER_PING, {})
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)
         
@@ -176,7 +175,7 @@ class Client(interfaces.ControlConstruct):
          'keys': {
           'read': read_key,
          },
-        })
+        }, headers=headers)
         if not output_file:
             output = tempfile.SpooledTemporaryFile(_TEMPFILE_SIZE)
         else:
@@ -190,6 +189,7 @@ class Client(interfaces.ControlConstruct):
                 output_file.seek(0)
                 output_file.truncate()
                 length = common.transfer_data(output, output_file)
+                output_file.seek(0)
                 output = output_file
         
         output.length = length
@@ -241,7 +241,7 @@ class Client(interfaces.ControlConstruct):
         
         All other arguments are the same as in ``media_storage.interfaces.ControlConstruct.update``.
         """
-        update = {
+        request = common.assemble_request(self._server + common.SERVER_UPDATE, {
          'uid': uid,
          'keys': {
           'write': write_key,
@@ -254,9 +254,7 @@ class Client(interfaces.ControlConstruct):
           'new': new,
           'removed': removed,
          },
-        }
-        
-        request = common.assemble_request(self._server + common.SERVER_UPDATE, update)
+        })
         common.send_request(request, timeout=timeout)
         
     def query(self, query, timeout=5.0):
