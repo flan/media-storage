@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ### BEGIN INIT INFO
 # Provides:          media-storage
@@ -10,25 +10,50 @@
 # Description:       starts the media-storage server
 ### END INIT INFO
 
-SCRIPT_NAME=media-storage
-PIDFILE=/var/run/media-storage.pid
+#To run multiple instances, add one config file path and one pidfile path per process, separated by
+#spaces or lines; use double-quotes if necessary to encapsulate every definition as a single token
+CONFIGFILES=()
+PIDFILES=()
 
-#TODO: Revise this so it takes an array of config files and pidfiles (but one script) to start and
-#stop farms
+#Do not touch these lines, even if using the multi-instance stuff
+SCRIPT_NAME=media-storage
+DEFAULT_PIDFILE=/var/run/media-storage.pid
+
+start_ms () {
+    echo "Starting $SCRIPT_NAME"
+    if [ ${#CONFIGFILES[@]} -eq 0 ]; then
+        /usr/local/bin/$SCRIPT_NAME &
+    else
+        for((i=0; i<${#CONFIGFILES[@]}; i++)); do
+            echo "Configuring with directives at ${CONFIGFILES[$i]}"
+            /usr/local/bin/$SCRIPT_NAME "${CONFIGFILES[$i]}" &
+        done
+    fi
+}
+
+stop_ms () {
+    echo "Stopping $SCRIPT_NAME"
+    if [ ${#PIDFILES[@]} -eq 0 ]; then
+        /bin/kill `cat $PIDFILE`
+    else
+        for((i=0; i<${#PIDFILES[@]}; i++)); do
+            echo "Killing with pidfile at ${PIDFILES[$i]}"
+            /bin/kill `cat "${PIDFILES[$i]}"`
+        done
+    fi
+}
 
 case "$1" in
         start)
-                echo "Starting $SCRIPT_NAME"
-                /usr/local/bin/$SCRIPT_NAME &
+                start_ms
                 ;;
         stop)
-                echo "Stopping $SCRIPT_NAME"
-                /bin/kill `cat $PIDFILE`
+                stop_ms
                 ;;
         restart)
                 echo "Restarting $SCRIPT_NAME"
-                /bin/kill `cat $PIDFILE`
-                /usr/local/bin/$SCRIPT_NAME &
+                stop_ms
+                start_ms
                 ;;
         *)
                 echo "Only the operations 'start', 'stop', and 'restart' are supported"

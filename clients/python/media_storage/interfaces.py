@@ -79,7 +79,7 @@ class StorageConstruct(BaseConstruct):
         
         `deletion_policy` may either be `None` or an empty dictionary, which means the file is never
         deleted (default) or a dictionary containing one or both of the following:
-         - 'fixed': The number of seconds to retain the file from the time it is uploaded
+         - 'fixed': The number of seconds to retain the file from the time it was uploaded
          - 'stale': The number of seconds that must elapse after the file was last downloaded to
                     qualify it for deletion
                     
@@ -147,14 +147,6 @@ class ControlConstruct(StorageConstruct, RetrievalConstruct):
     """
     __metaclass__ = ABCMeta
     
-    @abstractmethod
-    def status(self, timeout=2.5):
-        """
-        Yields a dictionary of load data from the server.
-        
-        `timeout` is the number of seconds to allow for retrieval to complete.
-        """
-        
     @abstractmethod
     def list_families(self, timeout=2.5):
         """
