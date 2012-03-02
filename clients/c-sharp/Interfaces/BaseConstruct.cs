@@ -19,7 +19,16 @@
 // 
 
 namespace MediaStorage.Interfaces{
+    /// <summary>
+    /// Defines methods that must be implemented by all clients.
+    /// </summary>
     public interface BaseConstruct{
-        bool Ping(float timeout=1.0f);
+        /// <summary>
+        /// Pings the server to indicate whether it is alive or not; an exception is raised on error.
+        /// </summary>
+        /// <param name='timeout'>
+        /// The number of seconds to wait for a response.
+        /// </param>
+        bool Ping(float timeout);
     }
 }
