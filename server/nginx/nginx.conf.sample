@@ -1,0 +1,50 @@
+#This is a sample configuration file suitable for use on Debian or Ubuntu hosts.
+#If running such a host, there's no need to replace the existing file with this
+#one; it just strips out some unnecessary directives and optimises values.
+
+user www-data;
+pid /var/run/nginx.pid;
+
+#Cores * 2 is probably a safe value
+worker_processes  4;
+
+events {
+    worker_connections 512;
+}
+
+http {
+	##
+	# Basic Settings
+	##
+
+	sendfile on;
+	tcp_nopush on;
+	tcp_nodelay on;
+	keepalive_timeout 65;
+	types_hash_max_size 2048;
+	
+	include /etc/nginx/mime.types;
+	default_type application/octet-stream;
+
+	##
+	# Logging Settings
+	##
+
+	access_log /var/log/nginx/access.log;
+	error_log /var/log/nginx/error.log;
+
+	##
+	# Gzip Settings
+	##
+
+	gzip on;
+	gzip_disable "msie6";
+
+	##
+	# Virtual Host Configs
+	##
+
+	include /etc/nginx/conf.d/*.conf;
+	include /etc/nginx/sites-enabled/*;
+}
+
