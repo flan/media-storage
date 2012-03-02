@@ -27,8 +27,8 @@ namespace MediaStorage.Interfaces{
         /// Pings the server to indicate whether it is alive or not; an exception is raised on error.
         /// </summary>
         /// <param name='timeout'>
-        /// The number of seconds to wait for a response.
+        /// The number of seconds to wait for a response; defaults to 1.
         /// </param>
-        bool Ping(float timeout);
+        bool Ping(float timeout=1.0f);
     }
 }
