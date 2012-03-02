@@ -1,0 +1,38 @@
+#Defines a virtual host entry for the media-storage service, useful for multi-role servers
+#Under Debian, just toss this into sites-available, then enable it.
+#This provides a subset of the full set of options, limiting access to data-retrieval.
+#If you need to expose this system directly to an external network, this provides a
+#reasonable amount of security, provided that nginx itself isn't compromised.
+
+upstream media-storage {
+    #Define every backend here
+    server localhost:1234;
+}
+
+server {
+    #The ports on which to listen.
+    listen 1232;
+    
+    #Enumerate all names by which this system should be reachable (usually 'localhost' and one
+    #canonical name); not necessary if the port is uncontested.
+    server_name localhost media-storage.flan.uguu.ca;
+    
+    #The protocol has internal compression where needed
+    gzip off;
+    
+    #Limited because uploads shouldn't happen.
+    client_max_body_size 1M;
+    
+    location /ping {
+        proxy_pass http://media-storage/ping;
+    }
+    
+    location /get {
+        proxy_pass http://media-storage/get;
+    }
+    
+    location /describe {
+        proxy_pass http://media-storage/describe;
+    }
+}
+
