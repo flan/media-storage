@@ -1,4 +1,6 @@
 #This is a sample configuration file suitable for use on Debian or Ubuntu hosts.
+#If running such a host, there's no need to replace the existing file with this
+#one; it just strips out some unnecessary directives and optimises values.
 
 user www-data;
 pid /var/run/nginx.pid;
