@@ -451,7 +451,7 @@ namespace MediaStorage{
         /// <exception cref="MediaStorage.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        public System.Collections.Generic.IDictionary<string, object> Query(MediaStorage.Interfaces.Query query, float timeout=5.0f){
+        public System.Collections.Generic.IDictionary<string, object> Query(MediaStorage.Query query, float timeout=5.0f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_QUERY, query.ToDictionary());
             return (System.Collections.Generic.IDictionary<string, object>)MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson()["records"];
         }
