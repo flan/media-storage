@@ -19,12 +19,27 @@
 // 
 
 namespace MediaStorage.Interfaces{
+    /// <summary>
+    /// Contains content retrieved from the system.
+    /// </summary>
     public struct Content{
+        /// <summary>
+        /// The MIME-type of the data.
+        /// </summary>
         public string Mime;
+        /// <summary>
+        /// The data, as a stream of bytes.
+        /// </summary>
         public System.IO.Stream Data;
+        /// <summary>
+        /// The length of the data, expressed in bytes.
+        /// </summary>
         public uint Length;
     }
-    
+
+    /// <summary>
+    /// Defines methods that must be implemented to allow data to be retrieved by a client.
+    /// </summary>
     public interface RetrievalConstruct : BaseConstruct{
         /// <summary>
         /// Retrieves the requested data from the server.
