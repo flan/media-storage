@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 //[assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("uguusoft")]
 [assembly: AssemblyProduct("media-storage")]
-[assembly: AssemblyCopyright("2012, Neil Tallim")]
+[assembly: AssemblyCopyright("2012, Ivrnet, inc.")]
 //[assembly: AssemblyTrademark("")]
 //[assembly: AssemblyCulture("")]
 
