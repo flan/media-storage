@@ -125,7 +125,7 @@ class BaseHandler(tornado.web.RequestHandler):
     - 500 if an internal exception happened
     - 503 if a short-term problem occurred
     """
-    def send_error(self, code, **kwargs):
+    def send_error(self, code, premature_termination=True, **kwargs):
         """
         Adds logging to the Tornado error-handling process.
         """
@@ -134,7 +134,9 @@ class BaseHandler(tornado.web.RequestHandler):
          'code': code,
         })
         tornado.web.RequestHandler.send_error(self, code, **kwargs)
-        
+        if premature_termination:
+            raise PrematureTermination("Request-processing prematurely terminated")
+            
     def post(self):
         """
         Handles an HTTP POST request.
@@ -150,17 +152,19 @@ class BaseHandler(tornado.web.RequestHandler):
             summary = "Filesystem error; exception details follow:\n" + traceback.format_exc()
             _logger.critical(summary)
             mail.send_alert(summary)
-            self.send_error(500)
+            self.send_error(500, premature_termination=False)
         except pymongo.errors.AutoReconnect:
             summary = "Database unavailable; exception details follow:\n" + traceback.format_exc()
             _logger.error(summary)
             mail.send_alert(summary)
-            self.send_error(503)
+            self.send_error(503, premature_termination=False)
+        except PrematureTermination as e: #Raised when an error code is sent from a handler.
+            _logger.debug(str(e))
         except Exception as e:
             summary = "Unknown error; exception details follow:\n" + traceback.format_exc()
             _logger.error(summary)
             mail.send_alert(summary)
-            self.send_error(500)
+            self.send_error(500, premature_termination=False)
         else:
             _logger.debug("Responding to request...")
             try:
@@ -668,3 +672,10 @@ class HTTPService(threading.Thread):
         self._http_loop.start()
         _logger.info("Tornado HTTP server engine terminated")
         
+        
+class PrematureTermination(Exception):
+    """
+    Indicates that request-handling was interrupted below the top-level
+    request-processing flow.
+    """
+    
