@@ -187,7 +187,7 @@ namespace MediaStorage{
 
             Jayrock.Json.JsonObject policy = new Jayrock.Json.JsonObject();
             policy.Add("delete", deletion_policy);
-            System.Collections.Generic.Dictionary<string, object> comp_policy = (System.Collections.Generic.Dictionary<string, object>)compression_policy;
+            System.Collections.Generic.IDictionary<string, object> comp_policy = (System.Collections.Generic.IDictionary<string, object>)compression_policy;
             if(compression_policy != null){
                 comp_policy.Add("comp", compression_policy_format != COMPRESSION.NONE ? compression_policy_format.ToString().ToLower() : null);
             }
@@ -417,7 +417,7 @@ namespace MediaStorage{
 
             Jayrock.Json.JsonObject policy = new Jayrock.Json.JsonObject();
             policy.Add("delete", deletion_policy);
-            System.Collections.Generic.Dictionary<string, object> comp_policy = (System.Collections.Generic.Dictionary<string, object>)compression_policy;
+            System.Collections.Generic.IDictionary<string, object> comp_policy = (System.Collections.Generic.IDictionary<string, object>)compression_policy;
             if(compression_policy != null){
                 comp_policy.Add("comp", compression_policy_format != COMPRESSION.NONE ? compression_policy_format.ToString().ToLower() : null);
             }
