@@ -66,6 +66,11 @@ namespace MediaStorage.Libraries{
         /// Reads every byte, in reasonable-sized chunks, from <c>source</c> into
         /// <c>destination</c>. No seeking occurs after the transfer is complete.
         /// </summary>
+        /// <remarks>
+        /// Why this isn't part of the CLR's standard library will probably never make sense.
+        /// A stream should have methods to consume other streams or to be written into other
+        /// streams.
+        /// </remarks>
         /// <returns>
         /// The number of bytes transferred.
         /// </returns>

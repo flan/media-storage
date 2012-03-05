@@ -187,7 +187,7 @@ namespace MediaStorage{
 
             Jayrock.Json.JsonObject policy = new Jayrock.Json.JsonObject();
             policy.Add("delete", deletion_policy);
-            System.Collections.Generic.IDictionary<string, object> comp_policy = (System.Collections.Generic.IDictionary<string, object>)compression_policy;
+            System.Collections.Generic.IDictionary<string, object> comp_policy = Libraries.Structures.ToJsonDictionary(compression_policy, buffer:1);
             if(compression_policy != null){
                 comp_policy.Add("comp", compression_policy_format != COMPRESSION.NONE ? compression_policy_format.ToString().ToLower() : null);
             }
@@ -206,7 +206,7 @@ namespace MediaStorage{
                 headers.Add(Libraries.Communication.HEADER_COMPRESS_ON_SERVER, Libraries.Communication.HEADER_COMPRESS_ON_SERVER_TRUE);
             }
 
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PUT, physical, headers:headers, data:data);
+            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PUT, put, headers:headers, data:data);
             Libraries.Communication.Response response = MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout);
             return response.ToJson();
         }
@@ -417,7 +417,7 @@ namespace MediaStorage{
 
             Jayrock.Json.JsonObject policy = new Jayrock.Json.JsonObject();
             policy.Add("delete", deletion_policy);
-            System.Collections.Generic.IDictionary<string, object> comp_policy = (System.Collections.Generic.IDictionary<string, object>)compression_policy;
+            System.Collections.Generic.IDictionary<string, object> comp_policy = Libraries.Structures.ToJsonDictionary(compression_policy, buffer:1);
             if(compression_policy != null){
                 comp_policy.Add("comp", compression_policy_format != COMPRESSION.NONE ? compression_policy_format.ToString().ToLower() : null);
             }
