@@ -82,8 +82,8 @@ namespace MediaStorage.Interfaces{
         System.Collections.Generic.IDictionary<string, object> Put(
          System.IO.Stream data, string mime, string family=null,
          COMPRESSION compression=COMPRESSION.NONE, bool compress_on_server=false,
-         System.Collections.Generic.IDictionary<string, long> deletion_policy=null,
-         System.Collections.Generic.IDictionary<string, long> compression_policy=null,
+         System.Collections.Generic.IDictionary<string, ulong> deletion_policy=null,
+         System.Collections.Generic.IDictionary<string, ulong> compression_policy=null,
          COMPRESSION compression_policy_format=COMPRESSION.NONE,
          System.Collections.Generic.IDictionary<string, object> meta=null,
          string uid=null, System.Collections.Generic.IDictionary<string, string> keys=null,
