@@ -106,6 +106,7 @@ namespace MediaStorage.Libraries{
          System.IO.Stream data=null
         ){
             System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(destination);
+            request.Method = "POST";
 
             request.ContentType = "application/json";
             if(headers != null){
