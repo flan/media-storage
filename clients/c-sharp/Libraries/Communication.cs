@@ -64,11 +64,20 @@ namespace MediaStorage.Libraries{
             public System.Collections.Generic.IDictionary<string, object> Properties;
             public System.IO.Stream Data;
 
+            /// <summary>
+            /// Evaluates the response's body as JSON.
+            /// </summary>
+            /// <returns>
+            /// The response's body as a JSON-friendly dictionary.
+            /// </returns>
             public System.Collections.Generic.IDictionary<string, object> ToJson(){
-                System.IO.StreamReader sr = new System.IO.StreamReader(this.Data, System.Text.Encoding.UTF8);
-                Jayrock.Json.JsonObject json = Jayrock.Json.Conversion.JsonConvert.Import<Jayrock.Json.JsonObject>(sr.ReadToEnd());
-                this.Data.Seek(0, System.IO.SeekOrigin.Begin);
-                return json;
+                string data = new System.IO.StreamReader(this.Data, System.Text.Encoding.UTF8).ReadToEnd();
+                try{
+                    Jayrock.Json.JsonObject json = Jayrock.Json.Conversion.JsonConvert.Import<Jayrock.Json.JsonObject>(data);
+                    return json;
+                }catch(System.Exception e){
+                    throw new InvalidJsonError("Unable to decode JSON content received from server", e, data);
+                }
             }
         }
 
@@ -145,6 +154,7 @@ namespace MediaStorage.Libraries{
         /// </param>
         internal static Response SendRequest(System.Net.HttpWebRequest request, System.IO.Stream output=null, float timeout=10.0f){
             try{
+                request.GetRequestStream().Close();
                 using(System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse()){
                     using(System.IO.Stream stream = response.GetResponseStream()){
                         Response r = new Response();

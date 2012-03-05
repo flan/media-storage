@@ -92,4 +92,33 @@ namespace MediaStorage{
         public URLError(string message) : base(message){}
         public URLError(string message, System.Exception innerException) : base(message, innerException){}
     }
+
+    /// <summary>
+    /// A string that should have contained serialised JSON didn't.
+    /// </summary>
+    internal class InvalidJsonError : Error{
+        private string json;
+
+        public InvalidJsonError(string json) : base(){
+            this.json = json;
+        }
+        public InvalidJsonError(string message, string json) : base(message){
+            this.json = json;
+        }
+        public InvalidJsonError(string message, System.Exception innerException, string json) : base(message, innerException){
+            this.json = json;
+        }
+
+        /// <summary>
+        /// Exposes the string that failed to be decoded.
+        /// </summary>
+        /// <value>
+        /// The invalid string.
+        /// </value>
+        public string Json{
+            get{
+                return this.json;
+            }
+        }
+    }
 }
