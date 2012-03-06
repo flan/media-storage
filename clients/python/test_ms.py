@@ -7,7 +7,7 @@ x = media_storage.Client('localhost', 43001)
 print x.ping()
 print x.list_families()
 #y = x.put(open('/home/flan/x.wav'), 'audio/x-wav')
-y = x.put(open('/home/flan/Music/Gust Sound Team - Ar tonelico III (hymmnos blue)/04_EXEC_FLIP_ARPHAGE-..ogg'), 'application/ogg', extension='ogg',
+y = x.put(open('/home/flan/Music/Gust Sound Team - Ar tonelico III (hymmnos blue)/04_EXEC_FLIP_ARPHAGE-..ogg'), 'application/ogg',
  compression_policy={
   'stale': 5,
   'comp': 'bz2',

@@ -29,23 +29,40 @@ namespace MediaStorage.Libraries{
     /// </remarks>
     internal static class Structures{
         /// <summary>
-        /// Converts the given dictionary into something compatible with the JSON everything-is-an-object design.
+        /// The epoch, needed to compute UNIX timestamps.
+        /// </summary>
+        private static System.DateTime epoch = (new System.DateTime(1970, 1, 1, 0, 0, 0));
+
+        /// <summary>
+        /// Serialises the given CLR timestamp, if any, into a UNIX timestamp.
         /// </summary>
         /// <returns>
-        /// A transformed dictionary.
+        /// A UNIX timestamp or <code>null</code>.
         /// </returns>
-        /// <param name='source'>
-        /// The dictionary to process.
+        /// <param name='timestamp'>
+        /// The CLR timestamp to be converted.
         /// </param>
-        /// <param name='buffer'>
-        /// The number of additional slots to add to the dictionary.
-        /// </param>
-        public static System.Collections.Generic.IDictionary<string, object> ToJsonDictionary(System.Collections.Generic.IDictionary<string, ulong> source, int buffer=0){
-            System.Collections.Generic.IDictionary<string, object> destination = new System.Collections.Generic.Dictionary<string, object>(source.Count + buffer);
-            foreach(System.Collections.Generic.KeyValuePair<string, ulong> item in source){
-                destination.Add(item.Key, item.Value);
+        internal static double? ToUnixTimestamp(System.DateTime? timestamp){
+            if(timestamp == null){
+                return null;
             }
-            return destination;
+            return (timestamp.Value.ToUniversalTime() - Structures.epoch).TotalSeconds;
+        }
+
+        /// <summary>
+        /// Deserialises the given UNIX timestamp, if any, into a CLR timestamp.
+        /// </summary>
+        /// <returns>
+        /// A CLR timestamp or <code>null</code>.
+        /// </returns>
+        /// <param name='timestamp'>
+        /// The UNIX timestamp to be converted.
+        /// </param>
+        internal static System.DateTime? ToCLRTimestamp(double? timestamp){
+            if(timestamp == null){
+                return null;
+            }
+            return Structures.epoch.AddSeconds(timestamp.Value).ToLocalTime();
         }
     }
 }
