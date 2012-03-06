@@ -177,8 +177,8 @@ namespace MediaStorage{
             put.Add("physical", physical);
 
             Jayrock.Json.JsonObject policy = new Jayrock.Json.JsonObject();
-            policy.Add("delete", deletion_policy.ToDictionary());
-            policy.Add("compress", compression_policy.ToDictionary());
+            policy.Add("delete", deletion_policy != null ? deletion_policy.ToDictionary() : null);
+            policy.Add("compress", compression_policy != null ? compression_policy.ToDictionary() : null);
             put.Add("policy", policy);
 
             System.Collections.Generic.Dictionary<string, string> headers = new System.Collections.Generic.Dictionary<string, string>();
@@ -401,8 +401,8 @@ namespace MediaStorage{
             update.Add("keys", keys);
 
             Jayrock.Json.JsonObject policy = new Jayrock.Json.JsonObject();
-            policy.Add("delete", deletion_policy.ToDictionary());
-            policy.Add("compression", compression_policy.ToDictionary());
+            policy.Add("delete", deletion_policy != null ? deletion_policy.ToDictionary() : null);
+            policy.Add("compress", compression_policy != null ? compression_policy.ToDictionary() : null);
             update.Add("policy", policy);
 
             Jayrock.Json.JsonObject meta = new Jayrock.Json.JsonObject();
