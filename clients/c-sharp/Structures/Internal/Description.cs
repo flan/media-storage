@@ -31,9 +31,6 @@ namespace MediaStorage.Structures.Internal{
         public System.Collections.Generic.IDictionary<string, object> Meta;
 
         internal Description(System.Collections.Generic.IDictionary<string, object> description){
-            System.Console.WriteLine(string.Join(" : ", description.Keys));
-            System.Console.WriteLine(string.Join(" : ", description.Values));
-            System.Console.WriteLine(description["uid"]);
             this.Uid = (string)description["uid"];
             if(description.ContainsKey("keys")){
                 this.Keys = new Keys((System.Collections.Generic.IDictionary<string, object>)description["keys"]);
