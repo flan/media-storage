@@ -73,7 +73,7 @@ namespace MediaStorage{
         /// <exception cref="MediaStorage.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        public Structs.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f){
+        public Structures.Internal.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f){
             Jayrock.Json.JsonObject get_json = new Jayrock.Json.JsonObject();
             get_json.Add("uid", uid);
 
@@ -92,7 +92,7 @@ namespace MediaStorage{
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_GET, get_json);
             MediaStorage.Libraries.Communication.Response response = MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout);
 
-            Structs.Content content = new Structs.Content();
+            Structures.Internal.Content content = new Structures.Internal.Content();
             if(output_file != null){
                 content.Data = output_file;
             }else{
