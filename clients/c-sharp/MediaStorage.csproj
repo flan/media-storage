@@ -51,10 +51,16 @@
     <Compile Include="Libraries\Streams.cs" />
     <Compile Include="BaseClient.cs" />
     <Compile Include="Libraries\Structures.cs" />
+    <Compile Include="Structures\Internal\Description.cs" />
+    <Compile Include="Structures\Policy.cs" />
+    <Compile Include="Structures\Keys.cs" />
+    <Compile Include="Structures\Internal\Storage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="Interfaces\" />
     <Folder Include="Libraries\" />
+    <Folder Include="Structures\" />
+    <Folder Include="Structures\Internal\" />
   </ItemGroup>
 </Project>

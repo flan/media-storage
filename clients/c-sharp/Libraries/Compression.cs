@@ -47,6 +47,9 @@ namespace MediaStorage.Libraries{
         internal static System.Collections.Generic.IList<COMPRESSION> supported_formats = new System.Collections.Generic.List<COMPRESSION>(new COMPRESSION[]{COMPRESSION.GZ});
 
         internal static COMPRESSION ResolveCompressionFormat(string compression){
+            if(compression == null){
+                return COMPRESSION.NONE;
+            }
             switch(compression.ToLower()){
                 case "gz":
                     return COMPRESSION.GZ;

@@ -43,11 +43,6 @@ namespace MediaStorage{
     /// </summary>
     public class Query{
         /// <summary>
-        /// The epoch, needed to compute UNIX timestamps.
-        /// </summary>
-        private static System.DateTime epoch = (new System.DateTime(1970, 1, 1, 0, 0, 0));
-
-        /// <summary>
         /// The smallest creation-time to select; defaults to unlimited.
         /// </summary>
         System.DateTime? CtimeMin = null;
@@ -86,22 +81,6 @@ namespace MediaStorage{
         System.Collections.Generic.IDictionary<string, object> Meta = new Jayrock.Json.JsonObject();
 
         /// <summary>
-        /// Serialises the given timestamp, if any, into a UNIX timestamp.
-        /// </summary>
-        /// <returns>
-        /// A UNIX timestamp or <code>null</code>.
-        /// </returns>
-        /// <param name='timestamp'>
-        /// The timestamp to be converted.
-        /// </param>
-        private static double? ToUnixTimestamp(System.DateTime? timestamp){
-            if(timestamp == null){
-                return null;
-            }
-            return (timestamp.Value.ToUniversalTime() - Query.epoch).TotalSeconds;
-        }
-
-        /// <summary>
         /// Serialises the query object as a media-storage-query-compatible, JSON-friendly data-structure.
         /// </summary>
         /// <returns>
@@ -111,13 +90,13 @@ namespace MediaStorage{
             Jayrock.Json.JsonObject json_struct = new Jayrock.Json.JsonObject();
 
             Jayrock.Json.JsonObject ctime = new Jayrock.Json.JsonObject();
-            ctime.Add("min", Query.ToUnixTimestamp(this.CtimeMin));
-            ctime.Add("max", Query.ToUnixTimestamp(this.CtimeMax));
+            ctime.Add("min", Libraries.Structures.ToUnixTimestamp(this.CtimeMin));
+            ctime.Add("max", Libraries.Structures.ToUnixTimestamp(this.CtimeMax));
             json_struct.Add("ctime", ctime);
             
             Jayrock.Json.JsonObject atime = new Jayrock.Json.JsonObject();
-            atime.Add("min", Query.ToUnixTimestamp(this.AtimeMin));
-            atime.Add("max", Query.ToUnixTimestamp(this.AtimeMax));
+            atime.Add("min", Libraries.Structures.ToUnixTimestamp(this.AtimeMin));
+            atime.Add("max", Libraries.Structures.ToUnixTimestamp(this.AtimeMax));
             json_struct.Add("atime", atime);
 
             Jayrock.Json.JsonObject accesses = new Jayrock.Json.JsonObject();
@@ -183,20 +162,12 @@ namespace MediaStorage.Interfaces{
         /// A list of all metadata to be removed; defaults to <c>null</c>.
         /// </param>
         /// <param name='deletion_policy'>
-        /// May either be <c>null</c>, the default, which means no change (default) or a
-        /// dictionary containing one or both of the following:
-        /// <list>
-        ///     <item>'fixed': The number of seconds to retain the file from the time it was uploaded</item>
-        ///     <item>'stale': The number of seconds that must elapse after the file was last downloaded to qualify it for deletion</item>
-        /// </list>
+        /// May either be <c>null</c>, the default, which means no change or a <see cref="Structures.DeletionPolicy"/>
+        /// instance.
         /// </param>
         /// <param name='compression_policy'>
-        /// May either be <c>null</c>, the default, which means the file is never compressed (default) or a
-        /// dictionary containing one or both of the following:
-        /// <list>
-        ///     <item>'fixed': The number of seconds to leave the file alone from the time it was uploaded</item>
-        ///     <item>'stale': The number of seconds that must elapse after the file was last downloaded to qualify it for compression</item>
-        /// </list>
+        /// May either be <c>null</c>, the default, which means no change or a <see cref="Structures.CompressionPolicy"/>
+        /// instance.
         /// </param>
         /// <param name='compression_policy_format'>
         /// The format into which the file will be compressed once the compression policy activates; defaults to <c>COMPRESSION.NONE</c>.
@@ -207,9 +178,8 @@ namespace MediaStorage.Interfaces{
         void Update(string uid, string write_key,
          System.Collections.Generic.IDictionary<string, object> new_meta=null,
          System.Collections.Generic.IList<string> removed_meta=null,
-         System.Collections.Generic.IDictionary<string, ulong> deletion_policy=null,
-         System.Collections.Generic.IDictionary<string, ulong> compression_policy=null,
-         COMPRESSION compression_policy_format=COMPRESSION.NONE,
+         Structures.DeletionPolicy deletion_policy=null,
+         Structures.CompressionPolicy compression_policy=null,
          float timeout=2.5f
         );
 

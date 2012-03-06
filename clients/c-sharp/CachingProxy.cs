@@ -73,7 +73,7 @@ namespace MediaStorage{
         /// <exception cref="MediaStorage.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        public MediaStorage.Interfaces.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f){
+        public Structs.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f){
             Jayrock.Json.JsonObject get_json = new Jayrock.Json.JsonObject();
             get_json.Add("uid", uid);
 
@@ -92,7 +92,7 @@ namespace MediaStorage{
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_GET, get_json);
             MediaStorage.Libraries.Communication.Response response = MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout);
 
-            MediaStorage.Interfaces.Content content = new MediaStorage.Interfaces.Content();
+            Structs.Content content = new Structs.Content();
             if(output_file != null){
                 content.Data = output_file;
             }else{
@@ -106,7 +106,7 @@ namespace MediaStorage{
         }
 
         /// <summary>
-        /// Retrieves the requested record from the server as a dictionary.
+        /// Retrieves details about the requested record from the server.
         /// </summary>
         /// <param name='uid'>
         /// The UID of the record to be read.
@@ -126,7 +126,7 @@ namespace MediaStorage{
         /// <exception cref="MediaStorage.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        public System.Collections.Generic.IDictionary<string, object> Describe(string uid, string read_key, float timeout=2.5f){
+        public Structures.Internal.Description Describe(string uid, string read_key, float timeout=2.5f){
             Jayrock.Json.JsonObject describe = new Jayrock.Json.JsonObject();
             describe.Add("uid", uid);
 
@@ -143,8 +143,8 @@ namespace MediaStorage{
 
             describe.Add("proxy", proxy);
 
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_DESCRIBE, describe);
-            return MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_DESCRIBE, describe);
+            return new Structures.Internal.Description(Libraries.Communication.SendRequest(request, timeout:timeout).ToJson());
         }
     }
 }

@@ -18,7 +18,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-namespace MediaStorage.Interfaces{
+namespace MediaStorage.Structs{
     /// <summary>
     /// Contains content retrieved from the system.
     /// </summary>
@@ -36,7 +36,8 @@ namespace MediaStorage.Interfaces{
         /// </summary>
         public uint Length;
     }
-
+}
+namespace MediaStorage.Interfaces{
     /// <summary>
     /// Defines methods that must be implemented to allow data to be retrieved by a client.
     /// </summary>
@@ -64,10 +65,10 @@ namespace MediaStorage.Interfaces{
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 5.
         /// </param>
-        Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f);
+        Structs.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f);
 
         /// <summary>
-        /// Retrieves the requested record from the server as a dictionary.
+        /// Retrieves details about the requested record from the server.
         /// </summary>
         /// <param name='uid'>
         /// The UID of the record to be read.
@@ -78,6 +79,6 @@ namespace MediaStorage.Interfaces{
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 2.5.
         /// </param>
-        System.Collections.Generic.IDictionary<string, object> Describe(string uid, string read_key, float timeout=2.5f);
+        Structures.Internal.Description Describe(string uid, string read_key, float timeout=2.5f);
     }
 }
