@@ -56,6 +56,8 @@
     <Compile Include="Structures\Keys.cs" />
     <Compile Include="Structures\Internal\Storage.cs" />
     <Compile Include="Structures\Internal\Content.cs" />
+    <Compile Include="Structures\Internal\Query.cs" />
+    <Compile Include="Structures\Query.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
