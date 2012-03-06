@@ -265,7 +265,7 @@ namespace MediaStorage{
                 if(output_file != null){ //Write to the given stream, since the caller might expect to use that
                     output_file.Seek(0, System.IO.SeekOrigin.Begin);
                     output_file.SetLength(0); //Truncate the file
-                    content.Length = Libraries.Stream.TransferData(decompressed_data, output_file);
+                    decompressed_data.CopyTo(output_file);
                     output_file.Seek(0, System.IO.SeekOrigin.Begin);
                     content.Data = output_file;
                 }
@@ -432,9 +432,9 @@ namespace MediaStorage{
         /// <exception cref="MediaStorage.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        public System.Collections.Generic.IDictionary<string, object> Query(MediaStorage.Query query, float timeout=5.0f){
+        public Structures.Internal.Query Query(Structures.Query query, float timeout=5.0f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_QUERY, query.ToDictionary());
-            return (System.Collections.Generic.IDictionary<string, object>)MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson()["records"];
+            return new Structures.Internal.Query((System.Collections.Generic.IList<object>)Libraries.Communication.SendRequest(request, timeout:timeout).ToJson()["records"]);
         }
     }
 }

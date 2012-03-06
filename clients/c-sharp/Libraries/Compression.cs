@@ -88,7 +88,7 @@ namespace MediaStorage.Libraries{
             System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Compress);
             TempFileStream tfs = new TempFileStream();
 
-            Stream.TransferData(gz, tfs);
+            gz.CopyTo(tfs);
             tfs.Seek(0, System.IO.SeekOrigin.Begin);
 
             return tfs;
@@ -98,7 +98,7 @@ namespace MediaStorage.Libraries{
             System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Decompress);
             TempFileStream tfs = new TempFileStream();
 
-            Stream.TransferData(gz, tfs);
+            gz.CopyTo(tfs);
             tfs.Seek(0, System.IO.SeekOrigin.Begin);
 
             return tfs;

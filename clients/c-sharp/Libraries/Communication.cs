@@ -85,7 +85,7 @@ namespace MediaStorage.Libraries{
             output.Write(Communication.FORM_HEADER, 0, Communication.FORM_HEADER.Length);
             output.Write(header, 0, header.Length);
             output.Write(Communication.FORM_PRE_CONTENT, 0, Communication.FORM_PRE_CONTENT.Length);
-            Stream.TransferData(content, output);
+            content.CopyTo(output);
             output.Write(Communication.FORM_FOOTER, 0, Communication.FORM_FOOTER.Length);
         }
 
@@ -167,7 +167,8 @@ namespace MediaStorage.Libraries{
                         }
                         r.Properties.Add(Communication.PROPERTY_CONTENT_TYPE, response.ContentType);
                         if(output != null){
-                            r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, Stream.TransferData(response.GetResponseStream(), output));
+                            response.GetResponseStream().CopyTo(output);
+                            r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, output.Length);
                             output.Seek(0, System.IO.SeekOrigin.Begin);
                             r.Data = output;
                         }else{

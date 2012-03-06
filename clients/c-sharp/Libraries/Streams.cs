@@ -57,43 +57,5 @@ namespace MediaStorage.Libraries{
             }
         }
     }
-
-    public static class Stream{
-        //Transfer data in 32k chunks
-        private const uint CHUNK_SIZE = 32 * 1024;
-
-        /// <summary>
-        /// Reads every byte, in reasonable-sized chunks, from <c>source</c> into
-        /// <c>destination</c>. No seeking occurs after the transfer is complete.
-        /// </summary>
-        /// <remarks>
-        /// Why this isn't part of the CLR's standard library will probably never make sense.
-        /// A stream should have methods to consume other streams or to be written into other
-        /// streams.
-        /// </remarks>
-        /// <returns>
-        /// The number of bytes transferred.
-        /// </returns>
-        /// <param name='source'>
-        /// The source from which data is read.
-        /// </param>
-        /// <param name='destination'>
-        /// The destination to which data is written.
-        /// </param>
-        public static uint TransferData(System.IO.Stream source, System.IO.Stream destination){
-            uint size = 0;
-            while(true){
-                byte[] chunk = new byte[Stream.CHUNK_SIZE];
-                int bytes_read = source.Read(chunk, 0, chunk.Length);
-                if(bytes_read == 0){
-                    break;
-                }
-                destination.Write(chunk, 0, bytes_read);
-                destination.Flush();
-                size += (uint)bytes_read;
-            }
-            return size;
-        }
-    }
 }
 
