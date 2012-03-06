@@ -173,6 +173,7 @@ namespace MediaStorage.Libraries{
                             r.Data = output;
                         }else{
                             r.Data = response.GetResponseStream();
+                            r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, response.ContentLength);
                         }
                         return r;
                     }

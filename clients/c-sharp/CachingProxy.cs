@@ -99,6 +99,7 @@ namespace MediaStorage{
                 content.Data = new Libraries.TempFileStream();
             }
             response.Data.CopyTo(content.Data);
+            content.Length = content.Data.Length;
             content.Data.Seek(0, System.IO.SeekOrigin.Begin);
             content.Mime = (string)response.Properties[Libraries.Communication.PROPERTY_CONTENT_TYPE];
 
