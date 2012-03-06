@@ -91,7 +91,7 @@ namespace MediaStorage{
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_LIST_FAMILIES, new System.Collections.Generic.Dictionary<string, object>());
             System.Collections.Generic.List<string> families = new System.Collections.Generic.List<string>();
             foreach(object family in (System.Collections.Generic.IList<object>)MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson()["families"]){
-                families.Add(family.ToString());
+                families.Add((string)family);
             }
             return families;
         }
