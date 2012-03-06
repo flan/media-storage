@@ -18,25 +18,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
-namespace MediaStorage.Structs{
-    /// <summary>
-    /// Contains content retrieved from the system.
-    /// </summary>
-    public struct Content{
-        /// <summary>
-        /// The MIME-type of the data.
-        /// </summary>
-        public string Mime;
-        /// <summary>
-        /// The data, as a stream of bytes.
-        /// </summary>
-        public System.IO.Stream Data;
-        /// <summary>
-        /// The length of the data, expressed in bytes.
-        /// </summary>
-        public uint Length;
-    }
-}
 namespace MediaStorage.Interfaces{
     /// <summary>
     /// Defines methods that must be implemented to allow data to be retrieved by a client.
@@ -65,7 +46,7 @@ namespace MediaStorage.Interfaces{
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 5.
         /// </param>
-        Structs.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f);
+        Structures.Internal.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f);
 
         /// <summary>
         /// Retrieves details about the requested record from the server.
