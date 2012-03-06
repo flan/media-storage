@@ -256,7 +256,7 @@ namespace MediaStorage{
             Structures.Internal.Content content = new Structures.Internal.Content();
             content.Data = response.Data;
             content.Mime = (string)response.Properties[Libraries.Communication.PROPERTY_CONTENT_TYPE];
-            content.Length = (uint)response.Properties[Libraries.Communication.PROPERTY_CONTENT_LENGTH];
+            content.Length = (long)response.Properties[Libraries.Communication.PROPERTY_CONTENT_LENGTH];
 
             //Evaluate decompression requirements
             object applied_compression = response.Properties[Libraries.Communication.PROPERTY_APPLIED_COMPRESSION];
@@ -268,6 +268,7 @@ namespace MediaStorage{
                     decompressed_data.CopyTo(output_file);
                     output_file.Seek(0, System.IO.SeekOrigin.Begin);
                     content.Data = output_file;
+                    content.Length = output_file.Length;
                 }
             }
 

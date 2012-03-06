@@ -37,7 +37,7 @@ namespace MediaStorage.Structures.Internal{
         /// <summary>
         /// The length of the data, expressed in bytes.
         /// </summary>
-        public uint Length;
+        public long Length;
     }
 }
 
