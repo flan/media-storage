@@ -19,8 +19,18 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 namespace MediaStorage{
+    /// <summary>
+    /// A means of accessing a service running on localhost that pulls files from a central server and
+    /// caches them locally for frequent re-use. Data is made available synchronously.
+    /// </summary>
     public class CachingProxy : BaseClient, Interfaces.RetrievalConstruct{
+        /// <summary>
+        /// The address of the media-storage server.
+        /// </summary>
         private string media_server_host;
+        /// <summary>
+        /// The port of the media-storage server.
+        /// </summary>
         private ushort media_server_port;
 
         /// <summary>
@@ -115,9 +125,6 @@ namespace MediaStorage{
         /// <summary>
         /// Retrieves details about the requested record from the server.
         /// </summary>
-        /// <returns>
-        /// A <see cref="Structures.Internal.Description"/> structure if the record was read, or <c>null</c> otherwise.
-        /// </returns>
         /// <param name='uid'>
         /// The UID of the record to be read.
         /// </param>

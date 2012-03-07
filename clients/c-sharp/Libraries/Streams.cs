@@ -21,15 +21,28 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 namespace MediaStorage.Libraries{
+    /// <summary>
+    /// A customised <see cref="System.IO.FileStream"/> that creates a temporary file and disposes
+    /// of it on garbage-collection.
+    /// </summary>
     internal class TempFileStream : System.IO.FileStream, System.IDisposable{
+        /// <summary>
+        /// Tracks whether the disposal event has occurred.
+        /// </summary>
         private bool disposed = false;
 
+        /// <summary>
+        /// Creates a new self-cleaning on-disk tempfile.
+        /// </summary>
         public TempFileStream() : base(
          System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.Guid.NewGuid().ToString()),
          System.IO.FileMode.CreateNew,
          System.IO.FileAccess.ReadWrite
         ){}
 
+        /// <summary>
+        /// Ensures that the file is removed from disk.
+        /// </summary>
         ~TempFileStream(){
             try{
                 base.Dispose(true);
@@ -39,16 +52,23 @@ namespace MediaStorage.Libraries{
             this.Unlink();
         }
 
+        /// <summary>
+        /// Tries to remove the file from disk when the <see cref="System.IDisposable"/> logic runs.
+        /// </summary>
+        /// <param name='disposing'>
+        /// Indicates whether disposal is active or passive.
+        /// </param>
         protected override void Dispose(bool disposing){
             base.Dispose(disposing);
             if(!this.disposed){
-                if(disposing){
-                    this.Unlink();
-                    this.disposed = true;
-                }
+                this.Unlink();
+                this.disposed = true;
             }
         }
 
+        /// <summary>
+        /// Removes the file from disk, failing silently if it can't be unlinked.
+        /// </summary>
         private void Unlink(){
             try{
                 System.IO.File.Delete(this.Name);
