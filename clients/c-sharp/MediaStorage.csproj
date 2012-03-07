@@ -46,7 +46,6 @@
     <Compile Include="Client.cs" />
     <Compile Include="StorageProxy.cs" />
     <Compile Include="CachingProxy.cs" />
-    <Compile Include="Exceptions.cs" />
     <Compile Include="Libraries\Communication.cs" />
     <Compile Include="Libraries\Streams.cs" />
     <Compile Include="BaseClient.cs" />
@@ -58,6 +57,8 @@
     <Compile Include="Structures\Internal\Content.cs" />
     <Compile Include="Structures\Internal\Query.cs" />
     <Compile Include="Structures\Query.cs" />
+    <Compile Include="Exceptions\Internal.cs" />
+    <Compile Include="Exceptions\Public.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -65,5 +66,6 @@
     <Folder Include="Libraries\" />
     <Folder Include="Structures\" />
     <Folder Include="Structures\Internal\" />
+    <Folder Include="Exceptions\" />
   </ItemGroup>
 </Project>

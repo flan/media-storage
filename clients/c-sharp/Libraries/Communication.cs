@@ -76,7 +76,7 @@ namespace MediaStorage.Libraries{
                     Jayrock.Json.JsonObject json = Jayrock.Json.Conversion.JsonConvert.Import<Jayrock.Json.JsonObject>(data);
                     return json;
                 }catch(System.Exception e){
-                    throw new InvalidJsonError("Unable to decode JSON content received from server", e, data);
+                    throw new Exceptions.InvalidJsonError("Unable to decode JSON content received from server", e, data);
                 }
             }
         }
@@ -184,19 +184,19 @@ namespace MediaStorage.Libraries{
                 if(e.Status == System.Net.WebExceptionStatus.ProtocolError && e.Response != null){
                     System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)e.Response;
                     if(response.StatusCode == System.Net.HttpStatusCode.Forbidden){
-                        throw new MediaStorage.NotAuthorisedError("The requested operation could not be performed because an invalid key was provided");
+                        throw new Exceptions.NotAuthorisedError("The requested operation could not be performed because an invalid key was provided");
                     }else if(response.StatusCode == System.Net.HttpStatusCode.NotFound){
-                        throw new MediaStorage.NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined");
+                        throw new Exceptions.NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined");
                     }else if(response.StatusCode == System.Net.HttpStatusCode.Conflict){
-                        throw new MediaStorage.InvalidRecordError("The uploaded request is structurally flawed and cannot be processed");
+                        throw new Exceptions.InvalidRecordError("The uploaded request is structurally flawed and cannot be processed");
                     }else if(response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed){
-                        throw new MediaStorage.InvalidHeadersError("One or more of the headers supplied (likely Content-Length) was rejected by the server");
+                        throw new Exceptions.InvalidHeadersError("One or more of the headers supplied (likely Content-Length) was rejected by the server");
                     }else if(response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable){
-                        throw new MediaStorage.TemporaryFailureError("The server was unable to process the request");
+                        throw new Exceptions.TemporaryFailureError("The server was unable to process the request");
                     }
-                    throw new MediaStorage.HttpError("Unable to send message; code: " + response.StatusCode, e);
+                    throw new Exceptions.ProtocolError("Unable to send message; code: " + response.StatusCode, e);
                 }else if(e.Status == System.Net.WebExceptionStatus.ConnectFailure || e.Status == System.Net.WebExceptionStatus.NameResolutionFailure){
-                    throw new MediaStorage.URLError("Unable to send message: " + e.Message, e);
+                    throw new Exceptions.URLError("Unable to send message: " + e.Message, e);
                 }
                 throw;
             }
