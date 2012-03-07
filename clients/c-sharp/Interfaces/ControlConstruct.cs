@@ -49,6 +49,12 @@ namespace MediaStorage.Interfaces{
         /// <param name='timeout'>
         /// The number of seconds to wait for a response from the server; defaults to 2.5.
         /// </param>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
+        /// </exception>
         void Unlink(string uid, string write_key, float timeout=2.5f);
 
         /// <summary>
@@ -80,6 +86,12 @@ namespace MediaStorage.Interfaces{
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 2.5.
         /// </param>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
+        /// </exception>
         void Update(string uid, string write_key,
          System.Collections.Generic.IDictionary<string, object> new_meta=null,
          System.Collections.Generic.IList<string> removed_meta=null,

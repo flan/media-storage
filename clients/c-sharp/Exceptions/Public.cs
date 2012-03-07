@@ -1,5 +1,5 @@
 // 
-//  Exceptions.cs
+//  Public.cs
 //  
 //  Author:
 //       Neil Tallim <flan@uguu.ca>
@@ -20,7 +20,7 @@
 //  License along with this library{} if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-namespace MediaStorage{
+namespace MediaStorage.Exceptions{
     /// <summary>
     /// The base class from which all errors native to this assembly inherit.
     /// </summary>
@@ -31,18 +31,18 @@ namespace MediaStorage{
     }
 
     /// <summary>
-    /// Indicates a problem with the HTTP exchange.
+    /// Indicates a problem with the transport protocol.
     /// </summary>
-    public class HttpError : Error{
-        public HttpError() : base(){}
-        public HttpError(string message) : base(message){}
-        public HttpError(string message, System.Exception innerException) : base(message, innerException){}
+    public class ProtocolError : Error{
+        public ProtocolError() : base(){}
+        public ProtocolError(string message) : base(message){}
+        public ProtocolError(string message, System.Exception innerException) : base(message, innerException){}
     }
 
     /// <summary>
     /// The server returned a 403.
     /// </summary>
-    public class NotAuthorisedError : HttpError{
+    public class NotAuthorisedError : ProtocolError{
         public NotAuthorisedError() : base(){}
         public NotAuthorisedError(string message) : base(message){}
         public NotAuthorisedError(string message, System.Exception innerException) : base(message, innerException){}
@@ -51,7 +51,7 @@ namespace MediaStorage{
     /// <summary>
     /// The server returned a 404.
     /// </summary>
-    public class NotFoundError : HttpError{
+    public class NotFoundError : ProtocolError{
         public NotFoundError() : base(){}
         public NotFoundError(string message) : base(message){}
         public NotFoundError(string message, System.Exception innerException) : base(message, innerException){}
@@ -60,7 +60,7 @@ namespace MediaStorage{
     /// <summary>
     /// The server returned a 409.
     /// </summary>
-    public class InvalidRecordError : HttpError{
+    public class InvalidRecordError : ProtocolError{
         public InvalidRecordError() : base(){}
         public InvalidRecordError(string message) : base(message){}
         public InvalidRecordError(string message, System.Exception innerException) : base(message, innerException){}
@@ -69,7 +69,7 @@ namespace MediaStorage{
     /// <summary>
     /// The server returned a 412.
     /// </summary>
-    public class InvalidHeadersError : HttpError{
+    public class InvalidHeadersError : ProtocolError{
         public InvalidHeadersError() : base(){}
         public InvalidHeadersError(string message) : base(message){}
         public InvalidHeadersError(string message, System.Exception innerException) : base(message, innerException){}
@@ -78,7 +78,7 @@ namespace MediaStorage{
     /// <summary>
     /// The server returned a 503.
     /// </summary>
-    public class TemporaryFailureError : HttpError{
+    public class TemporaryFailureError : ProtocolError{
         public TemporaryFailureError() : base(){}
         public TemporaryFailureError(string message) : base(message){}
         public TemporaryFailureError(string message, System.Exception innerException) : base(message, innerException){}
@@ -91,34 +91,5 @@ namespace MediaStorage{
         public URLError() : base(){}
         public URLError(string message) : base(message){}
         public URLError(string message, System.Exception innerException) : base(message, innerException){}
-    }
-
-    /// <summary>
-    /// A string that should have contained serialised JSON didn't.
-    /// </summary>
-    internal class InvalidJsonError : Error{
-        private string json;
-
-        public InvalidJsonError(string json) : base(){
-            this.json = json;
-        }
-        public InvalidJsonError(string message, string json) : base(message){
-            this.json = json;
-        }
-        public InvalidJsonError(string message, System.Exception innerException, string json) : base(message, innerException){
-            this.json = json;
-        }
-
-        /// <summary>
-        /// Exposes the string that failed to be decoded.
-        /// </summary>
-        /// <value>
-        /// The invalid string.
-        /// </value>
-        public string Json{
-            get{
-                return this.json;
-            }
-        }
     }
 }
