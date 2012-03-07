@@ -59,6 +59,7 @@
     <Compile Include="Structures\Query.cs" />
     <Compile Include="Exceptions\Internal.cs" />
     <Compile Include="Exceptions\Public.cs" />
+    <Compile Include="Structures\Internal\Status.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

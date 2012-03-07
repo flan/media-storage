@@ -29,6 +29,16 @@ namespace MediaStorage.Interfaces{
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 1.
         /// </param>
+        /// <exception cref="Exceptions.ProtocolError">
+        /// A problem occurred related to the transport protocol.
+        ///
+        /// This usually means the host is up, but the service is unresponsive.
+        /// </exception>
+        /// <exception cref="Exceptions.UrlError">
+        /// A problem occurred related to the network environment.
+        ///
+        /// This usually means the host is down or there's a DNS/routing issue.
+        /// </exception>
         bool Ping(float timeout=1.0f);
     }
 }

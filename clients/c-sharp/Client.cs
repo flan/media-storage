@@ -39,19 +39,6 @@ namespace MediaStorage{
         /// <summary>
         /// Requests load data from the server.
         /// </summary>
-        /// <returns>
-        /// A JSON-derived data-structure as follows:
-        /// <code>
-        /// 'process': {
-        ///  'cpu': {'percent': 0.1,},
-        ///  'memory': {'percent': 1.2, 'rss': 8220392,},
-        ///  'threads': 4,
-        /// },
-        /// 'system': {
-        ///  'load': {'t1': 0.2, 't5': 0.5, 't15': 0.1,},
-        /// }
-        /// </code>
-        /// </returns>
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 2.5.
         /// </param>
@@ -64,9 +51,9 @@ namespace MediaStorage{
         /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
-        public System.Collections.Generic.IDictionary<string, object> Status(float timeout=2.5f){
+        public Structures.Internal.Status Status(float timeout=2.5f){
             System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_STATUS, new System.Collections.Generic.Dictionary<string, object>());
-            return Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary();
+            return new Structures.Internal.Status(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
         }
 
         /// <summary>
@@ -284,9 +271,6 @@ namespace MediaStorage{
         /// <summary>
         /// Retrieves details about the requested record from the server.
         /// </summary>
-        /// <returns>
-        /// A <see cref="Structures.Internal.Description"/> structure if the record was read, or <c>null</c> otherwise.
-        /// </returns>
         /// <param name='uid'>
         /// The UID of the record to be read.
         /// </param>

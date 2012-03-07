@@ -19,8 +19,19 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 namespace MediaStorage{
+    /// <summary>
+    /// A means of accessing a service running on localhost that buffers storage requests, allowing for
+    /// both fast and fault-tolerant archival of content, provided that synchronous transactions are not
+    /// a requirement of the usage domain.
+    /// </summary>
     public class StorageProxy : BaseClient{
+        /// <summary>
+        /// The address of the media-storage server.
+        /// </summary>
         private string media_server_host;
+        /// <summary>
+        /// The port of the media-storage server.
+        /// </summary>
         private ushort media_server_port;
 
         /// <summary>

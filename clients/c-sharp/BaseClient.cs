@@ -19,7 +19,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 namespace MediaStorage{
+    /// <summary>
+    /// Base client.
+    /// </summary>
     public abstract class BaseClient : Interfaces.BaseConstruct{
+        /// <summary>
+        /// The full URI of the media-storage server.
+        /// </summary>
         protected string server;
 
         /// <summary>
@@ -36,9 +42,13 @@ namespace MediaStorage{
         /// </exception>
         /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
+        ///
+        /// This usually means the host is up, but the service is unresponsive.
         /// </exception>
         /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
+        ///
+        /// This usually means the host is down or there's a DNS/routing issue.
         /// </exception>
         public bool Ping(float timeout=1.0f){
             System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PING, new System.Collections.Generic.Dictionary<string, object>());
