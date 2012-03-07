@@ -135,7 +135,7 @@ namespace MediaStorage{
 
             Jayrock.Json.JsonObject server = new Jayrock.Json.JsonObject();
             server.Add("host", this.media_server_host);
-            server.Add("port", this.media_server_port);
+            server.Add("port", (int)this.media_server_port);
             proxy.Add("server", server);
 
             proxy.Add("data", data);

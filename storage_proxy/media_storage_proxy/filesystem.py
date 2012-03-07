@@ -85,7 +85,7 @@ class _Uploader(threading.Thread):
                 })
                 client.put(
                  data, metadata['physical']['format']['mime'], family=metadata['physical']['family'],
-                 extension=metadata['physical']['format']['ext'], comp=metadata['physical']['format']['comp'], compress_on_server=False,
+                 comp=metadata['physical']['format']['comp'], compress_on_server=False,
                  deletion_policy=metadata['policy']['delete'], compression_policy=metadata['policy']['compress'],
                  meta=metadata['meta'],
                  uid=metadata['uid'], keys=metadata['keys'],
