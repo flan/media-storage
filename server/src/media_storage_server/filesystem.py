@@ -72,7 +72,7 @@ class Filesystem(object):
         })
         self._backend.put(self.resolve_path(record), data, tempfile)
         
-    def make_permanent(record):
+    def make_permanent(self, record):
         """
         Removes the "temporary" status of the file associated with `record`.
         """
