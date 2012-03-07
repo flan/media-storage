@@ -42,7 +42,7 @@ namespace MediaStorage{
         /// </exception>
         public bool Ping(float timeout=1.0f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PING, new System.Collections.Generic.Dictionary<string, object>());
-            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
+            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary();
             return true;
         }
     }

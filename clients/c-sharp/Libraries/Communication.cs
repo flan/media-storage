@@ -70,7 +70,7 @@ namespace MediaStorage.Libraries{
             /// <returns>
             /// The response's body as a JSON-friendly dictionary.
             /// </returns>
-            public System.Collections.Generic.IDictionary<string, object> ToJson(){
+            public System.Collections.Generic.IDictionary<string, object> ToDictionary(){
                 string data = new System.IO.StreamReader(this.Data, System.Text.Encoding.UTF8).ReadToEnd();
                 try{
                     Jayrock.Json.JsonObject json = Jayrock.Json.Conversion.JsonConvert.Import<Jayrock.Json.JsonObject>(data);

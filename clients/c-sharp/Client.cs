@@ -66,7 +66,7 @@ namespace MediaStorage{
         /// </exception>
         public System.Collections.Generic.IDictionary<string, object> Status(float timeout=2.5f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_STATUS, new System.Collections.Generic.Dictionary<string, object>());
-            return MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson();
+            return MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary();
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace MediaStorage{
         public System.Collections.Generic.IList<string> ListFamilies(float timeout=2.5f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_LIST_FAMILIES, new System.Collections.Generic.Dictionary<string, object>());
             System.Collections.Generic.List<string> families = new System.Collections.Generic.List<string>();
-            foreach(object family in (System.Collections.Generic.IList<object>)MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToJson()["families"]){
+            foreach(object family in (System.Collections.Generic.IList<object>)MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary()["families"]){
                 families.Add((string)family);
             }
             return families;
@@ -194,7 +194,7 @@ namespace MediaStorage{
             }
 
             System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PUT, put, headers:headers, data:data);
-            return new Structures.Storage(Libraries.Communication.SendRequest(request, timeout:timeout).ToJson());
+            return new Structures.Storage(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
         }
 
         /// <summary>
@@ -305,7 +305,7 @@ namespace MediaStorage{
             describe.Add("keys", keys);
 
             System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_DESCRIBE, describe);
-            return new Structures.Internal.Description(Libraries.Communication.SendRequest(request, timeout:timeout).ToJson());
+            return new Structures.Internal.Description(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
         }
 
         /// <summary>
@@ -435,7 +435,7 @@ namespace MediaStorage{
         /// </exception>
         public Structures.Internal.Query Query(Structures.Query query, float timeout=5.0f){
             System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_QUERY, query.ToDictionary());
-            return new Structures.Internal.Query((System.Collections.Generic.IList<object>)Libraries.Communication.SendRequest(request, timeout:timeout).ToJson()["records"]);
+            return new Structures.Internal.Query((System.Collections.Generic.IList<object>)Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary()["records"]);
         }
     }
 }

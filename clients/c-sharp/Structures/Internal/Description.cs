@@ -49,8 +49,6 @@ namespace MediaStorage.Structures.Internal{
         public DescriptionPhysicalFormat Format;
 
         public DescriptionPhysical(System.Collections.Generic.IDictionary<string, object> physical){
-            System.Console.WriteLine(string.Join(" : ", physical.Keys));
-            System.Console.WriteLine(physical["atime"].GetType());
             this.Atime = ((Jayrock.Json.JsonNumber)physical["atime"]).ToDouble();
             this.Ctime = ((Jayrock.Json.JsonNumber)physical["ctime"]).ToDouble();
             this.Family = (string)physical["family"];

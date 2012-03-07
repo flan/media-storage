@@ -145,7 +145,7 @@ namespace MediaStorage{
             describe.Add("proxy", proxy);
 
             System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_DESCRIBE, describe);
-            return new Structures.Internal.Description(Libraries.Communication.SendRequest(request, timeout:timeout).ToJson());
+            return new Structures.Internal.Description(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
         }
     }
 }
