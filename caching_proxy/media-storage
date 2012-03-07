@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+"""
+"""
+import logging
+import logging.handlers
+import signal
+import time
+import traceback
+
+from media_storage_proxy.config import CONFIG
+import media_storage_proxy.mail as mail
+import media_storage_proxy.http as http
+import media_storage_proxy.cache as cache
+
+_VERSION = '0.9.0-dev'
+
+_kill_flag = False #True if system shutdown was requested
+
+def _handle_kill_signal(signum, stack):
+    global _kill_flag
+    _kill_flag = True
+    
+def _setup_logging(logger):
+    """
+    Attaches handlers to the given logger, allowing for universal access to resources.
+    """
+    if CONFIG.log_file_path: #Determine whether disk-based logging is desired.
+        #Rolls over once per day
+        file_logger = logging.handlers.TimedRotatingFileHandler(CONFIG.log_file_path, 'D', 1, CONFIG.log_file_history)
+        file_logger.setLevel(getattr(logging, CONFIG.log_file_verbosity))
+        file_logger.setFormatter(logging.Formatter(
+         "%(asctime)s : %(levelname)s : %(name)s:%(lineno)d[%(threadName)s] : %(message)s"
+        ))
+        logger.addHandler(file_logger)
+        
+    if CONFIG.log_console_verbosity: #Determine whether console-based logging is desired.
+        console_logger = logging.StreamHandler()
+        console_logger.setLevel(getattr(logging, CONFIG.log_console_verbosity))
+        console_logger.setFormatter(logging.Formatter(
+         "%(asctime)s : %(levelname)s : %(name)s:%(lineno)d[%(threadName)s] : %(message)s"
+        ))
+        logger.addHandler(console_logger)
+
+if __name__ == '__main__':
+    #Set up logging
+    _logger = logging.getLogger('')
+    _logger.setLevel(logging.DEBUG)
+    _setup_logging(_logger)
+        
+    for i in range(4):
+        _logger.info('=' * 40)
+    _logger.info("Running version %(version)s" % {
+     'version': _VERSION,
+    })
+    
+    try:
+        _logger.info("Registering kill-signal-handlers...")
+        for sig in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
+            signal.signal(sig, _handle_kill_signal)
+        _logger.info("Kill-signal-handlers registered")
+        
+        cache.setup()
+        
+        http_server = http.HTTPService()
+        http_server.start()
+        
+        _logger.info("All subsystems online; commencing normal operation")
+        while not _kill_flag:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        _logger.warn("System shutdown requested by keyboard interrupt")
+    except SystemExit:
+        _logger.warn("System shutdown requested by system code")
+    except Exception as e:
+        summary = "System shutting down; unhandled exception details follow:\n" + traceback.format_exc()
+        _logger.critical(summary)
+        mail.send_alert(summary)
+    finally: #Ensure all non-daemon threads have been killed
+        try:
+            http_server.kill()
+        except Exception:
+            _logger.warn("Unable to stop webservice thread; subsystem may not have been started")
+            
