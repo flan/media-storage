@@ -34,15 +34,15 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
         public bool Ping(float timeout=1.0f){
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PING, new System.Collections.Generic.Dictionary<string, object>());
-            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary();
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PING, new System.Collections.Generic.Dictionary<string, object>());
+            Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary();
             return true;
         }
     }

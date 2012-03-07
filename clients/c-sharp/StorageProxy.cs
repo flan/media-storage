@@ -24,7 +24,7 @@ namespace MediaStorage{
         private ushort media_server_port;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MediaStorage.StorageProxy"/> class.
+        /// Initializes a new instance of the <see cref="StorageProxy"/> class.
         /// </summary>
         /// <param name='server_host'>
         /// The address of the media-storage server.
@@ -96,10 +96,10 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
         public Structures.Storage Put(

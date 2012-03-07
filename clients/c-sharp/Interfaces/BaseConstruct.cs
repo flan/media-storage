@@ -24,7 +24,7 @@ namespace MediaStorage.Interfaces{
     /// </summary>
     public interface BaseConstruct{
         /// <summary>
-        /// Pings the server to indicate whether it is alive or not; an exception is raised on error.
+        /// Pings the server to indicate whether it is alive or not.
         /// </summary>
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 1.

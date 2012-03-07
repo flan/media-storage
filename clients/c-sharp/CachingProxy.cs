@@ -24,7 +24,7 @@ namespace MediaStorage{
         private ushort media_server_port;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MediaStorage.CachingProxy"/> class.
+        /// Initializes a new instance of the <see cref="CachingProxy"/> class.
         /// </summary>
         /// <param name='server_host'>
         /// The address of the media-storage server.
@@ -67,11 +67,17 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
+        /// </exception>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
         /// </exception>
         public Structures.Internal.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f){
             Jayrock.Json.JsonObject get_json = new Jayrock.Json.JsonObject();
@@ -89,8 +95,8 @@ namespace MediaStorage{
             proxy.Add("server", server);
             get_json.Add("proxy", proxy);
 
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_GET, get_json);
-            MediaStorage.Libraries.Communication.Response response = MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_GET, get_json);
+            Libraries.Communication.Response response = Libraries.Communication.SendRequest(request, timeout:timeout);
 
             Structures.Internal.Content content = new Structures.Internal.Content();
             if(output_file != null){
@@ -109,6 +115,9 @@ namespace MediaStorage{
         /// <summary>
         /// Retrieves details about the requested record from the server.
         /// </summary>
+        /// <returns>
+        /// A <see cref="Structures.Internal.Description"/> structure if the record was read, or <c>null</c> otherwise.
+        /// </returns>
         /// <param name='uid'>
         /// The UID of the record to be read.
         /// </param>
@@ -121,11 +130,17 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
+        /// </exception>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
         /// </exception>
         public Structures.Internal.Description Describe(string uid, string read_key, float timeout=2.5f){
             Jayrock.Json.JsonObject describe = new Jayrock.Json.JsonObject();
