@@ -615,14 +615,14 @@ class QueryHandler(BaseHandler):
             
         records = []
         for record in database.enumerate_where(query):
-            record['uid'] = record['_id']
-            del record['_id']
-            del record['physical']['minRes']
-            
             if not trust.read:
                 del record['keys']
             else:
                 record['physical']['path'] = state.get_filesystem(request['family']).resolve_path(record)
+            #Has to happen after the filesystem search
+            record['uid'] = record['_id']
+            del record['_id']
+            del record['physical']['minRes']
             records.append(record)
         return {
          'records': records,
