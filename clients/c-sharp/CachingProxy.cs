@@ -23,7 +23,7 @@ namespace MediaStorage{
     /// A means of accessing a service running on localhost that pulls files from a central server and
     /// caches them locally for frequent re-use. Data is made available synchronously.
     /// </summary>
-    public class CachingProxy : BaseClient, Interfaces.RetrievalConstruct{
+    public class CachingProxy : AbstractBaseClient, Interfaces.RetrievalConstruct{
         /// <summary>
         /// The address of the media-storage server.
         /// </summary>
@@ -52,7 +52,7 @@ namespace MediaStorage{
         }
 
         /// <summary>
-        /// Retrieves the requested data from the local proxy.
+        /// Retrieves the requested data from the cache.
         /// </summary>
         /// <returns>
         /// Returns the content's MIME and the decompressed data as a stream (optionally that
@@ -123,7 +123,9 @@ namespace MediaStorage{
         }
 
         /// <summary>
-        /// Retrieves details about the requested record from the server.
+        /// Retrieves details about the requested record from the cache.
+        ///
+        /// The provided details may not be entirely current, since cached copies will be used when possible.
         /// </summary>
         /// <param name='uid'>
         /// The UID of the record to be read.

@@ -31,7 +31,7 @@ namespace MediaStorage.Exceptions{
     }
 
     /// <summary>
-    /// Indicates a problem with the transport protocol.
+    /// Indicates a problem with the transport protocol, which is, at this point, only HTTP.
     /// </summary>
     public class ProtocolError : Error{
         public ProtocolError() : base(){}
