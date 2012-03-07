@@ -23,11 +23,12 @@ using System;
 
 namespace MediaStorage.Structures.Internal{
     public class Query{
-        public System.Collections.Generic.List<Description> Results;
+        public System.Collections.Generic.IList<Description> Results;
 
-        internal Query(System.Collections.Generic.IList<object> query){
-            foreach(object description in query){
-                this.Results.Add(new Description((System.Collections.Generic.IDictionary<string, object>)description));
+        internal Query(System.Collections.Generic.IList<object> results){
+            this.Results = new System.Collections.Generic.List<MediaStorage.Structures.Internal.Description>();
+            foreach(object result in results){
+                this.Results.Add(new Description((System.Collections.Generic.IDictionary<string, object>)result));
             }
         }
     }
