@@ -36,6 +36,7 @@ import traceback
 import types
 import uuid
 
+import psutil
 import pymongo
 import tornado.httpserver
 import tornado.ioloop
