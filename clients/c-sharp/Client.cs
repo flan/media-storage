@@ -24,7 +24,7 @@ namespace MediaStorage{
     /// </summary>
     public class Client : BaseClient, Interfaces.ControlConstruct{
         /// <summary>
-        /// Initializes a new instance of the <see cref="MediaStorage.Client"/> class.
+        /// Initializes a new instance of the <see cref="Client"/> class.
         /// </summary>
         /// <param name='server_host'>
         /// The address of the media-storage server.
@@ -58,15 +58,15 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
         public System.Collections.Generic.IDictionary<string, object> Status(float timeout=2.5f){
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_STATUS, new System.Collections.Generic.Dictionary<string, object>());
-            return MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary();
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_STATUS, new System.Collections.Generic.Dictionary<string, object>());
+            return Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary();
         }
 
         /// <summary>
@@ -81,16 +81,16 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
         public System.Collections.Generic.IList<string> ListFamilies(float timeout=2.5f){
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_LIST_FAMILIES, new System.Collections.Generic.Dictionary<string, object>());
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_LIST_FAMILIES, new System.Collections.Generic.Dictionary<string, object>());
             System.Collections.Generic.List<string> families = new System.Collections.Generic.List<string>();
-            foreach(object family in (System.Collections.Generic.IList<object>)MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary()["families"]){
+            foreach(object family in (System.Collections.Generic.IList<object>)Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary()["families"]){
                 families.Add((string)family);
             }
             return families;
@@ -147,10 +147,10 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
         public Structures.Storage Put(
@@ -223,11 +223,17 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
+        /// </exception>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
         /// </exception>
         public Structures.Internal.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f){
             Jayrock.Json.JsonObject get_json = new Jayrock.Json.JsonObject();
@@ -242,7 +248,7 @@ namespace MediaStorage{
                 headers.Add(Libraries.Communication.HEADER_SUPPORTED_COMPRESSION, string.Join(Libraries.Communication.HEADER_SUPPORTED_COMPRESSION_DELIMITER.ToString(), Libraries.Compression.supported_formats));
             }
 
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_GET, get_json, headers:headers);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_GET, get_json, headers:headers);
 
             System.IO.Stream output;
             if(output_file != null){
@@ -251,7 +257,7 @@ namespace MediaStorage{
                 output = new Libraries.TempFileStream();
             }
 
-            MediaStorage.Libraries.Communication.Response response = MediaStorage.Libraries.Communication.SendRequest(request, output:output, timeout:timeout);
+            Libraries.Communication.Response response = Libraries.Communication.SendRequest(request, output:output, timeout:timeout);
 
             Structures.Internal.Content content = new Structures.Internal.Content();
             content.Data = response.Data;
@@ -278,6 +284,9 @@ namespace MediaStorage{
         /// <summary>
         /// Retrieves details about the requested record from the server.
         /// </summary>
+        /// <returns>
+        /// A <see cref="Structures.Internal.Description"/> structure if the record was read, or <c>null</c> otherwise.
+        /// </returns>
         /// <param name='uid'>
         /// The UID of the record to be read.
         /// </param>
@@ -290,11 +299,17 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
+        /// </exception>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
         /// </exception>
         public Structures.Internal.Description Describe(string uid, string read_key, float timeout=2.5f){
             Jayrock.Json.JsonObject describe = new Jayrock.Json.JsonObject();
@@ -323,11 +338,17 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
+        /// </exception>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
         /// </exception>
         public void Unlink(string uid, string write_key, float timeout=2.5f){
             Jayrock.Json.JsonObject unlink = new Jayrock.Json.JsonObject();
@@ -337,8 +358,8 @@ namespace MediaStorage{
             keys.Add("write", write_key);
             unlink.Add("keys", keys);
 
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_UNLINK, unlink);
-            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_UNLINK, unlink);
+            Libraries.Communication.SendRequest(request, timeout:timeout);
         }
 
         /// <summary>
@@ -381,11 +402,17 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
+        /// </exception>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
         /// </exception>
         public void Update(string uid, string write_key,
          System.Collections.Generic.IDictionary<string, object> new_meta=null,
@@ -411,8 +438,8 @@ namespace MediaStorage{
             meta.Add("removed", removed_meta != null ? removed_meta : new System.Collections.Generic.List<string>());
             update.Add("meta", meta);
 
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_UPDATE, update);
-            MediaStorage.Libraries.Communication.SendRequest(request, timeout:timeout);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_UPDATE, update);
+            Libraries.Communication.SendRequest(request, timeout:timeout);
         }
 
         /// <summary>
@@ -427,14 +454,14 @@ namespace MediaStorage{
         /// <exception cref="System.Exception">
         /// Some unknown problem occurred.
         /// </exception>
-        /// <exception cref="MediaStorage.HttpError">
+        /// <exception cref="Exceptions.ProtocolError">
         /// A problem occurred related to the transport protocol.
         /// </exception>
-        /// <exception cref="MediaStorage.UrlError">
+        /// <exception cref="Exceptions.UrlError">
         /// A problem occurred related to the network environment.
         /// </exception>
         public Structures.Internal.Query Query(Structures.Query query, float timeout=5.0f){
-            System.Net.HttpWebRequest request = MediaStorage.Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_QUERY, query.ToDictionary());
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_QUERY, query.ToDictionary());
             return new Structures.Internal.Query((System.Collections.Generic.IList<object>)Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary()["records"]);
         }
     }

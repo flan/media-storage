@@ -36,7 +36,7 @@ VERSION = '0.9.0-dev'
 from common import (
  QueryStruct,
  Error,
- HTTPError, NotAuthorisedError, NotFoundError, InvalidRecordError, InvalidHeadersError,
+ ProtocolError, NotAuthorisedError, NotFoundError, InvalidRecordError, InvalidHeadersError,
  TemporaryFailureError,
  URLError,
 )

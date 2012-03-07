@@ -46,11 +46,20 @@ namespace MediaStorage.Interfaces{
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 5.
         /// </param>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
+        /// </exception>
         Structures.Internal.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f);
 
         /// <summary>
         /// Retrieves details about the requested record from the server.
         /// </summary>
+        /// <returns>
+        /// A <see cref="Structures.Internal.Description"/> structure if the record was read, or <c>null</c> otherwise.
+        /// </returns>
         /// <param name='uid'>
         /// The UID of the record to be read.
         /// </param>
@@ -60,6 +69,12 @@ namespace MediaStorage.Interfaces{
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 2.5.
         /// </param>
+        /// <exception cref="Exceptions.NotFoundError">
+        /// The requested record was not found.
+        /// </exception>
+        /// <exception cref="Exceptions.NotAuthorisedError">
+        /// The requested record was not accessible with the given credentials.
+        /// </exception>
         Structures.Internal.Description Describe(string uid, string read_key, float timeout=2.5f);
     }
 }

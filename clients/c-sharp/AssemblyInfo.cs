@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTitle("MediaStorage")]
 [assembly: AssemblyDescription("Provides CLR bindings for the media-storage system")]
 //[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("uguusoft")]
+[assembly: AssemblyCompany("Ivrnet, inc.")]
 [assembly: AssemblyProduct("media-storage")]
 [assembly: AssemblyCopyright("2012, Ivrnet, inc.")]
 //[assembly: AssemblyTrademark("")]
