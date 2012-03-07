@@ -34,6 +34,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({
              'online': True,
             }))
+            return
             
         if not self.path == '/put':
             _logger.warn("Request received for unsupported path %(path)s from %(addr)s" % {
