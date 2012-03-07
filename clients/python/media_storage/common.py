@@ -135,11 +135,11 @@ def send_request(request, output=None, timeout=10.0):
     
     Default `timeout` is 10s.
     
-    All ``HTTPError`` sub-types, ``URLError``, or general ``Exception``s may be raised, as needed.
+    All ``ProtocolError`` sub-types, ``URLError``, or general ``Exception``s may be raised, as needed.
     """
     try:
         response = urllib2.urlopen(request, timeout=timeout)
-    except urllib2.HTTPError as e:
+    except urllib2.ProtocolError as e:
         if e.code == 403:
             raise NotAuthorisedError("The requested operation could not be performed because an invalid key was provided")
         elif e.code == 404:
@@ -151,7 +151,7 @@ def send_request(request, output=None, timeout=10.0):
         elif e.code == 503:
             raise TemporaryFailureError("The server was unable to process the request")
         else:
-            raise HTTPError("Unable to send message; code: %(code)i" % {
+            raise ProtocolError("Unable to send message; code: %(code)i" % {
              'code': e.code,
             })
     except urllib2.URLError as e:
@@ -243,32 +243,32 @@ class Error(Exception):
     The base class from which all errors native to this package inherit.
     """
     
-class HTTPError(Error):
+class ProtocolError(Error):
     """
-    Indicates a problem with the HTTP exchange.
+    Indicates a problem with the transport protocol.
     """
     
-class NotAuthorisedError(HTTPError):
+class NotAuthorisedError(ProtocolError):
     """
     The server returned a 403.
     """
     
-class NotFoundError(HTTPError):
+class NotFoundError(ProtocolError):
     """
     The server returned a 404.
     """
     
-class InvalidRecordError(HTTPError):
+class InvalidRecordError(ProtocolError):
     """
     The server returned a 409, meaning that the request is flawed.
     """
     
-class InvalidHeadersError(HTTPError):
+class InvalidHeadersError(ProtocolError):
     """
     The server returned a 412.
     """
     
-class TemporaryFailureError(HTTPError):
+class TemporaryFailureError(ProtocolError):
     """
     The server returned a 503.
     """
