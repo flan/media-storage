@@ -155,9 +155,9 @@ namespace MediaStorage.Libraries{
         internal static Response SendRequest(System.Net.HttpWebRequest request, System.IO.Stream output=null, float timeout=10.0f){
             try{
                 request.GetRequestStream().Close();
+                Response r = new Response();
                 using(System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)request.GetResponse()){
                     using(System.IO.Stream stream = response.GetResponseStream()){
-                        Response r = new Response();
                         r.Properties = new System.Collections.Generic.Dictionary<string, object>();
                         string applied_compression = response.Headers.Get(Communication.HEADER_APPLIED_COMPRESSION);
                         if(applied_compression != null){
@@ -167,17 +167,19 @@ namespace MediaStorage.Libraries{
                         }
                         r.Properties.Add(Communication.PROPERTY_CONTENT_TYPE, response.ContentType);
                         if(output != null){
-                            response.GetResponseStream().CopyTo(output);
+                            stream.CopyTo(output);
                             r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, output.Length);
                             output.Seek(0, System.IO.SeekOrigin.Begin);
                             r.Data = output;
                         }else{
-                            r.Data = response.GetResponseStream();
+                            r.Data = new System.IO.MemoryStream();
+                            stream.CopyTo(r.Data);
+                            r.Data.Seek(0, System.IO.SeekOrigin.Begin);
                             r.Properties.Add(Communication.PROPERTY_CONTENT_LENGTH, response.ContentLength);
                         }
-                        return r;
                     }
                 }
+                return r;
             }catch(System.Net.WebException e){
                 if(e.Status == System.Net.WebExceptionStatus.ProtocolError && e.Response != null){
                     System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)e.Response;
