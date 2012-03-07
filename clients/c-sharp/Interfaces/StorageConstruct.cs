@@ -51,9 +51,6 @@ namespace MediaStorage.Interfaces{
         /// May either be <c>null</c>, the default, which means the file is never compressed or a <see cref="Structures.CompressionPolicy"/>
         /// instance.
         /// </param>
-        /// <param name='compression_policy_format'>
-        /// The format into which the file will be compressed once the compression policy activates; defaults to <c>COMPRESSION.NONE</c>.
-        /// </param>
         /// <param name='meta'>
         /// Any additional metadata with which to tag the file; defaults to <c>null</c>, meaning no metadata.
         /// </param>

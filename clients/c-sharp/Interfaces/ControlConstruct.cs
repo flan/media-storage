@@ -80,9 +80,6 @@ namespace MediaStorage.Interfaces{
         /// May either be <c>null</c>, the default, which means no change or a <see cref="Structures.CompressionPolicy"/>
         /// instance.
         /// </param>
-        /// <param name='compression_policy_format'>
-        /// The format into which the file will be compressed once the compression policy activates; defaults to <c>COMPRESSION.NONE</c>.
-        /// </param>
         /// <param name='timeout'>
         /// The number of seconds to wait for a response; defaults to 2.5.
         /// </param>

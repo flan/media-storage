@@ -22,7 +22,7 @@ namespace MediaStorage{
     /// <summary>
     /// Provides direct access to a media-storage server; appropriate for most deployments.
     /// </summary>
-    public class Client : BaseClient, Interfaces.ControlConstruct{
+    public class Client : AbstractBaseClient, Interfaces.ControlConstruct{
         /// <summary>
         /// Initializes a new instance of the <see cref="Client"/> class.
         /// </summary>
@@ -111,9 +111,6 @@ namespace MediaStorage{
         /// May either be <c>null</c>, the default, which means the file is never compressed or a <see cref="Structures.CompressionPolicy"/>
         /// instance.
         /// </param>
-        /// <param name='compression_policy_format'>
-        /// The format into which the file will be compressed once the compression policy activates; defaults to <c>COMPRESSION.NONE</c>.
-        /// </param>
         /// <param name='meta'>
         /// Any additional metadata with which to tag the file; defaults to <c>null</c>, meaning no metadata.
         /// </param>
@@ -185,7 +182,7 @@ namespace MediaStorage{
         }
 
         /// <summary>
-        /// Retrieves the requested data from the server.
+        /// Retrieves the identified data from the server.
         /// </summary>
         /// <returns>
         /// Returns the content's MIME and the decompressed data as a stream (optionally that
@@ -269,7 +266,7 @@ namespace MediaStorage{
         }
 
         /// <summary>
-        /// Retrieves details about the requested record from the server.
+        /// Retrieves details about the identified record from the server.
         /// </summary>
         /// <param name='uid'>
         /// The UID of the record to be read.
@@ -311,7 +308,7 @@ namespace MediaStorage{
         /// Unlinks the identified data on the server.
         /// </summary>
         /// <param name='uid'>
-        /// The UID of the record to be updated.
+        /// The UID of the record to be unlinked.
         /// </param>
         /// <param name='write_key'>
         /// A token that grants permission to modify the record.
@@ -362,7 +359,7 @@ namespace MediaStorage{
         /// A list of all metadata to be removed; defaults to <c>null</c>.
         /// </param>
         /// <param name='deletion_policy'>
-        /// May either be <c>null</c>, the default, which means no change (default) or a
+        /// May either be <c>null</c>, the default, which means no change, or a
         /// dictionary containing one or both of the following:
         /// <list>
         ///     <item>'fixed': The number of seconds to retain the file from the time it was uploaded</item>
@@ -370,7 +367,7 @@ namespace MediaStorage{
         /// </list>
         /// </param>
         /// <param name='compression_policy'>
-        /// May either be <c>null</c>, the default, which means the file is never compressed (default) or a
+        /// May either be <c>null</c>, the default, which means the file is never compressed, or a
         /// dictionary containing one or both of the following:
         /// <list>
         ///     <item>'fixed': The number of seconds to leave the file alone from the time it was uploaded</item>
@@ -427,8 +424,13 @@ namespace MediaStorage{
         }
 
         /// <summary>
-        /// Returns a list of matching records, up to the server's limit.
+        /// Returns a collection of matching records, up to the server's limit.
         /// </summary>
+        /// <remarks>
+        /// To retrieve more records, take the <c>Ctime</c> of the most recent record in the set and use
+        /// that as the starting point for another query, updating and recycling the already-used
+        /// <see cref="Structures.Query"/> object.
+        /// </remarks>
         /// <param name='query'>
         /// The query-structure to evaluate.
         /// </param>

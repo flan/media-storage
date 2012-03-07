@@ -24,7 +24,7 @@ namespace MediaStorage{
     /// both fast and fault-tolerant archival of content, provided that synchronous transactions are not
     /// a requirement of the usage domain.
     /// </summary>
-    public class StorageProxy : BaseClient{
+    public class StorageProxy : AbstractBaseClient{
         /// <summary>
         /// The address of the media-storage server.
         /// </summary>
@@ -83,9 +83,6 @@ namespace MediaStorage{
         /// <param name='compression_policy'>
         /// May either be <c>null</c>, the default, which means the file is never compressed or a <see cref="Structures.CompressionPolicy"/>
         /// instance.
-        /// </param>
-        /// <param name='compression_policy_format'>
-        /// The format into which the file will be compressed once the compression policy activates; defaults to <c>COMPRESSION.NONE</c>.
         /// </param>
         /// <param name='meta'>
         /// Any additional metadata with which to tag the file; defaults to <c>null</c>, meaning no metadata.

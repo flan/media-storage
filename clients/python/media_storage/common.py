@@ -245,7 +245,7 @@ class Error(Exception):
     
 class ProtocolError(Error):
     """
-    Indicates a problem with the transport protocol.
+    Indicates a problem with the transport protocol, which is, at this point, only HTTP.
     """
     
 class NotAuthorisedError(ProtocolError):

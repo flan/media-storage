@@ -20,9 +20,9 @@
 
 namespace MediaStorage{
     /// <summary>
-    /// Base client.
+    /// Contains definitions for all methods and structures common to all client-types.
     /// </summary>
-    public abstract class BaseClient : Interfaces.BaseConstruct{
+    public abstract class AbstractBaseClient : Interfaces.BaseConstruct{
         /// <summary>
         /// The full URI of the media-storage server.
         /// </summary>

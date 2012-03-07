@@ -24,7 +24,7 @@ namespace MediaStorage.Interfaces{
     /// </summary>
     public interface RetrievalConstruct : BaseConstruct{
         /// <summary>
-        /// Retrieves the requested data from the server.
+        /// Retrieves the identified data from the server.
         /// </summary>
         /// <returns>
         /// Returns the content's MIME and the decompressed data as a stream (optionally that
@@ -55,7 +55,7 @@ namespace MediaStorage.Interfaces{
         Structures.Internal.Content Get(string uid, string read_key, System.IO.Stream output_file=null, bool decompress_on_server=false, float timeout=5.0f);
 
         /// <summary>
-        /// Retrieves details about the requested record from the server.
+        /// Retrieves details about the identified record from the server.
         /// </summary>
         /// <returns>
         /// A <see cref="Structures.Internal.Description"/> structure if the record was read, or <c>null</c> otherwise.
