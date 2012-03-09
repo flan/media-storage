@@ -1,6 +1,4 @@
 // 
-//  Public.cs
-//  
 //  Author:
 //       Neil Tallim <flan@uguu.ca>
 // 

@@ -31,9 +31,18 @@ namespace MediaStorage.Structures{
         /// The write-key of the stored data.
         /// </summary>
         public string Write;
-
+		
+		/// <summary>
+		/// Creates an empty keys-structure to be filled by the caller.
+		/// </summary>
         public Keys(){
         }
+		/// <summary>
+		/// Creates a keys-structure using data from a server.
+		/// </summary>
+		/// <param name='keys'>
+		/// The data from the server.
+		/// </param>
         public Keys(System.Collections.Generic.IDictionary<string, object> keys){
             if(keys.ContainsKey("read")){
                 this.Read = (string)keys["read"];
@@ -51,4 +60,3 @@ namespace MediaStorage.Structures{
         }
     }
 }
-
