@@ -1,6 +1,4 @@
 // 
-//  Streams.cs
-//  
 //  Author:
 //       Neil Tallim <flan@uguu.ca>
 // 

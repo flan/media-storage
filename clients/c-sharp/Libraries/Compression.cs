@@ -43,9 +43,24 @@ namespace MediaStorage{
 }
 
 namespace MediaStorage.Libraries{
+    /// <summary>
+    /// Exposes compression methods.
+    /// </summary>
     internal static class Compression{
-        internal static System.Collections.Generic.IList<COMPRESSION> supported_formats = new System.Collections.Generic.List<COMPRESSION>(new COMPRESSION[]{COMPRESSION.GZ});
+        /// <summary>
+        /// An enumerable collection of all locally supported formats.
+        /// </summary>
+        internal static System.Collections.Generic.IList<COMPRESSION> SupportedFormats = new System.Collections.Generic.List<COMPRESSION>(new COMPRESSION[]{COMPRESSION.GZ});
 
+        /// <summary>
+        /// Resolves a compression format-enum, given a string.
+        /// </summary>
+        /// <param name='compression'>
+        /// The compression-format to be identified; internally evaluated in lower-case.
+        /// </param>
+        /// <exception cref="System.ArgumentException">
+        /// An unknown format was indicated.
+        /// </exception>
         internal static COMPRESSION ResolveCompressionFormat(string compression){
             if(compression == null){
                 return COMPRESSION.NONE;
@@ -58,10 +73,19 @@ namespace MediaStorage.Libraries{
                 case "lzma":
                     return COMPRESSION.LZMA;
                 default:
-                    return COMPRESSION.NONE;
+                    throw new System.ArgumentException("Unsupported compression format: " + compression);
             }
         }
 
+        /// <summary>
+        /// Gets the appropriate compressor-function for the indicated format.
+        /// </summary>
+        /// <param name='compression'>
+        /// The type of compressor to retrieve.
+        /// </param>
+        /// <exception cref="System.ArgumentException">
+        /// An unsupported format was indicated.
+        /// </exception>
         internal static System.Func<System.IO.Stream, System.IO.Stream> GetCompressor(COMPRESSION compression){
             if(compression == COMPRESSION.NONE){
                 return Compression.NullHandler;
@@ -71,6 +95,15 @@ namespace MediaStorage.Libraries{
             throw new System.ArgumentException(compression.ToString() + " is unsupported");
         }
 
+        /// <summary>
+        /// Gets the appropriate decompressor-function for the indicated format.
+        /// </summary>
+        /// <param name='compression'>
+        /// The type of decompressor to retrieve.
+        /// </param>
+        /// <exception cref="System.ArgumentException">
+        /// An unsupported format was indicated.
+        /// </exception>
         internal static System.Func<System.IO.Stream, System.IO.Stream> GetDecompressor(COMPRESSION compression){
             if(compression == COMPRESSION.NONE){
                 return Compression.NullHandler;
@@ -80,10 +113,27 @@ namespace MediaStorage.Libraries{
             throw new System.ArgumentException(compression.ToString() + " is unsupported");
         }
 
+        /// <summary>
+        /// Returns the data unmodified. (New <see cref="TempFileStream"/> for semantic equivalence)
+        /// </summary>
+        /// <param name='data'>
+        /// The data to be (de)compressed.
+        /// </param>
         private static System.IO.Stream NullHandler(System.IO.Stream data){
-            return data;
+            System.IO.Stream tfs = new TempFileStream();
+
+            data.CopyTo(tfs);
+            tfs.Seek(0, System.IO.SeekOrigin.Begin);
+
+            return tfs;
         }
 
+        /// <summary>
+        /// Returns the data compressed using Gzip.
+        /// </summary>
+        /// <param name='data'>
+        /// The data to be compressed.
+        /// </param>
         private static System.IO.Stream CompressGz(System.IO.Stream data){
             System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Compress);
             TempFileStream tfs = new TempFileStream();
@@ -94,6 +144,12 @@ namespace MediaStorage.Libraries{
             return tfs;
         }
 
+        /// <summary>
+        /// Returns the data decompressed using Gzip.
+        /// </summary>
+        /// <param name='data'>
+        /// The data to be decompressed.
+        /// </param>
         private static System.IO.Stream DecompressGz(System.IO.Stream data){
             System.IO.Compression.GZipStream gz = new System.IO.Compression.GZipStream(data, System.IO.Compression.CompressionMode.Decompress);
             TempFileStream tfs = new TempFileStream();

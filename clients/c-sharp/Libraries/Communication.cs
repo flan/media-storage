@@ -60,8 +60,17 @@ namespace MediaStorage.Libraries{
         internal const string PROPERTY_APPLIED_COMPRESSION = "applied-compression";
         internal const string PROPERTY_FILE_ATTRIBUTES = "file-attributes";
 
+        /// <summary>
+        /// Carries responses from the server.
+        /// </summary>
         internal struct Response{
+            /// <summary>
+            /// Any interesting properties about the response.
+            /// </summary>
             public System.Collections.Generic.IDictionary<string, object> Properties;
+            /// <summary>
+            /// The response body received from the server.
+            /// </summary>
             public System.IO.Stream Data;
 
             /// <summary>
@@ -81,6 +90,18 @@ namespace MediaStorage.Libraries{
             }
         }
 
+        /// <summary>
+        /// Assembles a request with multi-part form-data, per RFC 1867.
+        /// </summary>
+        /// <param name='header'>
+        /// The JSON request jeader.
+        /// </param>
+        /// <param name='content'>
+        /// The binary data to be delivered.
+        /// </param>
+        /// <param name='output'>
+        /// The stream to which output is written.
+        /// </param>
         private static void EncodeMultipartFormdata(byte[] header, System.IO.Stream content, System.IO.Stream output){
             output.Write(Communication.FORM_HEADER, 0, Communication.FORM_HEADER.Length);
             output.Write(header, 0, header.Length);
@@ -152,6 +173,12 @@ namespace MediaStorage.Libraries{
         /// <param name='timeout'>
         /// Timeout.
         /// </param>
+        /// <exception cref="Exceptions.ProtocolError">
+        /// This, or one of this children, is thrown if a problem occurs while communicating with the server.
+        /// </exception>
+        /// <exception cref="Exceptions.URLError">
+        /// Thrown if the server cannot be contacted.
+        /// </exception>
         internal static Response SendRequest(System.Net.HttpWebRequest request, System.IO.Stream output=null, float timeout=10.0f){
             try{
                 request.GetRequestStream().Close();
