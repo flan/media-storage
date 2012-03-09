@@ -1,6 +1,4 @@
-// 
-//  DescriptionKeys.cs
-//  
+//
 //  Author:
 //       Neil Tallim <flan@uguu.ca>
 // 
@@ -19,30 +17,32 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-using System;
 
 namespace MediaStorage.Structures{
+    /// <summary>
+    /// Holds keys used to access stored data.
+    /// </summary>
     public class Keys{
         /// <summary>
         /// The read-key of the stored data.
         /// </summary>
-        public string Read;
+        public string Read = null;
         /// <summary>
         /// The write-key of the stored data.
         /// </summary>
-        public string Write;
-		
-		/// <summary>
-		/// Creates an empty keys-structure to be filled by the caller.
-		/// </summary>
+        public string Write = null;
+
+        /// <summary>
+        /// Creates an empty keys-structure to be filled by the caller.
+        /// </summary>
         public Keys(){
         }
-		/// <summary>
-		/// Creates a keys-structure using data from a server.
-		/// </summary>
-		/// <param name='keys'>
-		/// The data from the server.
-		/// </param>
+        /// <summary>
+        /// Creates a keys-structure using data from a server.
+        /// </summary>
+        /// <param name='keys'>
+        /// The data from the server.
+        /// </param>
         public Keys(System.Collections.Generic.IDictionary<string, object> keys){
             if(keys.ContainsKey("read")){
                 this.Read = (string)keys["read"];
@@ -52,6 +52,12 @@ namespace MediaStorage.Structures{
             }
         }
 
+        /// <summary>
+        /// Serialises the keys object as a media-storage-query-compatible, JSON-friendly data-structure.
+        /// </summary>
+        /// <returns>
+        /// A JSON-friendly dictionary representation of the keys object in its current state.
+        /// </returns>
         internal virtual System.Collections.Generic.IDictionary<string, object> ToDictionary(){
             System.Collections.Generic.IDictionary<string, object> dictionary = new System.Collections.Generic.Dictionary<string, object>();
             dictionary.Add("read", this.Read);
@@ -60,3 +66,4 @@ namespace MediaStorage.Structures{
         }
     }
 }
+

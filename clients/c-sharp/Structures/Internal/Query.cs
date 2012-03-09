@@ -1,6 +1,4 @@
-// 
-//  Query.cs
-//  
+//
 //  Author:
 //       Neil Tallim <flan@uguu.ca>
 // 
@@ -19,12 +17,23 @@
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-using System;
 
 namespace MediaStorage.Structures.Internal{
+    /// <summary>
+    /// Holds the results of an executed query.
+    /// </summary>
     public class Query{
+        /// <summary>
+        /// Records identified by the query's execution.
+        /// </summary>
         public System.Collections.Generic.IList<Description> Results;
 
+        /// <summary>
+        /// Extracts query-response information from the server's response.
+        /// </summary>
+        /// <param name='results'>
+        /// The structure to be dissected.
+        /// </param>
         internal Query(System.Collections.Generic.IList<object> results){
             this.Results = new System.Collections.Generic.List<MediaStorage.Structures.Internal.Description>();
             foreach(object result in results){
