@@ -139,7 +139,7 @@ def send_request(request, output=None, timeout=10.0):
     """
     try:
         response = urllib2.urlopen(request, timeout=timeout)
-    except urllib2.ProtocolError as e:
+    except urllib2.HTTPError as e:
         if e.code == 403:
             raise NotAuthorisedError("The requested operation could not be performed because an invalid key was provided")
         elif e.code == 404:
