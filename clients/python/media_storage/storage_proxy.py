@@ -51,16 +51,14 @@ class StorageProxyClient(interfaces.StorageConstruct):
     time-independent operations where the caller cannot or should not handle delivery failures, but
     the wrong choice if the caller must guarantee that data is available immediately.
     """
-    def __init__(self, server_host, server_port, proxy_port):
+    def __init__(self, server, proxy_port):
         """
-        `server_host` and `server_port` indicate the address of the server to be used for
-        operations; the port must be an integer and the host may be an IP or name.
+        `server` is the server-structure used to store files in this environment.
         
         `proxy_port` is the port on which the caching proxy is listening on the 'localhost'
         interface.
         """
-        self._server_host = server_host
-        self._server_port = server_port
+        self._server = server
         self._proxy = 'http://localhost:%(port)i/' % {
          'port': proxy_port,
         }
@@ -115,10 +113,7 @@ class StorageProxyClient(interfaces.StorageConstruct):
          },
          'meta': meta,
          'proxy': {
-          'server': {
-           'host': self._server_host,
-           'port': self._server_port,
-          },
+          'server': self._server.to_dictionary(),
           'data': data,
          },
         }

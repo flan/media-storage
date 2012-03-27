@@ -51,16 +51,14 @@ class CachingProxyClient(interfaces.RetrievalConstruct):
     accessed infrequently, but a good choice for templates and attachments that are sent out
     repeatedly during campaigns.
     """
-    def __init__(self, server_host, server_port, proxy_port):
+    def __init__(self, server, proxy_port):
         """
-        `server_host` and `server_port` indicate the address of the server to be used for
-        operations; the port must be an integer and the host may be an IP or name.
+        `server` is the server-structure to be used to retrieve files in this environment.
         
         `proxy_port` is the port on which the caching proxy is listening on the 'localhost'
         interface.
         """
-        self._server_host = server_host
-        self._server_port = server_port
+        self._server = server
         self._proxy = 'http://localhost:%(port)i/' % {
          'port': proxy_port,
         }
@@ -95,10 +93,7 @@ class CachingProxyClient(interfaces.RetrievalConstruct):
           'read': read_key,
          },
          'proxy': {
-          'server': {
-           'host': self._server_host,
-           'port': self._server_port,
-          },
+          'server': self._server.to_dictionary(),
          },
         })
         (properties, response) = common.send_request(request, timeout=timeout)
@@ -127,10 +122,7 @@ class CachingProxyClient(interfaces.RetrievalConstruct):
           'read': read_key,
          },
          'proxy': {
-          'server': {
-           'host': self._server_host,
-           'port': self._server_port,
-          },
+          'server': self._server.to_dictionary(),
          },
         })
         (properties, response) = common.send_request(request, timeout=timeout)

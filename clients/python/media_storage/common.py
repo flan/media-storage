@@ -32,9 +32,15 @@ GNU Lesser General Public License along with this program. If not, see
 (C) Neil Tallim, 2011
 """
 import json
+import random
 import types
 import urllib2
 
+try:
+    import dns.resolver
+except ImportError: #DNS is not available
+    pass
+    
 #Server path constants
 SERVER_PING = 'ping'
 SERVER_LIST_FAMILIES = 'list/families'
@@ -236,8 +242,94 @@ class QueryStruct(object):
          'mime': self.mime,
          'meta': self.meta,
         }
-        
-        
+
+class Server(object):
+    """
+    Describes the server-environment for data-storage.
+    """
+    _host = None #The host to which connections will be established; may be a name, IP, or SRV identifier
+    _port = 0 #The port to which connections will be established; may be undefined if using SRV
+    _ssl = False #True if SSL connections are to be used
+    _srv = False #True if SRV lookups are to be performed against `_host`
+    
+    def __init__(self, host, port=0, ssl=False, srv=False):
+        """
+        `host` may be an address or IP; `port` is the port to which connections
+        should be made, unless `srv` is set, which will cause the hostname to be
+        looked up to resolve SRV records; these supply port information.
+
+        If `ssl` is set, all communications will take place over HTTPS, which
+        carries a substantial performance penalty for large files.
+        """
+        if not port and not srv:
+            raise ValueError("Port may only be undefined when using SRV records")
+
+        self._host = host
+        self._port = (not srv and port) or 0
+        self._ssl = ssl
+        self._srv = srv
+
+    def to_dictionary(self):
+        """
+        Provides all meaningful constructor parameters as a dictionary.
+        """
+        return {
+         'host': self._host,
+         'port': self._port,
+         'ssl': self._ssl,
+         'srv': self._srv,
+        }
+
+    def _assemble(self, host, port, ssl):
+        """
+        Provides a schema-complete address for a host.
+        """
+        return "http%(ssl)s://%(host)s:%(port)i" % {
+         'ssl': ssl and 's' or '',
+         'host': host,
+         'port': port,
+        }
+
+    def get_host(self):
+        """
+        Resolves a schema-complete address for a usable host or raises `URLError` if resolution
+        fails.
+        """
+        if self._srv:
+            candidates = {}
+            try:
+                for record in dns.resolver.query(self._host, 'SRV'):
+                    container = candidates.get(record.priority)
+                    if not container:
+                        container = candidates[record.priority] = []
+                    container.append(record)
+            except Exception as e:
+                raise URLError("Unable to resolve SRV record: %(error)s" % {
+                 'error': str(e),
+                })
+                
+            for (priority, container) in sorted(candidates.items()):
+                while container:
+                    choices = []
+                    for choice in container:
+                        choices += [choice] * choice.weight
+                    candidate = random.choice(choices)
+
+                    address = self._assemble(candidate.canonicalize().to_text()[:-1], candidate.port, self._ssl)
+                    try: #Send a ping, just like the clients
+                        request = assemble_request(address + SERVER_PING, {})
+                        (properties, response) = send_request(request, timeout=1)
+                        json.loads(response)
+                    except Exception:
+                        container.remove(candidate)
+                    else:
+                        return address
+            else:
+                raise URLError("No active servers found via SRV resolution")
+        else:
+            return self._assemble(self._host, self._port, self._ssl)
+            
+            
 class Error(Exception):
     """
     The base class from which all errors native to this package inherit.

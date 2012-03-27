@@ -63,7 +63,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
             _logger.info("Writing files for '%(uid)s'..." % {
              'uid': record['uid'],
             })
-            filesystem.add_entity(request['proxy']['server']['host'], request['proxy']['server']['port'], request['proxy']['data'], record)
+            filesystem.add_entity(request['proxy']['server'], request['proxy']['data'], record)
             
             _logger.info("Stored '%(uid)s'" % {
              'uid': record['uid'],
