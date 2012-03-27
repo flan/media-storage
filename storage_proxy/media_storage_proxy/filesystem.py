@@ -62,7 +62,7 @@ class _Uploader(threading.Thread):
                     if timeout < time.time():
                         del _flooded_servers[server]
                     else:
-                        _logger.debug("Record retrieved is associated with a flooded server and wil be re-queued")
+                        _logger.debug("Record retrieved is associated with a flooded server and will be re-queued")
                         _upload_failure(entity)
                         continue
             client = media_storage.Client(host, port)
