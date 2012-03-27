@@ -52,15 +52,12 @@ class Client(interfaces.ControlConstruct):
     """
     _server = None #The server to which requests are sent
     
-    def __init__(self, server_host, server_port):
+    def __init__(self, server):
         """
-        `server_host` and `server_port` indicate the address of the server to be used for
-        operations; the port must be an integer and the host may be an IP or name.
+        `server` is a `Server` object, initialised with the properties of the
+        server-configuration to be used to manage data.
         """
-        self._server = 'http://%(host)s:%(port)i/' % {
-         'host': server_host,
-         'port': server_port,
-        }
+        self._server = server
         
     def status(self, timeout=2.5):
         """
@@ -77,7 +74,7 @@ class Client(interfaces.ControlConstruct):
             
         `timeout` is the number of seconds to allow for retrieval to complete, defaulting to 2.5s.
         """
-        request = common.assemble_request(self._server + common.SERVER_STATUS, {})
+        request = common.assemble_request(self._server.get_host() + common.SERVER_STATUS, {})
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)
         
@@ -87,7 +84,7 @@ class Client(interfaces.ControlConstruct):
         
         `timeout` is the number of seconds to allow for pinging to complete, defaulting to 1.0s.
         """
-        request = common.assemble_request(self._server + common.SERVER_PING, {})
+        request = common.assemble_request(self._server.get_host() + common.SERVER_PING, {})
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)
         
@@ -97,7 +94,7 @@ class Client(interfaces.ControlConstruct):
         
         `timeout` is the number of seconds to allow for retrieval to complete, defaulting to 2.5s.
         """
-        request = common.assemble_request(self._server + common.SERVER_LIST_FAMILIES, {})
+        request = common.assemble_request(self._server.get_host() + common.SERVER_LIST_FAMILIES, {})
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)['families']
         
@@ -149,7 +146,7 @@ class Client(interfaces.ControlConstruct):
             else:
                 headers[common.HEADER_COMPRESS_ON_SERVER] = common.HEADER_COMPRESS_ON_SERVER_TRUE
                 
-        request = common.assemble_request(self._server + common.SERVER_PUT, description, headers=headers, data=data)
+        request = common.assemble_request(self._server.get_host() + common.SERVER_PUT, description, headers=headers, data=data)
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)
         
@@ -170,7 +167,7 @@ class Client(interfaces.ControlConstruct):
         if not decompress_on_server: #Tell the server what the client supports
             headers[common.HEADER_SUPPORTED_COMPRESSION] = common.HEADER_SUPPORTED_COMPRESSION_DELIMITER.join(compression.SUPPORTED_FORMATS)
             
-        request = common.assemble_request(self._server + common.SERVER_GET, {
+        request = common.assemble_request(self._server.get_host() + common.SERVER_GET, {
          'uid': uid,
          'keys': {
           'read': read_key,
@@ -204,7 +201,7 @@ class Client(interfaces.ControlConstruct):
         All other arguments are the same as in
         ``media_storage.interfaces.ControlConstruct.describe``.
         """
-        request = common.assemble_request(self._server + common.SERVER_DESCRIBE, {
+        request = common.assemble_request(self._server.get_host() + common.SERVER_DESCRIBE, {
          'uid': uid,
          'keys': {
           'read': read_key,
@@ -221,7 +218,7 @@ class Client(interfaces.ControlConstruct):
         
         All other arguments are the same as in ``media_storage.interfaces.ControlConstruct.unlink``.
         """
-        request = common.assemble_request(self._server + common.SERVER_UNLINK, {
+        request = common.assemble_request(self._server.get_host() + common.SERVER_UNLINK, {
          'uid': uid,
          'keys': {
           'write': write_key,
@@ -241,7 +238,7 @@ class Client(interfaces.ControlConstruct):
         
         All other arguments are the same as in ``media_storage.interfaces.ControlConstruct.update``.
         """
-        request = common.assemble_request(self._server + common.SERVER_UPDATE, {
+        request = common.assemble_request(self._server.get_host() + common.SERVER_UPDATE, {
          'uid': uid,
          'keys': {
           'write': write_key,
@@ -265,7 +262,7 @@ class Client(interfaces.ControlConstruct):
         
         All other arguments are the same as in ``media_storage.interfaces.ControlConstruct.query``.
         """
-        request = common.assemble_request(self._server + common.SERVER_QUERY, query.to_dict())
+        request = common.assemble_request(self._server.get_host() + common.SERVER_QUERY, query.to_dict())
         (properties, response) = common.send_request(request, timeout=timeout)
         return json.loads(response)['records']
         

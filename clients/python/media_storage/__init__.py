@@ -34,6 +34,7 @@ GNU Lesser General Public License along with this program. If not, see
 VERSION = '0.9.0-dev'
 
 from common import (
+ Server,
  QueryStruct,
  Error,
  ProtocolError, NotAuthorisedError, NotFoundError, InvalidRecordError, InvalidHeadersError,

@@ -66,8 +66,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         })
         
         content = cache.get(
-         request['proxy']['server']['host'], request['proxy']['server']['port'],
-         request['uid'], request['keys']['read']
+         request['proxy']['server'], request['uid'], request['keys']['read']
         )
         
         if not content:
@@ -90,8 +89,7 @@ class _Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         })
         
         description = cache.describe(
-         request['proxy']['server']['host'], request['proxy']['server']['port'],
-         request['uid'], request['keys']['read']
+         request['proxy']['server'], request['uid'], request['keys']['read']
         )
         
         if not description:

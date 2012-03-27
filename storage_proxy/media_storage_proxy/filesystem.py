@@ -54,9 +54,9 @@ class _Uploader(threading.Thread):
         """
         while True:
             _logger.debug("Upload thread waiting for task...")
-            ((host, port), contentfile, metafile) = entity = _pool.get()
+            ((host, port, ssl, srv), contentfile, metafile) = entity = _pool.get()
             with _flood_lock:
-                server = (host, port)
+                server = entity[0]
                 timeout = _flooded_servers.get(server)
                 if timeout:
                     if timeout < time.time():
@@ -65,7 +65,7 @@ class _Uploader(threading.Thread):
                         _logger.debug("Record retrieved is associated with a flooded server and will be re-queued")
                         _upload_failure(entity)
                         continue
-            client = media_storage.Client(host, port)
+            client = media_storage.Client(host, port=port, ssl=ssl, srv=srv)
             
             try:
                 _logger.debug("Loading metadata from '%(f)s'..." % {
@@ -105,7 +105,7 @@ class _Uploader(threading.Thread):
                 })
                 _upload_failure(entity)
                 with _flood_lock:
-                    _flooded_servers[(host, port)] = time.time() + _FLOOD_TIMEOUT
+                    _flooded_servers[entity[0]] = time.time() + _FLOOD_TIMEOUT
             else:
                 self._close_file(data, contentfile) #Must be done here, since Microsoft filesystems don't support unlinking open files
                 _logger.info("The entity '%(uid)s' has been successfully uploaded and its files will be unlinked" % {
@@ -113,17 +113,21 @@ class _Uploader(threading.Thread):
                 })
                 _upload_success(entity)
                 
-def add_entity(host, port, path, meta):
+def add_entity(server, path, meta):
     """
     Copies the file at the given path to the appropriate local path and adds a
     '.meta' file. On completion, the entity is added to the runtime upload pool.
     
     The entity is '.part'-cycled.
     """
-    target_path = "%(base)s%(host)s_%(port)i%(sep)s" % {
+    target_path = "%(base)s%(host)s_%(port)i_%(flags)s%(sep)s" % {
      'base': CONFIG.storage_path,
-     'host': host,
-     'port': port,
+     'host': server['host'],
+     'port': server['port'],
+     'flags': (
+      (server['ssl'] and 's' or '') +
+      (server['srv'] and 'S' or '')
+     ),
      'sep': os.path.sep,
     }
     try:
@@ -176,10 +180,10 @@ def add_entity(host, port, path, meta):
         _logger.critical(summary)
         mail.send_alert(summary)
     else:
-        _pool.put(((host.encode('utf-8'), port), permfile.encode('utf-8'), metafile.encode('utf-8')))
+        _pool.put(((server['host'].encode('utf-8'), server['port'], server['ssl'], server['srv']), permfile.encode('utf-8'), metafile.encode('utf-8')))
         
 def _upload_success(entity):
-    ((host, port), contentfile, metafile) = entity
+    ((host, port, ssl, srv), contentfile, metafile) = entity
     for filename in (contentfile, metafile):
         _logger.debug("Unlinking uploaded entity %(f)s..." % {
          'f': filename,
@@ -206,8 +210,10 @@ def _populate_pool():
     entities = []
     for directory in (d for d in os.listdir(CONFIG.storage_path) if os.path.isdir(os.path.join(CONFIG.storage_path, d))):
         try:
-            (host, port) = directory.rsplit('_', 1)
+            (host, port, flags) = directory.rsplit('_', 1)
             port = int(port)
+            ssl = 's' in flags
+            srv = 'S' in flags
             directory = os.path.join(CONFIG.storage_path, directory) + os.path.sep
         except Exception as e:
             _logger.warn("Invalid directory; does not imply a server address: %(root)s/%(dirname)s" % {
@@ -247,7 +253,7 @@ def _populate_pool():
                     _logger.info("Registered entity %(f)s" % {
                      'f': filename,
                     })
-                    entities.append(((host, port), filename, filename + _EXTENSION_METADATA))
+                    entities.append(((host, port, ssl, srv), filename, filename + _EXTENSION_METADATA))
                     
     random.shuffle(entities)
     for entity in entities:

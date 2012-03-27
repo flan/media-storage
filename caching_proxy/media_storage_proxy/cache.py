@@ -61,8 +61,8 @@ class _Purger(threading.Thread):
                     _cache = _cache[:0]
             time.sleep(CONFIG.storage_purge_interval)
             
-def _download(host, port, uid, read_key, contentfile, metafile):
-    client = media_storage.Client(host, port)
+def _download(server, uid, read_key, contentfile, metafile):
+    client = media_storage.Client(server['host'], port=server['port'], ssl=server['ssl'], srv=server['srv'])
     with open(contentfile, 'wb') as cf:
         client.get(uid, read_key, output_file=cf, decompress_on_server=False, timeout=CONFIG.rules_timeout)
     with open(metafile, 'wb') as mf:
@@ -76,11 +76,11 @@ def _download(host, port, uid, read_key, contentfile, metafile):
          (contentfile, metafile)
         ))
         
-def _retrieve(host, port, uid, read_key, content):
+def _retrieve(server, uid, read_key, content):
     target_path = "%(base)s%(host)s_%(port)i%(sep)s" % {
      'base': CONFIG.storage_path,
-     'host': host,
-     'port': port,
+     'host': server['host'],
+     'port': server['port'],
      'sep': os.path.sep,
     }
     try:
@@ -112,7 +112,7 @@ def _retrieve(host, port, uid, read_key, content):
             for file in (contentfile, metafile):
                 if not os.path.isfile(file):
                     _cache_lock.release()
-                    _download(host, port, uid, read_key, contentfile, metafile)
+                    _download(server, uid, read_key, contentfile, metafile)
                     _cache_lock.acquire()
                     break
                     
@@ -146,15 +146,15 @@ def _retrieve(host, port, uid, read_key, content):
         mail.send_alert(summary)
     return None
     
-def get(host, port, uid, read_key):
-    result = _retrieve(host, port, uid, read_key, True)
+def get(server, uid, read_key):
+    result = _retrieve(server, uid, read_key, True)
     if result:
         (content, meta) = result
         return (meta['physical']['format']['mime'], content)
     return None
     
-def describe(host, port, uid, read_key):
-    return _retrieve(host, port, uid, read_key, False)
+def describe(server, uid, read_key):
+    return _retrieve(server, uid, read_key, False)
     
 def _clear_pool():
     """
