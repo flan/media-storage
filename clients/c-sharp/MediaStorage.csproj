@@ -31,9 +31,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="DnsDig, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DnsDig\DnsDig\bin\Release\DnsDig.dll</HintPath>
+    </Reference>
     <Reference Include="Jayrock.Json, Version=0.9.12915.0, Culture=neutral, PublicKeyToken=null">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\jayrock\Jayrock.Json.dll</HintPath>
+      <HintPath>..\..\..\Jayrock\bin\net-4.0\release\Jayrock.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +64,7 @@
     <Compile Include="Exceptions\Public.cs" />
     <Compile Include="Structures\Internal\Status.cs" />
     <Compile Include="AbstractBaseClient.cs" />
+    <Compile Include="Server.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

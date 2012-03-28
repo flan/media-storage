@@ -26,30 +26,22 @@ namespace MediaStorage{
     /// </summary>
     public class StorageProxy : AbstractBaseClient{
         /// <summary>
-        /// The address of the media-storage server.
+        /// The address of the media-storage proxy.
         /// </summary>
-        private string media_server_host;
-        /// <summary>
-        /// The port of the media-storage server.
-        /// </summary>
-        private ushort media_server_port;
+        private string proxy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StorageProxy"/> class.
         /// </summary>
-        /// <param name='server_host'>
-        /// The address of the media-storage server.
-        /// </param>
-        /// <param name='server_port'>
-        /// The port on which the media-storage server is listening.
+        /// <param name='server'>
+        /// The details of the media-storage server.
         /// </param>
         /// <param name='proxy_port'>
         /// The port on which the media-storage proxy is listening.
         /// </param>
-        public StorageProxy(string server_host, ushort server_port, ushort proxy_port){
-            this.media_server_host = server_host;
-            this.media_server_port = server_port;
-            this.server = string.Format("http://localhost:{0}/", proxy_port);
+        public StorageProxy(Server server, ushort proxy_port){
+            this.server = server;
+            this.proxy = string.Format("http://localhost:{0}/", proxy_port);
         }
 
         /// <summary>
@@ -140,18 +132,19 @@ namespace MediaStorage{
             put.Add("policy", policy);
 
             Jayrock.Json.JsonObject proxy = new Jayrock.Json.JsonObject();
-
-            Jayrock.Json.JsonObject server = new Jayrock.Json.JsonObject();
-            server.Add("host", this.media_server_host);
-            server.Add("port", (int)this.media_server_port);
-            proxy.Add("server", server);
-
+            proxy.Add("server", this.server.ToDictionary());
             proxy.Add("data", data);
-
             put.Add("proxy", proxy);
 
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PUT, put);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.proxy + Libraries.Communication.SERVER_PUT, put);
             return new Structures.Storage(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
         }
+		
+		/// <summary>
+		/// Provides the address of the server to access for queries.
+		/// </summary>
+		internal override string GetServer(){
+			return this.proxy;
+		}
     }
 }
