@@ -24,9 +24,9 @@ namespace MediaStorage{
     /// </summary>
     public abstract class AbstractBaseClient : Interfaces.BaseConstruct{
         /// <summary>
-        /// The full URI of the media-storage server.
+        /// The details of the media-storage server.
         /// </summary>
-        protected string server;
+        protected Server server;
 
         /// <summary>
         /// Pings the server.
@@ -51,10 +51,17 @@ namespace MediaStorage{
         /// This usually means the host is down or there's a DNS/routing issue.
         /// </exception>
         public bool Ping(float timeout=1.0f){
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PING, new System.Collections.Generic.Dictionary<string, object>());
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.GetServer() + Libraries.Communication.SERVER_PING, new System.Collections.Generic.Dictionary<string, object>());
             Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary();
             return true;
         }
+		
+		/// <summary>
+		/// Provides the address of the server to access for queries.
+		/// </summary>
+		internal virtual string GetServer(){
+			return this.server.GetHost();
+		}
     }
 }
 

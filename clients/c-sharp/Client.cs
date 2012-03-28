@@ -32,8 +32,8 @@ namespace MediaStorage{
         /// <param name='server_port'>
         /// The port on which the media-storage server is listening.
         /// </param>
-        public Client(string server_host, ushort server_port){
-            this.server = string.Format("http://{0}:{1}/", server_host, server_port);
+        public Client(Server server){
+            this.server = server;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace MediaStorage{
         /// A problem occurred related to the network environment.
         /// </exception>
         public Structures.Internal.Status Status(float timeout=2.5f){
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_STATUS, new System.Collections.Generic.Dictionary<string, object>());
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_STATUS, new System.Collections.Generic.Dictionary<string, object>());
             return new Structures.Internal.Status(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
         }
 
@@ -75,7 +75,7 @@ namespace MediaStorage{
         /// A problem occurred related to the network environment.
         /// </exception>
         public System.Collections.Generic.IList<string> ListFamilies(float timeout=2.5f){
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_LIST_FAMILIES, new System.Collections.Generic.Dictionary<string, object>());
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_LIST_FAMILIES, new System.Collections.Generic.Dictionary<string, object>());
             System.Collections.Generic.List<string> families = new System.Collections.Generic.List<string>();
             foreach(object family in (System.Collections.Generic.IList<object>)Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary()["families"]){
                 families.Add((string)family);
@@ -177,7 +177,7 @@ namespace MediaStorage{
                 headers.Add(Libraries.Communication.HEADER_COMPRESS_ON_SERVER, Libraries.Communication.HEADER_COMPRESS_ON_SERVER_TRUE);
             }
 
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_PUT, put, headers:headers, data:data);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_PUT, put, headers:headers, data:data);
             return new Structures.Storage(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
         }
 
@@ -232,7 +232,7 @@ namespace MediaStorage{
                 headers.Add(Libraries.Communication.HEADER_SUPPORTED_COMPRESSION, string.Join(Libraries.Communication.HEADER_SUPPORTED_COMPRESSION_DELIMITER.ToString(), Libraries.Compression.SupportedFormats));
             }
 
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_GET, get_json, headers:headers);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_GET, get_json, headers:headers);
 
             System.IO.Stream output;
             if(output_file != null){
@@ -300,7 +300,7 @@ namespace MediaStorage{
             keys.Add("read", read_key);
             describe.Add("keys", keys);
 
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_DESCRIBE, describe);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_DESCRIBE, describe);
             return new Structures.Internal.Description(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
         }
 
@@ -339,7 +339,7 @@ namespace MediaStorage{
             keys.Add("write", write_key);
             unlink.Add("keys", keys);
 
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_UNLINK, unlink);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_UNLINK, unlink);
             Libraries.Communication.SendRequest(request, timeout:timeout);
         }
 
@@ -419,7 +419,7 @@ namespace MediaStorage{
             meta.Add("removed", removed_meta != null ? removed_meta : new System.Collections.Generic.List<string>());
             update.Add("meta", meta);
 
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_UPDATE, update);
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_UPDATE, update);
             Libraries.Communication.SendRequest(request, timeout:timeout);
         }
 
@@ -447,7 +447,7 @@ namespace MediaStorage{
         /// A problem occurred related to the network environment.
         /// </exception>
         public Structures.Internal.Query Query(Structures.Query query, float timeout=5.0f){
-            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server + Libraries.Communication.SERVER_QUERY, query.ToDictionary());
+            System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_QUERY, query.ToDictionary());
             return new Structures.Internal.Query((System.Collections.Generic.IList<object>)Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary()["records"]);
         }
     }
