@@ -284,7 +284,7 @@ class Server(object):
         """
         Provides a schema-complete address for a host.
         """
-        return "http%(ssl)s://%(host)s:%(port)i" % {
+        return "http%(ssl)s://%(host)s:%(port)i/" % {
          'ssl': ssl and 's' or '',
          'host': host,
          'port': port,
