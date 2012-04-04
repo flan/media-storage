@@ -38,8 +38,8 @@ _logger = logging.getLogger("media_storage.backends.local")
 
 def _handle_error(e):
     """
-    A generic error-handling construct that raises the appropriae exception depending on the problem
-    that occurred.
+    A generic error-handling construct that raises the appropriate exception,
+    depending on the problem that occurred.
     """
     if e.errno == 2:
         raise FileNotFoundError(str(e))

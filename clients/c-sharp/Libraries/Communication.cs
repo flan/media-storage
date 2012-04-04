@@ -213,7 +213,7 @@ namespace MediaStorage.Libraries{
                     if(response.StatusCode == System.Net.HttpStatusCode.Forbidden){
                         throw new Exceptions.NotAuthorisedError("The requested operation could not be performed because an invalid key was provided");
                     }else if(response.StatusCode == System.Net.HttpStatusCode.NotFound){
-                        throw new Exceptions.NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined");
+                        throw new Exceptions.NotFoundError("The requested resource was not retrievable; it may have been deleted or not yet defined");
                     }else if(response.StatusCode == System.Net.HttpStatusCode.Conflict){
                         throw new Exceptions.InvalidRecordError("The uploaded request is structurally flawed and cannot be processed");
                     }else if(response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed){

@@ -149,7 +149,7 @@ def send_request(request, output=None, timeout=10.0):
         if e.code == 403:
             raise NotAuthorisedError("The requested operation could not be performed because an invalid key was provided")
         elif e.code == 404:
-            raise NotFoundError("The requested resource was not retrievable; it may have been deleted or net yet defined")
+            raise NotFoundError("The requested resource was not retrievable; it may have been deleted or not yet defined")
         elif e.code == 409:
             raise InvalidRecordError("The uploaded request is structurally flawed and cannot be processed")
         elif e.code == 412:
