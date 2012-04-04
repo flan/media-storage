@@ -37,8 +37,8 @@ from common import (
  Server,
  QueryStruct,
  Error,
- ProtocolError, NotAuthorisedError, NotFoundError, InvalidRecordError, InvalidHeadersError,
- TemporaryFailureError,
+ ProtocolError, NotAuthorisedError, NotFoundError, NotPresentError, InvalidRecordError,
+ InvalidHeadersError, TemporaryFailureError,
  URLError,
 )
 

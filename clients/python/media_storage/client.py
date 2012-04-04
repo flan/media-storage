@@ -208,7 +208,10 @@ class Client(interfaces.ControlConstruct):
          },
         })
         (properties, response) = common.send_request(request, timeout=timeout)
-        return json.loads(response)
+        response = json.loads(response)
+        if not response['physical']['exists']:
+            raise common.NotPresentError(response)
+        return response
         
     def unlink(self, uid, write_key, timeout=2.5):
         """

@@ -350,6 +350,14 @@ class NotFoundError(ProtocolError):
     The server returned a 404.
     """
     
+class NotPresentError(NotFoundError):
+    """
+    The server was unable to find the specified file, though records exist.
+    """
+    def __init__(self, json):
+        NotFoundError.__init__(self, "Unable to find requested file, though records exist")
+        self.json = json
+        
 class InvalidRecordError(ProtocolError):
     """
     The server returned a 409, meaning that the request is flawed.
