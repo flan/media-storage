@@ -74,7 +74,7 @@ namespace MediaStorage{
 		/// Provides a schema-complete address for a host.
 		/// </summary>
 		private string Assemble(string host, ushort port, bool ssl){
-			return "http" + (ssl ? "s" : "") + "://" + host + ':' + port;
+			return "http" + (ssl ? "s" : "") + "://" + host + ':' + port + "/";
 		}
 		
 		/// <summary>
