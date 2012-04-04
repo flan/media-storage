@@ -289,6 +289,9 @@ namespace MediaStorage{
         /// <exception cref="Exceptions.NotFoundError">
         /// The requested record was not found.
         /// </exception>
+        /// <exception cref="Exceptions.NotPresentError">
+        /// The requested record was found, but no content is available.
+        /// </exception>
         /// <exception cref="Exceptions.NotAuthorisedError">
         /// The requested record was not accessible with the given credentials.
         /// </exception>
@@ -301,7 +304,11 @@ namespace MediaStorage{
             describe.Add("keys", keys);
 
             System.Net.HttpWebRequest request = Libraries.Communication.AssembleRequest(this.server.GetHost() + Libraries.Communication.SERVER_DESCRIBE, describe);
-            return new Structures.Internal.Description(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
+            Structures.Internal.Description description = new Structures.Internal.Description(Libraries.Communication.SendRequest(request, timeout:timeout).ToDictionary());
+			if(!description.Physical.Exists){
+				throw new Exceptions.NotPresentError(description);
+			}
+			return description;
         }
 
         /// <summary>

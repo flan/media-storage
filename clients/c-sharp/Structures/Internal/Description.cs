@@ -82,6 +82,10 @@ namespace MediaStorage.Structures.Internal{
         /// The family to which the data belongs; <c>null</c> refers to the generic family.
         /// </summary>
         public string Family;
+		/// <summary>
+		/// Indicates whether the file's content actually exists.
+		/// </summary>
+		public bool Exists;
         /// <summary>
         /// Format details of the stored data.
         /// </summary>
@@ -97,6 +101,7 @@ namespace MediaStorage.Structures.Internal{
             this.Atime = Libraries.Structures.ToCLRTimestamp(((Jayrock.Json.JsonNumber)physical["atime"]).ToDouble()).Value;
             this.Ctime = Libraries.Structures.ToCLRTimestamp(((Jayrock.Json.JsonNumber)physical["ctime"]).ToDouble()).Value;
             this.Family = (string)physical["family"];
+			this.Exists = (bool)physical["exists"];
             this.Format = new DescriptionPhysicalFormat((System.Collections.Generic.IDictionary<string, object>)physical["format"]);
         }
     }

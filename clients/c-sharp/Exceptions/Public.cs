@@ -54,6 +54,20 @@ namespace MediaStorage.Exceptions{
         public NotFoundError(string message) : base(message){}
         public NotFoundError(string message, System.Exception innerException) : base(message, innerException){}
     }
+	
+	/// <summary>
+	/// The server indicated that the requested data was not available, though it did contain records.
+	/// </summary>
+	public class NotPresentError : NotFoundError{
+		/// <summary>
+		/// The description received from the server.
+		/// </summary>
+		public Structures.Internal.Description Description;
+		
+		public NotPresentError(Structures.Internal.Description description) : base("Unable to find requested file, though records exist"){
+			this.Description = description;
+		}
+	}
 
     /// <summary>
     /// The server returned a 409.
