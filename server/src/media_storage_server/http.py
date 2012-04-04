@@ -388,6 +388,7 @@ class DescribeHandler(BaseHandler):
             return
             
         _logger.debug("Describing entity...")
+        record['physical']['exists'] = state.get_filesystem(record['physical']['family']).file_exists(record)
         record['uid'] = record['_id']
         del record['_id']
         del record['physical']['minRes']
@@ -616,6 +617,7 @@ class QueryHandler(BaseHandler):
             
         records = []
         for record in database.enumerate_where(query):
+            record['physical']['exists'] = state.get_filesystem(record['physical']['family']).file_exists(record)
             if not trust.read:
                 del record['keys']
             else:
