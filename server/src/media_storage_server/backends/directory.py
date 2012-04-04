@@ -115,7 +115,7 @@ class DirectoryBackend(common.BaseBackend):
         self._unlink(path)
         if rmcontainer:
             while True:
-                path = path[:path.rfind('/') + 1]
+                path = path[:path.rfind('/')]
                 if not path: #Arrived at root
                     break
                     
