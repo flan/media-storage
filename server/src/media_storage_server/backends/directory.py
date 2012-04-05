@@ -119,20 +119,22 @@ class DirectoryBackend(common.BaseBackend):
                 if not path: #Arrived at root
                     break
                     
-                if not self._lsdir(path): #Directory empty; remove
-                    _logger.info("Unlinking empty directory at %(path)s..." % {
-                     'path': path,
-                    })
-                    try:
-                        self.rmdir(path)
-                    except NotEmptyError as e:
-                        _logger.info("Directory at %(path)s unexpectedly found to be non-empty" % {
+                try:
+                    if not self._lsdir(path): #Directory empty; remove
+                        _logger.info("Unlinking empty directory at %(path)s..." % {
                          'path': path,
                         })
+                        try:
+                            self.rmdir(path)
+                        except NotEmptyError as e:
+                            _logger.info("Directory at %(path)s unexpectedly found to be non-empty" % {
+                             'path': path,
+                            })
+                            break
+                    else: #Directory not empty; bail
                         break
-                else: #Directory not empty; bail
+                except FileNotFoundError as e: #Directory does not exist; may have been removed by a co-process
                     break
-                    
     @abstractmethod
     def _unlink(self, path):
         raise NotImplementedError("'_unlink()' needs to be overridden in a subclass")
