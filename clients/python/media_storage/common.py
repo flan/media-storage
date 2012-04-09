@@ -34,6 +34,7 @@ GNU Lesser General Public License along with this program. If not, see
 import json
 import mmap
 import random
+import sys
 import tempfile
 import types
 import urllib2
@@ -191,6 +192,8 @@ def send_request(request, output=None, timeout=10.0):
             output.seek(0)
             return properties
         try:
+            if sys.version_info.major == 2: #Python 2.x, prior to 2.7.2, has a broken "fileno" attribute
+                return (properties, mmap.mmap(response.fp._sock.fp.fileno(), 0, mmap.ACCESS_READ))
             return (properties, mmap.mmap(response.fileno(), 0, mmap.ACCESS_READ))
         except MemoryError:
             raise MemoryError("Insufficient memory to buffer data from storage")
