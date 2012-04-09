@@ -84,6 +84,7 @@ class DirectoryBackend(common.BaseBackend):
             try:
                 self.mkdir(directory)
             except CollisionError: #Competition for directory ID
+                _logger.warn("Error for creation of " + directory + " is not a problem")
                 pass
             self._last_accessed_directory = directory
         self._put(path, data, tempfile)
