@@ -124,7 +124,10 @@ def assemble_request(destination, header, headers={}, data=None):
     
     body = json.dumps(header)
     if data:
-        body = _encode_multipart_formdata(body, (type(data) in types.StringTypes and data or data.read()))
+        try:
+            body = _encode_multipart_formdata(body, (type(data) in types.StringTypes and data or data.read()))
+        except MemoryError:
+            raise MemoryError("Insufficient memory to buffer data for storage")
         base_headers['Content-Type'] = _FORM_CONTENT_TYPE
         
     return urllib2.Request(
@@ -175,9 +178,11 @@ def send_request(request, output=None, timeout=10.0):
             properties[PROPERTY_CONTENT_LENGTH] = transfer_data(response, output)
             output.seek(0)
             return properties
-        return (properties, response.read())
-        
-        
+        try:
+            return (properties, response.read())
+        except MemoryError:
+            raise MemoryError("Insufficient memory to buffer data from storage")
+            
 class QueryStruct(object):
     """
     The structure used to issue queries against a server.
