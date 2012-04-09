@@ -133,7 +133,6 @@ def assemble_request(destination, header, headers={}, data=None):
     body = json.dumps(header)
     if data:
         try:
-            mmapped_file_as_string = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
             body = _encode_multipart_formdata(body, (
              (type(data) in types.StringTypes or type(data) is mmap.mmap) and data or
              mmap.mmap(data.fileno(), 0, access=mmap.ACCESS_READ)
