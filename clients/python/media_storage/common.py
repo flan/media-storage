@@ -32,7 +32,9 @@ GNU Lesser General Public License along with this program. If not, see
 (C) Neil Tallim, 2011
 """
 import json
+import mmap
 import random
+import tempfile
 import types
 import urllib2
 
@@ -86,7 +88,13 @@ def _encode_multipart_formdata(header, content):
     """
     Assembles a multipart/formdata request, needed for some transfer methods.
     """
-    return _FORM_HEADER + header + _FORM_PRE_CONTENT + content + _FORM_FOOTER
+    temp = tempfile.TemporaryFile()
+    temp.write(_FORM_HEADER)
+    temp.write(header)
+    temp.write(_FORM_PRE_CONTENT)
+    temp.write(content)
+    temp.write(_FORM_FOOTER)
+    return mmap.mmap(temp.fileno(), 0, access=mmap.ACCESS_READ)
     
 def transfer_data(source, destination):
     """
@@ -125,7 +133,11 @@ def assemble_request(destination, header, headers={}, data=None):
     body = json.dumps(header)
     if data:
         try:
-            body = _encode_multipart_formdata(body, (type(data) in types.StringTypes and data or data.read()))
+            mmapped_file_as_string = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+            body = _encode_multipart_formdata(body, (
+             (type(data) in types.StringTypes or type(data) is mmap.mmap) and data or
+             mmap.mmap(data.fileno(), 0, access=mmap.ACCESS_READ)
+            ))
         except MemoryError:
             raise MemoryError("Insufficient memory to buffer data for storage")
         base_headers['Content-Type'] = _FORM_CONTENT_TYPE
@@ -179,7 +191,7 @@ def send_request(request, output=None, timeout=10.0):
             output.seek(0)
             return properties
         try:
-            return (properties, response.read())
+            return (properties, mmap.mmap(response.fileno(), 0, mmap.ACCESS_READ))
         except MemoryError:
             raise MemoryError("Insufficient memory to buffer data from storage")
             
