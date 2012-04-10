@@ -93,7 +93,10 @@ def _encode_multipart_formdata(header, content):
     temp.write(_FORM_HEADER)
     temp.write(header)
     temp.write(_FORM_PRE_CONTENT)
-    temp.write(content)
+    if type(content) in types.StringTypes:
+        temp.write(content)
+    else:
+        transfer_data(content, temp)
     temp.write(_FORM_FOOTER)
     temp.seek(0)
     return mmap.mmap(temp.fileno(), 0, access=mmap.ACCESS_READ)
