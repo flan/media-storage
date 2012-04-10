@@ -89,7 +89,7 @@ def _encode_multipart_formdata(header, content):
     """
     Assembles a multipart/formdata request, needed for some transfer methods.
     """
-    temp = tempfile.TemporaryFile()
+    temp = tempfile.SpooledTemporaryFile(10 * 1024 * 1024)
     temp.write(_FORM_HEADER)
     temp.write(header)
     temp.write(_FORM_PRE_CONTENT)
