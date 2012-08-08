@@ -51,9 +51,10 @@ def get_backend(uri):
     
     Raises ``UnknownSchemaError`` if unable to work with the given URI.
     """
-    tokens = uri.split(';')
-    options = tokens[:-1]
-    match = _URI_RE.match(uri[-1])
+    tokens = uri.split(':')
+    options = tokens[:-2]
+    uri = tokens[-2] + ':' + tokens[-1]
+    match = _URI_RE.match(uri)
     if not match:
         _logger.error("Unable to parse URI")
         raise UnknownSchemaError(uri)
