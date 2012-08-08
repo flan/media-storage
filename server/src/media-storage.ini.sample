@@ -21,9 +21,9 @@ minute_resolution = 5
 
 ;The filesystem that serves the generic family class
 ;Any specialised families must be enumerated in the [families] section
-;Any leading semicolon-delimited items are interpreted as behaviour hints
+;Any leading colon-delimited items are interpreted as behaviour hints
 ; - zerodel : zero-out files before deleting them (probably good for thin-provisioned storage)
-generic_family = zerodel;file:///home/flan/media-storage/generic
+generic_family = zerodel:file:///home/flan/media-storage/generic
 
 [families]
 ;Any specialised families must be enumerated here, with the value on the left
