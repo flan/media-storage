@@ -24,6 +24,7 @@ Legal
 """
 import logging
 import os
+import subprocess
 
 from common import (
  FileNotFoundError, PermissionsError, CollisionError, NotEmptyError, NoSpaceError,
@@ -56,9 +57,10 @@ class LocalBackend(directory.DirectoryBackend):
     """
     Defines a final implementation for local contemporary filesystems.
     """
+    _zerodel = False #Whether files should be zeroed out before deletion
     _path = None #The path on which this backend operates
     
-    def __init__(self, path):
+    def __init__(self, path, options):
         """
         Ensures that `path` ends with a directory delimiter.
         """
@@ -67,6 +69,8 @@ class LocalBackend(directory.DirectoryBackend):
         else:
             self._path = path
             
+        self._zerodel = 'zerodel' in options
+        
     def _get(self, path):
         """
         Returns an open file handle for the requested file, or raises an exception.
@@ -179,6 +183,16 @@ class LocalBackend(directory.DirectoryBackend):
         """
         Removes the file at `path`, raising an exception on failure.
         """
+        if self._zerodel:
+            try:
+                working_path = self._path + path
+                filesize = os.path.getsize(working_path)
+                subprocess.call(['/bin/dd', 'if=/dev/zero', 'of=%s' % working_path, 'bs=%i' % filesize, 'count=1'])
+            except Exception as e:
+                _logger.warn("Unable to zero-out %(file)s: %(error)s" % {
+                 'file': working_path,
+                 'error': str(e),
+                })
         self._action(path, os.unlink)
         
     def _lsdir(self, path):

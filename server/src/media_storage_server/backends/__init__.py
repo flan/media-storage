@@ -51,7 +51,9 @@ def get_backend(uri):
     
     Raises ``UnknownSchemaError`` if unable to work with the given URI.
     """
-    match = _URI_RE.match(uri)
+    tokens = uri.split(';')
+    options = tokens[:-1]
+    match = _URI_RE.match(uri[-1])
     if not match:
         _logger.error("Unable to parse URI")
         raise UnknownSchemaError(uri)
@@ -59,17 +61,18 @@ def get_backend(uri):
     (schema, username, password, host, port, path) = match.groups()
     if port:
         port = int(port)
-    _logger.info("Building backend instance for %(path)s%(host)s via the %(schema)s protocol..." % {
+    _logger.info("Building backend instance for %(path)s%(host)s via the %(schema)s protocol with options %(options)s..." % {
      'path': path,
      'host': '%(host)s%(port)s' % {
       'host': host and '@' + host or '',
       'port': port and ':' + port or '',
      },
      'schema': schema,
+     'options': options or '<none>',
     })
     
     if schema == 'file':
-        return LocalBackend(path)
+        return LocalBackend(path, options)
         
     _logger.error("Unknown schema")
     raise UnknownSchemaError("'%(schema)s' does not match any recognised type" % {
