@@ -1,0 +1,8 @@
+Inspired by the need to solve the chaotic mess caused by having individual applications decide their own file-storage semantics and of having developers under time pressure resort to failure-prone tactics like using persistent filesystem connections and arbitrary database lookup methods to establish ownership, the media-storage project seeks to make it easy for IT departments to provide one or more communal file-storage targets (for small units of data) that can be programmatically accessed and queried with simple, human-readable semantics.
+
+Unlike other tagged filesystem projects, media-storage is targeted solely at API consumers and, while it may offer an operator interface, it is not suitable for use by end-users, or for local filesystem management (due to the overhead of its protocol, needed to allow it to serve as a shared resource).
+
+The media-storage system is a stateless, meta-data-oriented means of managing single files that must be shared acros multiple hosts. Its primary venue is for small-to-medium-sized operations that manage a large number of discrete entities (documents, voice recordings, images) that are stored for some period of time and that may be retrieved repeatedly by other applications in the environment.
+
+
+Note for later docs: FUSE is preferable over implementing support for unusual filesystems, since it has semantics for auto-recovery that would be hard to implement in a generalised way.
